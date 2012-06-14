@@ -15,7 +15,7 @@ class CodeStatus(models.Model):
     has_dups = models.BooleanField()
     fuzzy_matched = models.TextField()
     dups = models.TextField()
-    pmatch = models.DecimalField(max_digits=65535, decimal_places=3)
+    pmatch = models.DecimalField(max_digits=5, decimal_places=3)
     fid = models.IntegerField()
     cdate = models.DateTimeField()
     class Meta:
