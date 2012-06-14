@@ -173,7 +173,7 @@ def get_dhis_mtrack_field_mapping():
 #get report data organised according to facility/orgunits
 def get_reports(date_range=current_week_reporting_range(datetime.datetime.now())):
     #remember to order reports by date as dhis2 overrides older  reports with new ones
-    query = ("SELECT submissionid, keyword, slug, facility, value, date FROM the_values"
+    query = ("SELECT submissionid, keyword, slug, facility, value, date FROM all_submission_values_view"
             " WHERE has_errors='f' AND value <> '' AND facility IS NOT NULL AND "
             "facility NOT LIKE 'gen%%' AND date BETWEEN '%s' AND '%s' ORDER BY facility, date ASC")
     #later remove the facility not like 'gen%%'
@@ -190,6 +190,24 @@ def get_reports(date_range=current_week_reporting_range(datetime.datetime.now())
     return ORGUNIT_DATA_DICT
 
 def build_uploadXML(orgunit, week, data):
+    datavalues = """"""
+    for d in data:
+        datavalue_dict = FIELD_MAP[d['slug']]
+        datavalue_dict.update({'value': d['value']})
+        if datavalue_dict['dataElement'] and datavalue_dict['categoryOptionCombo']:
+            tmp = """<dataValue dataElement="%(dataElement)s" categoryOptionCombo="%(categoryOptionCombo)s" value="%(value)s"/>"""
+            datavalues += tmp % (datavalue_dict)
+    #we assume date completed = current date
+    _Xml = """<?xml version="1.0"?>
+<dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" period="%s" completeDate="%s" orgUnit="%s">%s</dataValueSet>"""
+    postXml = _Xml % (week, datetime.datetime.now().strftime('%F'), orgunit, datavalues)
+    return postXml.replace('\n', '')
+
+
+#we can do away with this function if we pass data as
+#data = [{'value':l.value, 'slug':l.attribute.slug} for l in s.eav_values.all()] instead of submission
+def postXmlForSubmission(submission,orgunit,week):
+    data = [{'value':l.value, 'slug':l.attribute.slug} for l in submission.eav_values.all()]
     datavalues = """"""
     for d in data:
         datavalue_dict = FIELD_MAP[d['slug']]
