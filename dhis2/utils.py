@@ -163,11 +163,14 @@ def log_code_insert(fields):
 
 def get_dhis_mtrack_field_mapping():
     global FIELD_MAP
-    query = ("SELECT DISTINCT field_slug,name, keyword,dhis2_uid, dhis2_dataelement from dhis2_mapping")
-    cur.execute(query)
-    res = cur.fetchall()
-    for r in res:
-        FIELD_MAP['%s' % r['field_slug']] = {'dataElement':r['dhis2_dataelement'], 'categoryOptionCombo':r['dhis2_uid']}
+    cur.execute("SELECT tablename FROM pg_tables WHERE tablename = '%s'"%('dhis2_mapping'))
+    res = cur.fetchone()
+    if res:
+        query = ("SELECT DISTINCT field_slug,name, keyword,dhis2_uid, dhis2_dataelement from dhis2_mapping")
+        cur.execute(query)
+        res = cur.fetchall()
+        for r in res:
+            FIELD_MAP['%s' % r['field_slug']] = {'dataElement':r['dhis2_dataelement'], 'categoryOptionCombo':r['dhis2_uid']}
 
 
 #get report data organised according to facility/orgunits
