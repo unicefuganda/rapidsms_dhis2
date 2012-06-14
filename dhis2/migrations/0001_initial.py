@@ -7,7 +7,7 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        
+
         # Adding model 'CodeStatus'
         db.create_table(u'code_status', (
             ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
@@ -18,7 +18,7 @@ class Migration(SchemaMigration):
             ('has_dups', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('fuzzy_matched', self.gf('django.db.models.fields.TextField')()),
             ('dups', self.gf('django.db.models.fields.TextField')()),
-            ('pmatch', self.gf('django.db.models.fields.DecimalField')(max_digits=65535, decimal_places=3)),
+            ('pmatch', self.gf('django.db.models.fields.DecimalField')(max_digits=5, decimal_places=3)),
             ('fid', self.gf('django.db.models.fields.IntegerField')()),
             ('cdate', self.gf('django.db.models.fields.DateTimeField')()),
         ))
@@ -39,7 +39,7 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        
+
         # Deleting model 'CodeStatus'
         db.delete_table(u'code_status')
 
