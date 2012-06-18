@@ -1,0 +1,228 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage{ucs}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\hypersetup{%
+    pdfborder = {0 0 0}
+}
+\topmargin -1.5cm
+\oddsidemargin -0.04cm
+\evensidemargin -0.04cm
+\textwidth 16.59cm
+\textheight 21.94cm
+%\pagestyle{empty}       % Uncomment if don't want page numbers
+\parskip 7.2pt           % sets spacing between paragraphs
+%\renewcommand{\baselinestretch}{1.5} % Uncomment for 1.5 spacing between lines
+\parindent 0pt 
+\title{\emph{m}TRACK-DHIS 2 Plugin}
+\author{Samuel Sekiwere}
+\begin{document}
+\maketitle
+%\listoffigures
+\newpage
+\tableofcontents
+\newpage
+\section{Introduction}
+\label{Introduction}
+\subsection{Background}
+\subsubsection{\emph{m}Track}
+\textbf{\emph{m}Track} is a Health Management Information System(HMIS) used by the Ministry of Health in partnership with UNICEF and WHO to cover disease surveillance, essential medicine and nutrition, strengthening government capacity to collect and analyse and react to real-time information.\\
+mTrack can be used for mHealth data collection, processing, interpretation and analysis.
+\subsubsection{DHIS 2}
+The District Health Information Software – Version 2 (DHIS 2) is Free and Open Source Software (FOSS) HMIS
+designed and developed under a global research and development initiative (called Health Information Systems Project
+– HISP) originating from the Department of Informatics, University of Oslo, Norway.\\
+DHIS 2 can be used for mHealth data collection, processing, interpretation and analysis.
+\subsubsection{Reason of Interoperability}
+Following the existence a variety of Health Management Information Systems, including mTrack and DHIS 2, the ministry of Uganda had to pick from this pool of applications, the primary application for the collection, processing, aggregation and analysis of the nation-wide mHealth data.\\
+DHIS 2 was chosen as the primary system for this purpose, however, other systems like mTrack have strengths that need to be embraced to leverage DHIS 2. For instance, mTrack's reliance on SMS from Mobile Phones gives it the ability to collect information even from the most remote places in the country.\\
+It was for such reasons that these two systems had to work together so that we can take advantage of the strengths from each of them.
+This called for a way of feeding DHIS 2 with data collected by mTrack. 
+\pagebreak
+
+\section{How the two systems can communicate}
+\subsection{Uniting Components}
+Both systems(mTrack and DHIS 2) collect information from health centres across the country. This information is entered into predefined reports/forms whose format and fields are provided by the Ministry of Health.\\
+The table below shows the major uniting components and how they are referred to in either system:\\\\
+\begin{table}[h!]
+	\begin{tabular}{|l|l|l|l|}
+		\hline
+		\# & Component Name & mTrack equivalent & DHIS2 equivalent\\
+		\hline
+		{1} & Health Centres & Health Facilities & Organisation Units\\
+		\hline
+		{2} & Reports & XForms & DataSets\\
+		\hline
+		{3} & Report Fields & XFormFields & DataElements\\
+		\hline
+		{4} & Report Field Values & XFormSubmissionValues & categoryOptionCombos\\
+		\hline
+	\end{tabular}
+	\caption{Table for uniting components}
+\end{table}
+\subsubsection{Health Facilities and Organisation Units}
+In mTrack, health facilities are saved as health units that are have associated locations they serve(usually referred to as catchment areas). It is these locations that give us an idea where the health facility falls in the locations hierarchy(that is; the district, health sub-districts, etc).\\
+
+In DHIS2 we have what is called the organisational hierarchy. The organisational hierarchy defines the organisation structure of the DHIS2 instance, such as how the health facilities,
+administrative areas and other geographical areas are arranged with respect to each other.\\\\
+Health facilities(HC II, HC III, HC IV, Hospitals) are the main reporting points for both systems, there is therefore need for uniquely identifying each facility from the rest. The following are used:
+\begin{itemize}
+\item code: uniquely indentifies a health facility in mTrack
+\item uid: a unique ID that differentiates organisation units in DHIS 2 from the rest
+\end{itemize}
+Please note that each component in DHIS 2 has a \lq\lq uid\rq\rq that differentiates it from the rest of the components within the same category.
+\subsubsection{XForms and DataSets}
+The RapidSMS xforms application provides an interactive web based form builder. Created forms support data being submitted to them via freehand formatted SMS, standard XForm HTTP posts or structured SMS. mTrack uses XForms and their equivalent counterparts in DHIS2 are Datasets.\\
+All data entry in DHIS 2 is organised through the use of datasets.A dataset is a collection of data elements grouped together for data collection and data export between
+instances of DHIS 2
+\subsubsection{XFormFields and DataElements}
+An XForm is composed of one or more ordered fields. Currently four types are supported for each field, integer, decimal, string and coordinate. Each field must have a unique human readable name, as well as a shorter slug used to uniquely identify it. It is the XForm Fields that mTrack uses to signify the various indicators. A typical example is the \lq\lq Malaria cases\rq\rq  which is part of the \lq\lq Disease Report\rq\rq XForm.\\\\
+DHIS 2 on the other hand uses Data elements for this same purpose. Data elements define what is actually recorded in system, e.g. number of
+immunisations or number of cases of malaria.\\
+Unique identification in both Systems:
+\begin{table}[h!]
+	\begin{tabular}{|l|l|l|}
+		\hline
+		System & Field & Indentifier\\
+		\hline
+		mTrack & XFormField & slug\\
+		\hline
+		DHIS2 & DataElement & id\\
+		\hline
+	\end{tabular}
+\end{table}
+\\
+DHIS 2 Data Elements can be further broken down into the following:
+\begin{itemize}
+\item \textbf{Data element groups}: these provide a mechanism for classifying related data elements into a common theme.
+\item \textbf{Data element categories}: can be used to disaggregate data elements into individual atomic components. Data element
+categories are typically a concept, such as Gender, Age or Disease Status. Data elements such as "Number of cases of
+confirmed malaria" are often broken into smaller component parts to determine, for instance, the number of confirmed
+malaria cases of particular age groups.
+\item \textbf{Data element category combinations}: These allow multiple data element categories to be combined into a related set. As an example, a data element "Number of new HIV infections" might be disaggregated according to the following categories.
+\end{itemize}
+\subsubsection{XFormSubmissionValues and CategoryOptionCombos}
+All the information sent in to the mTrack using Xform submissions is processed and broken down into different XForm submission values for the different XForm fields.\\
+
+An analogy for this in the DHIS 2 system are the \lq\lq Data element category combinations\rq\rq. Each category combination might have one or more options called \emph{\lq\lq CategoryOptionCombos\rq\rq}, which will hold the actual values for the indicators.
+\section{Design of mTrack-DHIS 2 Plugin}
+\subsection{DHIS 2 Web API}
+DHIS 2 ships with a Web API that complies with the rules of REST(Representational State Transfer) architectural style. The Web API provides a way of accessing the DHIS 2 data model through HTTP calls. For instance you can access a full list of data elements.
+
+The Web API is used for both reading data from and sending data to the DHIS 2 data model. The data can be accessed/retrieved using popular formats for the web such as JSON, HTML, XML, PDF and PNG.
+\subsubsection{Retrieving Data}
+To use the WEB API to access data in DHIS 2, you only have to make an HTTP request, of course not forgetting authentication information with in the HTTP request. For example, the following HTTP call would aid you to access all the DataElements in XML format(assuming DHIS 2 is running under tomcat on port 8080):
+
+curl -H \lq\lq Accept: application/xml" -u username:password http://localhost:8080/api/dataElements
+
+With the power the API provides, we can therefore read out the important information(from DHIS 2) that we need to use in binding the two systems together that were explained in chapter 2. 
+
+\subsubsection{Sending data}
+With the Web API, you can send data values to DHIS 2 from third-party systems like mTrack. You send data values by sending a POST request with the data values in XML format defined by the http://dhis2.org/schema/dxf/2.0 namespace:
+
+\begin{verbatim}
+<dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" dataSet="dataSetID" 
+	completeDate="ISODate" period="periodISODate" orgUnit="orgUnitID">
+	<dataValue dataElement="dataElementID" value="1" />
+	<dataValue dataElement="dataElementID" value="2" />
+	<dataValue dataElement="dataElementID" value="3" />
+</dataValueSet>
+\end{verbatim}
+Note: We have omitted the \textbf{\emph{categoryOptionCombo}} attribute as it is optional and not needed for this example.
+
+From the example we can see that we need to identify the period, the data set, the org unit (facility) and the data elements for which to report. The dataValueSets resource description tells us that the identifier for monthly periods should be on the format yyyyMM which means that we will use 201201 for January 2012.
+
+The following URL can be used to post the data values(You may replace localhost with the actual DHIS 2 server):\\
+curl -d @t.xml -u user:pass -H "Content-Type: application/xml" http://localhost:8080/api/dataValueSets
+The example assumes that the XML request has been saved in a file t.xml.
+
+\subsection{Data Mapping}
+Like we explained earlier in chapter 2, we need to clearly map out the different uniting components for both systems. A new database view (all\_submission\_values\_view) and a table(dhis2\_mapping) have been created with in the mTrack database, to help with the mapping and therefore make it easy to send the data values.\\
+Both the view and the table have south migrations that can help you create them by issuing the following command:
+\begin{verbatim}
+python manage.py migrate dhis2
+\end{verbatim}
+\subsubsection{The all\_submission\_values\_view}
+This view comes from joining the rapidsms\_xform application tables and the eav application tables by exposing the relevant fields that are required for posting data values to DHIS2. This view exposes all the values in the xform submissions The fields in this view include the following:\\
+(submissionid, date, keyword, report, name, slug, facility, reporter, phone, has\_errors)
+\begin{itemize}
+\item submissionid: The id for the XFormSubmission
+\item date: The date of the submission
+\item keyword:	The keyword for the XForm (helps to identify which report)
+\item report: The name of the XForm
+\item name: The name of the XFormField(read categoryOptionCombo)
+\item slug: The slug helps to tell which Xform field it is.
+\item value: The value for the Xformf field identified by the slug
+\item facility: This holds the \textbf{\emph{code}} of the facility(Organisation Unit) for which the submission is made
+\item reporter: The name of the reporter for the submission
+\item phone: The phone number of the reporter
+\item has\_erros: Whether the Xform submission had errors or not 
+\end{itemize}
+
+This view can come in very handy should you choose to send the data values periodically(perhaps with cron) as opposed to sending them as soon an Xform submission comes in. 
+
+\subsubsection{The dhis2\_mapping Table}
+This table does the actual mapping of the important fields in mTrack to their DHIS 2 counterparts. This table includes the following:
+(name, field\_slug, keyword, dhis2\_uid, dhis2\_dataelement)
+\begin{itemize}
+\item name: The name of the XFormField
+\item field\_slug: The XFormField slug
+\item Keyword: The keyword for the XForm
+\item dhis2\_uid: The actual UID of the component this xform field matches in DHIS2(In most cases the categoryOptionCombo for the case of the 033B HMIS report)
+\item dhis2\_dataelement: The UID of data Element in DHIS 2 for which xform field would map
+\end{itemize}
+
+Note: This mapping table has to be fed with the actual UIDs in the DHIS 2 system, and if all the xform fields are mapped to their DHIS 2 counterparts, any kind of report can be sent from mTrack to DHIS 2. In other words values can be posted without having to worry about the report to which they belong.
+
+Scripts have been created to automate the mapping and populate the values in these tables. However there is a limit to this automation because the name of the fields to match in both systems may vary since they were captured by different individuals and may not even follow a predefined standard. Better still you can modify these through the django admin site.
+\pagebreak
+\section{Implementation}
+Once the mapping that was discussed in the previous section has been done successfully, it becomes a lot easier for mTrak to \lq\lq speak" with DHIS 2. All the above ideas were neatly bundled into an application that can be added as a sub-module(rapidsms\_dhis2) to your project.
+\subsection{rapidsms\_dhis2 application/submodule}
+This application has a similar structure to any typical django application and should be fairly easy to add to your project as a git submodule. It has an extra utils.py module which is a toolbox of functions to access and manipulate data values in DHIS 2. The access and modification functions make HTTP requests to DHIS 2 and they require authentication. 
+
+\subsubsection{Configurations}
+To effectively make proper HTTP requests, you must have a DHIS2\_CONFIG  setting in your settings.py.\\
+The DHIS2\_CONFIG variable should have the following form:
+\begin{verbatim}
+DHIS2_CONFIG = {
+	'dhis2_url': 'http://localhost:8080/dhis/api/',
+    'dhis2_user': 'username',
+    'dhis2_passwd': 'password',
+    'ctype': 'json', # when reading, json will be easier for python
+}
+# celery configurations follow
+\end{verbatim}
+
+\subsubsection{The postXmlForSubmission Function}
+The postXmlForSubmission function takes three arguments, that is; the XFormSubmission, the facility code (Orgunit ID), and the reporting period( YYYYMM). This function returns an XML string that you can post to DHIS 2 to capture all the the data values in the submission.
+
+Once the XML string is returned, it is then posted to the DHIS 2 server using the \emph{send\_data(postXml)} function in the utils module.
+
+Posting the data after to DHIS 2 tends to take some time and can significantly slow down the processing  of XForm submissions. For this reason, it is better to have the calls to the \emph{send\_data} to be run as \lq celery tasks'. Below is a sample tasks.py that you would want to use for your celery instance:
+\begin{verbatim}
+from django.conf import settings
+from celery.task import Task, task
+from celery.registry import tasks
+from dhis2.utils import send_data, postXmlForSubmission
+
+@task
+def sendSubmissionToDHIS2(submission,facility_code,week):
+    postXml = postXmlForSubmission(submission, facility_code, week)
+    try:
+        resp = send_data(postXml)
+    except:
+        pass
+\end{verbatim}
+You would then have to call the sendSubmissionToDHIS2 task with the proper arguments to pass to postXmlForSubmission.
+\pagebreak
+\section{References}
+1. \url{http://www.dhis2.org/doc/snapshot/en/implementer/html/}\\
+2. \url{http://www.dhis2.org/doc/snapshot/en/user/html/ch24s03.html}\\
+3. \url{https://github.com/nyaruka/rapidsms-xforms/tree/master/docs}\\
+
+\end{document}
