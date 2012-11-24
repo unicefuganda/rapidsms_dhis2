@@ -38,7 +38,7 @@ dbuser = db_config['USER']
 dbpasswd = db_config['PASSWORD']
 dbport = db_config['PORT']
 
-conn = psycopg2.connect("dbname=" + dbname + " host= " + dbhost + " user=" + dbuser + " password=" + dbpasswd + " port="+dbport)
+conn = psycopg2.connect("dbname=" + dbname + " host= " + dbhost + " user=" + dbuser + " password=" + dbpasswd + " port= %s" % dbport)
 cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 http = Http()
