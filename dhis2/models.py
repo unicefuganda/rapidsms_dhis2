@@ -1,5 +1,5 @@
 from django.db import models
-
+from eav.models import Attribute
 
 def promote(modeladmin, request, queryset):
     queryset.update(created=True)
@@ -41,4 +41,10 @@ class Dhis2Mapping(models.Model):
         return self.name
     class Meta:
         db_table = u'dhis2_mapping'
+        
+class Dhis2_Mtrac_Indicators_Mapping(models.Model):
+    uuid = models.CharField(max_length=50)
+    name = models.CharField(max_length=255)
+    slug =  models.CharField(max_length=255)
+    mtrac_id =  models.ForeignKey(Attribute)
 
