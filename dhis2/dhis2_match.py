@@ -7,6 +7,7 @@ import psycopg2.extras
 import Levenshtein
 from eav.models import Attribute
 from models import Dhis2_Mtrac_Indicators_Mapping
+# http://dhis/api/dataElements/.json
 
 DHIS2_CONNECTION_CONFIG = {
     'urls': {
@@ -15,7 +16,7 @@ DHIS2_CONNECTION_CONFIG = {
     },
     "combo_ids" : {
         'diseases': '92DkrSOchnL',
-        'act':  '7O1Zh4rJoIn',
+        'act':  '6WfcY8YJ73L',
         'treat':'uh4pYNd1CSv',
         'test': 'IohHeDqzJk1'
         },
@@ -25,6 +26,8 @@ DHIS2_CONNECTION_CONFIG = {
 }
 
 DHIS2_HEALTH_INDICATORS_NAME_ERASE_SUFFIX_REGEXES = ['\- WEP',r'\(.+\)']
+
+JSON_EXTENSION = '.json'
 
 class Dhis2_Fetch_Health_Indicators(object):
     def __init__(self, match_threshold):
@@ -62,6 +65,7 @@ class Dhis2_Fetch_Health_Indicators(object):
     def find_matching_indicator_from_mtrack(self, dhis2_indicator_name):
         min_match_level = self.match_threshold 
         all_mtrack_indicators = Attribute.objects.all()
+            
         matching_indicator = None
 
         for mtrack_indicator in all_mtrack_indicators : 
@@ -74,22 +78,50 @@ class Dhis2_Fetch_Health_Indicators(object):
             return   matching_indicator
     
     def find_matches_and_update_mapping_table(self, dhis2_json):
-        mtrack_indicator_id  = self.find_matching_indicator_from_mtrack(dhis2_json['name'])
-        self.update_dhis2_mapping_db(dhis2_json, mtrack_indicator_id )
+        mtrack_indicator  = self.find_matching_indicator_from_mtrack(dhis2_json['name'])
+        self.update_dhis2_mapping_db(dhis2_json, mtrack_indicator )
         
-    def update_dhis2_mapping_db (self, dhis2_json, mtrack_indicator):
+    def update_dhis2_mapping_db (self, dhis2_indicator, mtrack_indicator):
         Dhis2_Mtrac_Indicators_Mapping.objects.create(
             mtrac_id = mtrack_indicator, 
-            dhis2_uuid = dhis2_json['id'],
-            dhis2_name  = dhis2_json['name'],
-            dhis2_url  = dhis2_json['href'],
-            dhis2_combo_id = dhis2_json['categoryCombo']['id'] )
+            dhis2_uuid = dhis2_indicator['id'],
+            dhis2_name  = dhis2_indicator['name'],
+            dhis2_url  = dhis2_indicator['href'],
+            dhis2_combo_id = dhis2_indicator['combo_id']) 
             
-    def sync_disease_indicators(self):
-        indicators_group_json = self.fetch('.json',DHIS2_CONNECTION_CONFIG['urls']['diseases'])['dataElements']
+
+    def get_indicator_combo_option_id(self, url):
+        json  =  self.fetch(JSON_EXTENSION, url)
+        if (len(json['categoryOptionCombos'])> 1):
+            return None
+        return json['categoryOptionCombos'][0]['id'] 
         
-        for indicator in indicators_group_json :
-            self.find_matches_and_update_mapping_table(indicator)
+    def get_category_combos_from_combo_category_option(self,url):
+        indicators = [] 
+        json  =  self.fetch(JSON_EXTENSION, url)
+
+        for indicator in json['categoryOptionCombos'] :
+            temp_indicator = {}
+            temp_indicator['name'] = indicator['name']
+            temp_indicator['combo_id'] = indicator['id']
+            temp_indicator['href'] = indicator['href']
+            
+            indicators.append(temp_indicator)
+        return indicators
         
+    def get_combo_id_from_indicator(self,url):
+        json  =  self.fetch(JSON_EXTENSION, url)
+        return  self.get_indicator_combo_option_id(json['categoryCombo']['href']) 
         
-    
+    def update_mappings_table(self,url):
+        json  =  self.fetch(JSON_EXTENSION, url)
+        temp_indicator = {}
+        temp_indicator['name'] = json['name']
+        temp_indicator['id'] = json['id']
+        temp_indicator['href'] = json['href']
+        combo_cat_url  = json['categoryCombo']['href']
+        comboid =  self.get_indicator_combo_option_id(combo_cat_url)
+        if comboid :
+            temp_indicator['combo_id'] = comboid
+            self.find_matches_and_update_mapping_table(temp_indicator)
+

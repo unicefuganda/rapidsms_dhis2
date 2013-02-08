@@ -54,19 +54,22 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
     
     def test_find_matches_and_update_mapping_table(self):
         Dhis2_Mtrac_Indicators_Mapping.objects.all().delete()
-        disease_json = json.loads('{"name":"Malaria Cases - WEP", "type":"int", "id": "fclvwNhzu7d", "href": "http://dhis/api/dataElements/fclvwNhzu7d", "categoryCombo":{"id":"92DkrSOchnL"} }')
-        self.fetcher.find_matches_and_update_mapping_table(disease_json)
+        disease = {"name":u"Malaria Cases - WEP", "id": u"fclvwNhzu7d", "href": u"http://dhis/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
+        self.fetcher.find_matches_and_update_mapping_table(disease)
         record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_uuid='fclvwNhzu7d')
         self.assertIsNotNone(record)
         self.assertEquals(len(record), 1)
         record = record[0]
-        self.assertEquals( record.dhis2_name, disease_json['name'])
-        self.assertEquals( record.dhis2_type, disease_json['type'])
-        self.assertEquals( record.dhis2_url, disease_json['href'])
-        self.assertEquals( record.dhis2_combo_id, disease_json['categoryCombo']['id'])
+        self.assertEquals( record.dhis2_name, disease['name'])
+        self.assertEquals( record.dhis2_uuid, disease['id'])
+        self.assertEquals( record.dhis2_url, disease['href'])
+        self.assertEquals( record.dhis2_combo_id, disease['combo_id'])
+        self.assertEquals( record.mtrac_id, Attribute.objects.get(slug='cases_ma'))
         
-    def test_sync_indicators_group(self):
-        self.fetcher.sync_disease_indicators(DHIS2_CONNECTION_CONFIG['urls']['categoryComboUrlBase']+'/uh4pYNd1CSv')
+    def xtest_sync_indicators_group(self):
+        indicator = disease = {"name":u"Malaria Cases - WEP", "id": u"fclvwNhzu7d", "href": u"http://dhis/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
+        # mtrack_indicator = find_matching_indicator_from_mtrack()
+        
         record = Dhis2_Mtrac_Indicators_Mapping.objects.all()
         test_indicators_list = [
             'Suspected Malaria Cases',
@@ -78,5 +81,58 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
             'Positive Cases 5+ Years' ]
         for test_indicator_name in test_indicators_list : 
             self.assertIsNotNone(Dhis2_Mtrac_Indicators_Mapping.objects.filetr(dhis2_name = test_indicator_name))
-        
-        
+
+    def test_get_indicator_combo_option_id_default(self):
+        category_combo_url = 'http://dhis/api/categoryCombos/92DkrSOchnL'        
+        with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
+            self.assertEqual(self.fetcher.get_indicator_combo_option_id(category_combo_url), 'gGhClrV5odI')
+
+    def test_get_indicator_combo_option_non_default(self):
+        category_combo_url = 'http://dhis/api/categoryCombos/7O1Zh4rJoIn'        
+        with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
+            self.assertIsNone(self.fetcher.get_indicator_combo_option_id(category_combo_url) )
+            
+            
+    def test_get_category_combos_from_combo_category_option(self):
+        category_combo_url = 'http://dhis/api/categoryCombos/7O1Zh4rJoIn'        
+        with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
+            indicators = self.fetcher.get_category_combos_from_combo_category_option(category_combo_url) 
+            
+            self.assertEquals(len(indicators),12)
+            for indicator in indicators : 
+                 self.assertIsNotNone(indicator['combo_id'])
+                 self.assertIsNotNone(indicator['name'])
+                 self.assertIsNotNone(indicator['href'])
+
+    def test_get_combo_id_from_indicator(self):
+        url = 'http://dhis/api/dataElements/fTwT8uX9Uto'       
+        with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
+            combo_id = self.fetcher.get_combo_id_from_indicator(url) 
+            self.assertEquals(combo_id,'gGhClrV5odI')
+            
+    def test_update_mappings_table_with_default_indicator(self):
+        disease_url = 'http://dhis/api/dataElements/fTwT8uX9Uto'        
+        with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
+            self.fetcher.update_mappings_table(disease_url)
+            record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_url= disease_url)
+            self.assertEqual(len(record), 1)
+            record=record[0]
+            self.assertEqual(record.dhis2_name, 'Adverse Events Following Immunization Cases - WEP')
+            self.assertEqual(record.dhis2_uuid, 'fTwT8uX9Uto')
+            self.assertEqual(record.dhis2_combo_id, 'gGhClrV5odI')
+            self.assertEqual(record.mtrac_id, Attribute.objects.get(slug='cases_ae'))
+
+    def xtest_update_mappings_table_with_non_default_indicator(self):
+        indicator_url = 'http://dhis/api/dataElements/6WfcY8YJ73L'        
+        with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
+            self.fetcher.update_mappings_table(indicator_url)
+            record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_uuid= '6WfcY8YJ73L')
+            self.assertEqual(len(record), 6)
+            record=record[0]
+            self.assertEqual(record.dhis2_name, 'Adverse Events Following Immunization Cases - WEP')
+            self.assertEqual(record.dhis2_uuid, 'fTwT8uX9Uto')
+            self.assertEqual(record.dhis2_combo_id, 'gGhClrV5odI')
+            self.assertEqual(record.mtrac_id, Attribute.objects.get(slug='cases_ae'))
+
+
+    

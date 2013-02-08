@@ -14,7 +14,6 @@ class Migration(SchemaMigration):
             ('mtrac_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eav.Attribute'])),
             ('dhis2_uuid', self.gf('django.db.models.fields.CharField')(max_length=50)),
             ('dhis2_name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('dhis2_type', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('dhis2_url', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('dhis2_combo_id', self.gf('django.db.models.fields.CharField')(max_length=255)),
         ))
@@ -51,7 +50,6 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Dhis2_Mtrac_Indicators_Mapping', 'db_table': "u'dhis2_mtrack_indicators_mapping'"},
             'dhis2_combo_id': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'dhis2_name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'dhis2_type': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'dhis2_url': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'dhis2_uuid': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),

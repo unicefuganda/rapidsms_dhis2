@@ -1,0 +1,13 @@
+- request:
+    body: null
+    headers: {Authorization: Basic c2VraXNreWxpbms6MTIzQ29uZ3Nl, Connection: close,
+      Content-Type: application/json; charset="UTF-8", Host: !!python/unicode 'dhis',
+      User-Agent: Python-urllib/2.7}
+    method: GET
+    url: !!python/unicode '/api/categoryCombos/92DkrSOchnL.json'
+  response:
+    body: {string: '{"name":"default","created":"2011-11-03T18:23:53.269+0000","lastUpdated":"2011-11-03T18:23:53.269+0000","user":null,"categories":[{"name":"default","created":"2013-01-15T08:48:16.042+0000","lastUpdated":"2013-02-08T07:08:46.306+0000","user":null,"href":"http://dhis/api/categories/pYsblT57GHs","id":"pYsblT57GHs"}],"skipTotal":false,"href":"http://dhis/api/categoryCombos/92DkrSOchnL","id":"92DkrSOchnL","categoryOptionCombos":[{"name":"(default)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/gGhClrV5odI","id":"gGhClrV5odI"}]}'}
+    headers: {connection: close, content-language: en-US, content-length: '625', content-type: application/json;charset=UTF-8,
+      date: 'Fri, 08 Feb 2013 13:29:23 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=0700F7857FFE0825F10F04D1BD481404;
+        Path=/; HttpOnly}
+    status: {code: 200, message: OK}
