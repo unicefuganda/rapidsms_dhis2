@@ -9,12 +9,14 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         # Adding model 'Dhis2_Mtrac_Indicators_Mapping'
-        db.create_table('dhis2_dhis2_mtrac_indicators_mapping', (
+        db.create_table(u'dhis2_mtrack_indicators_mapping', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('uuid', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('slug', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('mtrac_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eav.Attribute'])),
+            ('dhis2_uuid', self.gf('django.db.models.fields.CharField')(max_length=50)),
+            ('dhis2_name', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('dhis2_type', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('dhis2_url', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('dhis2_combo_id', self.gf('django.db.models.fields.CharField')(max_length=255)),
         ))
         db.send_create_signal('dhis2', ['Dhis2_Mtrac_Indicators_Mapping'])
 
@@ -24,7 +26,7 @@ class Migration(SchemaMigration):
 
     def backwards(self, orm):
         # Deleting model 'Dhis2_Mtrac_Indicators_Mapping'
-        db.delete_table('dhis2_dhis2_mtrac_indicators_mapping')
+        db.delete_table(u'dhis2_mtrack_indicators_mapping')
 
 
         # Changing field 'CodeStatus.pmatch'
@@ -46,12 +48,14 @@ class Migration(SchemaMigration):
             'pmatch': ('django.db.models.fields.DecimalField', [], {'max_digits': '5', 'decimal_places': '3'})
         },
         'dhis2.dhis2_mtrac_indicators_mapping': {
-            'Meta': {'object_name': 'Dhis2_Mtrac_Indicators_Mapping'},
+            'Meta': {'object_name': 'Dhis2_Mtrac_Indicators_Mapping', 'db_table': "u'dhis2_mtrack_indicators_mapping'"},
+            'dhis2_combo_id': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'dhis2_name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'dhis2_type': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'dhis2_url': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'dhis2_uuid': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'mtrac_id': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eav.Attribute']"}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'slug': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'uuid': ('django.db.models.fields.CharField', [], {'max_length': '50'})
+            'mtrac_id': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eav.Attribute']"})
         },
         'dhis2.dhis2mapping': {
             'Meta': {'object_name': 'Dhis2Mapping', 'db_table': "u'dhis2_mapping'"},

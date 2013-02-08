@@ -43,8 +43,19 @@ class Dhis2Mapping(models.Model):
         db_table = u'dhis2_mapping'
         
 class Dhis2_Mtrac_Indicators_Mapping(models.Model):
-    uuid = models.CharField(max_length=50)
-    name = models.CharField(max_length=255)
-    slug =  models.CharField(max_length=255)
     mtrac_id =  models.ForeignKey(Attribute)
+    dhis2_uuid = models.CharField(max_length=50)
+    dhis2_name  = models.CharField(max_length=255)
+    dhis2_type = models.CharField(max_length=255)        
+    dhis2_url  = models.CharField(max_length=255)
+    dhis2_combo_id = models.CharField(max_length=255)
+    
+    def __unicode__(self):
+        return self.mtrack_name
+    
+    class Meta:
+        db_table = u'dhis2_mtrack_indicators_mapping'
+    
+
+
 
