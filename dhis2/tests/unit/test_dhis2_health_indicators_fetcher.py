@@ -30,6 +30,8 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
         self.assertEqual(self.fetcher.clean_indicator_names_from_dhis2('Bubukwanga (helloo there , remove me)'), 'Bubukwanga')
         self.assertEqual(self.fetcher.clean_indicator_names_from_dhis2('Bubukwanga - WEP  (asdasdasd ) '), 'Bubukwanga')
         self.assertEqual(self.fetcher.clean_indicator_names_from_dhis2('Bubukwanga  (asdasdasd) - WEP '), 'Bubukwanga')
+        self.assertEqual(self.fetcher.clean_indicator_names_from_dhis2('(asdasdasd) - WEP '), 'asdasdasd')
+        self.assertEqual(self.fetcher.clean_indicator_names_from_dhis2(' (asdasdasd) '), 'asdasdasd')
 
     def test_compare_strings(self):
         self.assertEqual(self.fetcher.compare_strings('Bubukwanga', 'Bubukwanga'), 100)
@@ -123,11 +125,11 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
             self.assertEqual(record.mtrac_id, Attribute.objects.get(slug='cases_ae'))
 
     def xtest_update_mappings_table_with_non_default_indicator(self):
-        indicator_url = 'http://dhis/api/dataElements/6WfcY8YJ73L'        
+        indicator_url = 'http://dhis/api/dataElements/KPmTI3TGwZw'        
         with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
             self.fetcher.update_mappings_table(indicator_url)
             record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_uuid= '6WfcY8YJ73L')
-            self.assertEqual(len(record), 6)
+            self.assertEqual(len(record), 7)
             record=record[0]
             self.assertEqual(record.dhis2_name, 'Adverse Events Following Immunization Cases - WEP')
             self.assertEqual(record.dhis2_uuid, 'fTwT8uX9Uto')

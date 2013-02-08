@@ -25,7 +25,8 @@ DHIS2_CONNECTION_CONFIG = {
     'content-type': 'json'
 }
 
-DHIS2_HEALTH_INDICATORS_NAME_ERASE_SUFFIX_REGEXES = ['\- WEP',r'\(.+\)']
+#DHIS2_HEALTH_INDICATORS_NAME_ERASE_SUFFIX_REGEXES = ['\- WEP',r' \(.+\)' , r'\(', r'\)']
+DHIS2_HEALTH_INDICATORS_NAME_ERASE_SUFFIX_REGEXES = ['\- WEP', r'(?!^\()(?=.+)\(.+\)', r'\(', r'\)']
 
 JSON_EXTENSION = '.json'
 
