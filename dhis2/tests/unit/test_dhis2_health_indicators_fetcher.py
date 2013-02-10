@@ -124,17 +124,19 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
             self.assertEqual(record.dhis2_combo_id, 'gGhClrV5odI')
             self.assertEqual(record.mtrac_id, Attribute.objects.get(slug='cases_ae'))
 
-    def xtest_update_mappings_table_with_non_default_indicator(self):
+    def test_update_mappings_table_with_non_default_indicator(self):
         indicator_url = 'http://dhis/api/dataElements/KPmTI3TGwZw'        
         with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
             self.fetcher.update_mappings_table(indicator_url)
-            record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_uuid= '6WfcY8YJ73L')
+            record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_uuid= 'KPmTI3TGwZw')
             self.assertEqual(len(record), 7)
-            record=record[0]
-            self.assertEqual(record.dhis2_name, 'Adverse Events Following Immunization Cases - WEP')
-            self.assertEqual(record.dhis2_uuid, 'fTwT8uX9Uto')
-            self.assertEqual(record.dhis2_combo_id, 'gGhClrV5odI')
-            self.assertEqual(record.mtrac_id, Attribute.objects.get(slug='cases_ae'))
-
-
+            
+            record_mtrac =[ a_record.mtrac_id for a_record in record]
+            self.assertContains(record_mtrac , Attribute.objects.get(slug='test_sm'))
+            self.assertContains(record_mtrac , Attribute.objects.get(slug='test_rdt'))
+            self.assertContains(record_mtrac , Attribute.objects.get(slug='test_rdp'))
+            self.assertContains(record_mtrac , Attribute.objects.get(slug='test_mtc'))
+            self.assertContains(record_mtrac , Attribute.objects.get(slug='test_mtp'))
+            self.assertContains(record_mtrac , Attribute.objects.get(slug='test_pcc'))
+            self.assertContains(record_mtrac , Attribute.objects.get(slug='test_pcy'))
     
