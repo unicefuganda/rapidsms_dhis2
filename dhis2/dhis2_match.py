@@ -102,27 +102,25 @@ class Dhis2_Fetch_Health_Indicators(object):
         json  =  self.fetch(JSON_EXTENSION, url)
 
         for indicator in json['categoryOptionCombos'] :
-            temp_indicator = {}
-            temp_indicator['name'] = indicator['name']
-            temp_indicator['combo_id'] = indicator['id']
-            temp_indicator['href'] = indicator['href']
-            
-            indicators.append(temp_indicator)
+            indicator['combo_id'] = indicator['id']
+            indicators.append(indicator)
         return indicators
-        
+                
     def get_combo_id_from_indicator(self,url):
         json  =  self.fetch(JSON_EXTENSION, url)
         return  self.get_indicator_combo_option_id(json['categoryCombo']['href']) 
         
     def update_mappings_table(self,url):
         json  =  self.fetch(JSON_EXTENSION, url)
-        temp_indicator = {}
-        temp_indicator['name'] = json['name']
-        temp_indicator['id'] = json['id']
-        temp_indicator['href'] = json['href']
         combo_cat_url  = json['categoryCombo']['href']
         comboid =  self.get_indicator_combo_option_id(combo_cat_url)
         if comboid :
-            temp_indicator['combo_id'] = comboid
-            self.find_matches_and_update_mapping_table(temp_indicator)
+            json['combo_id'] = comboid
+            self.find_matches_and_update_mapping_table(json)
+        else:
+            non_default_indicators = self.get_category_combos_from_combo_category_option(combo_cat_url)
+            for indicator in non_default_indicators:
+                indicator['id'] = json['id']
+                self.find_matches_and_update_mapping_table(indicator)
+                
 
