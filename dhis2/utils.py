@@ -23,9 +23,9 @@ except ImportError:
             return f.info(), f.read()
 
 config = getattr(settings, 'DHIS2_CONFIG', {
-            'dhis2_url': 'http://localhost:8080/dhis/api/',
-            'dhis2_user': 'sekiskylink',
-            'dhis2_passwd': '123Congse',
+            'dhis2_url': 'http://dhis/api/',
+            'dhis2_user': 'api',
+            'dhis2_passwd': 'P@ssw0rd',
             'ctype': 'json', # when reading, json will be easier for python
             'FIRSTDAY_OF_RWEEK':4
         })

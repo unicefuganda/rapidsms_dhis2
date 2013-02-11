@@ -20,8 +20,8 @@ DHIS2_CONNECTION_CONFIG = {
         'treat':'uh4pYNd1CSv',
         'test': 'IohHeDqzJk1'
         },
-    'user': 'sekiskylink',
-    'password': '123Congse',
+    'user': 'api',
+    'password': 'P@ssw0rd',
     'content-type': 'json'
 }
 
@@ -51,7 +51,7 @@ class Dhis2_Fetch_Health_Indicators(object):
         return json.loads(response.read())
 
     def clean_indicator_names_from_dhis2(self , dhis2_indicator_name):
-        for reg_ex in DHIS2_HEALTH_INDICATORS_NAME_ERASE_SUFFIX_REGEXES : 
+        for reg_ex in DHIS2_HEALTH_INDICATORS_NAME_ERASE_SUFFIX_REGEXES :
             dhis2_indicator_name =  re.sub(reg_ex, '', dhis2_indicator_name).strip()
         return dhis2_indicator_name
 
@@ -61,55 +61,55 @@ class Dhis2_Fetch_Health_Indicators(object):
         return round(ratio * 100)
 
     def get_indicators_names_match_level(self, dhis2_name, mtrack_name):
-        return self.compare_strings(self.clean_indicator_names_from_dhis2(dhis2_name), mtrack_name) 
+        return self.compare_strings(self.clean_indicator_names_from_dhis2(dhis2_name), mtrack_name)
 
     def find_matching_indicator_from_mtrack(self, dhis2_indicator_name):
-        min_match_level = self.match_threshold 
+        min_match_level = self.match_threshold
         all_mtrack_indicators = Attribute.objects.all()
-            
+
         matching_indicator = None
 
-        for mtrack_indicator in all_mtrack_indicators : 
+        for mtrack_indicator in all_mtrack_indicators :
             match_level = self.get_indicators_names_match_level(dhis2_indicator_name, mtrack_indicator.name)
-            if match_level >= min_match_level : 
+            if match_level >= min_match_level :
                 matching_indicator = mtrack_indicator
                 min_match_level = match_level
 
-        if matching_indicator : 
+        if matching_indicator :
             return   matching_indicator
-    
+
     def find_matches_and_update_mapping_table(self, dhis2_json):
         mtrack_indicator  = self.find_matching_indicator_from_mtrack(dhis2_json['name'])
         self.update_dhis2_mapping_db(dhis2_json, mtrack_indicator )
-        
+
     def update_dhis2_mapping_db (self, dhis2_indicator, mtrack_indicator):
         Dhis2_Mtrac_Indicators_Mapping.objects.create(
-            mtrac_id = mtrack_indicator, 
+            mtrac_id = mtrack_indicator,
             dhis2_uuid = dhis2_indicator['id'],
             dhis2_name  = dhis2_indicator['name'],
             dhis2_url  = dhis2_indicator['href'],
-            dhis2_combo_id = dhis2_indicator['combo_id']) 
-            
+            dhis2_combo_id = dhis2_indicator['combo_id'])
+
 
     def get_indicator_combo_option_id(self, url):
         json  =  self.fetch(JSON_EXTENSION, url)
         if (len(json['categoryOptionCombos'])> 1):
             return None
-        return json['categoryOptionCombos'][0]['id'] 
-        
+        return json['categoryOptionCombos'][0]['id']
+
     def get_category_combos_from_combo_category_option(self,url):
-        indicators = [] 
+        indicators = []
         json  =  self.fetch(JSON_EXTENSION, url)
 
         for indicator in json['categoryOptionCombos'] :
             indicator['combo_id'] = indicator['id']
             indicators.append(indicator)
         return indicators
-                
+
     def get_combo_id_from_indicator(self,url):
         json  =  self.fetch(JSON_EXTENSION, url)
-        return  self.get_indicator_combo_option_id(json['categoryCombo']['href']) 
-        
+        return  self.get_indicator_combo_option_id(json['categoryCombo']['href'])
+
     def update_mappings_table(self,url):
         json  =  self.fetch(JSON_EXTENSION, url)
         combo_cat_url  = json['categoryCombo']['href']
@@ -122,5 +122,5 @@ class Dhis2_Fetch_Health_Indicators(object):
             for indicator in non_default_indicators:
                 indicator['id'] = json['id']
                 self.find_matches_and_update_mapping_table(indicator)
-                
+
 
