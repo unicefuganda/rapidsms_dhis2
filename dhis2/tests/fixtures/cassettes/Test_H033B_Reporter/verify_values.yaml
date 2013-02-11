@@ -1,0 +1,16 @@
+- request:
+    body: null
+    headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Type: application/xml,
+      Host: dhis, User-Agent: Python-urllib/2.7}
+    method: GET
+    url: /api/dataValueSets?dataSet=V1kJRs8CtW4&period=201211&orgUnit=6VeE8JrylXn
+  response:
+    body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0"
+        dataSet="V1kJRs8CtW4" completeDate="2012-11-11" period="201211" orgUnit="6VeE8JrylXn"><dataValue
+        dataElement="U7cokRIptxu" period="201211" orgUnit="6VeE8JrylXn" categoryOptionCombo="gGhClrV5odI"
+        value="100" followUp="false"/><dataValue dataElement="mdIPCPfqXaJ" period="201211"
+        orgUnit="6VeE8JrylXn" categoryOptionCombo="gGhClrV5odI" value="99" followUp="false"/></dataValueSet>'}
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Mon,
+        11 Feb 2013 13:25:55 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=FC1D44171EAF312CBABD9C3DF5243CD2;
+        Path=/; HttpOnly, transfer-encoding: chunked}
+    status: {code: 200, message: OK}
