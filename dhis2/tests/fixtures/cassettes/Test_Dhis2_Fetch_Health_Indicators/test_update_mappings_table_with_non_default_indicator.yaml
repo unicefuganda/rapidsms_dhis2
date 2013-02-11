@@ -16,7 +16,7 @@
         Positve Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/PfdPCxOoiBj","id":"PfdPCxOoiBj"},{"name":"(RDT
         Tested Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/kcXY5cWAOsB","id":"kcXY5cWAOsB"}]}'}
     headers: {connection: close, content-language: en-US, content-length: '1955',
-      content-type: application/json;charset=UTF-8, date: 'Mon, 11 Feb 2013 07:00:11
-        GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=6775EF5C437489D33170A79D4C14B092;
+      content-type: application/json;charset=UTF-8, date: 'Mon, 11 Feb 2013 07:42:55
+        GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=FF41040565122A25E94C2C803D33014E;
         Path=/; HttpOnly}
     status: {code: 200, message: OK}
