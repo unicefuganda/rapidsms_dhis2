@@ -132,13 +132,15 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
             self.assertEqual(len(record), 7)
             
             record_mtrac =list( [a_record.mtrac_id.id for a_record in record])
+            expected_list = list[Attribute.objects.get(slug='test_sm').id,
+                             Attribute.objects.get(slug='test_rdt').id, 
+                             Attribute.objects.get(slug='test_rdp').id,
+                             Attribute.objects.get(slug='test_mtc').id,
+                             Attribute.objects.get(slug='test_mtp').id,
+                             Attribute.objects.get(slug='test_pcc').id,
+                             Attribute.objects.get(slug='test_pcy').id ])
+
             print record_mtrac
             print Attribute.objects.get(slug='test_sm').id
-            self.assertContains(record_mtrac , Attribute.objects.get(slug='test_sm').id)
-            #   self.assertContains(record_mtrac , Attribute.objects.get(slug='test_rdt').id)
-            #   self.assertContains(record_mtrac , Attribute.objects.get(slug='test_rdp').id)
-            #   self.assertContains(record_mtrac , Attribute.objects.get(slug='test_mtc').id)
-            #   self.assertContains(record_mtrac , Attribute.objects.get(slug='test_mtp').id)
-            #   self.assertContains(record_mtrac , Attribute.objects.get(slug='test_pcc').id)
-            #   self.assertContains(record_mtrac , Attribute.objects.get(slug='test_pcy').id)
-    
+            self.assertListEqual(record_mtrac , expected_list)
+        
