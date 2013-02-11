@@ -67,7 +67,7 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
         self.assertEquals( record.dhis2_uuid, disease['id'])
         self.assertEquals( record.dhis2_url, disease['href'])
         self.assertEquals( record.dhis2_combo_id, disease['combo_id'])
-        self.assertEquals( record.mtrac_id, Attribute.objects.get(slug='cases_ma'))
+        self.assertEquals( record.mtrac_id.id, Attribute.objects.get(slug='cases_ma').id)
 
     def xtest_sync_indicators_group(self):
         indicator = disease = {"name":u"Malaria Cases - WEP", "id": u"fclvwNhzu7d", "href": u"http://dhis/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
