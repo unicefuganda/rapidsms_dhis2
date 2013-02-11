@@ -1,7 +1,7 @@
 - request:
     body: null
-    headers: {Authorization: Basic c2VraXNreWxpbms6MTIzQ29uZ3Nl, Connection: close,
-      Content-Type: application/json; charset="UTF-8", Host: dhis, User-Agent: Python-urllib/2.7}
+    headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Type: application/json;
+        charset="UTF-8", Host: dhis, User-Agent: Python-urllib/2.7}
     method: GET
     url: /api/categoryCombos/7O1Zh4rJoIn.json
   response:
@@ -20,7 +20,7 @@
         in Stock?)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/rkVTCLTsu0U","id":"rkVTCLTsu0U"},{"name":"(Other
         ACT in Stock)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/AcuD9Tregzw","id":"AcuD9Tregzw"}]}'}
     headers: {connection: close, content-language: en-US, content-length: '2874',
-      content-type: application/json;charset=UTF-8, date: 'Fri, 08 Feb 2013 09:34:46
-        GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=AFA1144024B31A8CA45C25877CFEA533;
+      content-type: application/json;charset=UTF-8, date: 'Mon, 11 Feb 2013 08:39:38
+        GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=762D5B60782A7466DFE41F5493B143C1;
         Path=/; HttpOnly}
     status: {code: 200, message: OK}

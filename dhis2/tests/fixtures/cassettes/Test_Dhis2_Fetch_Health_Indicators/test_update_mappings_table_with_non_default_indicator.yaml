@@ -1,8 +1,7 @@
 - request:
     body: null
-    headers: {Authorization: Basic c2VraXNreWxpbms6MTIzQ29uZ3Nl, Connection: close,
-      Content-Type: application/json; charset="UTF-8", Host: !!python/unicode 'dhis',
-      User-Agent: Python-urllib/2.7}
+    headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Type: application/json;
+        charset="UTF-8", Host: !!python/unicode 'dhis', User-Agent: Python-urllib/2.7}
     method: GET
     url: !!python/unicode '/api/categoryCombos/IohHeDqzJk1.json'
   response:
@@ -16,7 +15,7 @@
         Positve Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/PfdPCxOoiBj","id":"PfdPCxOoiBj"},{"name":"(RDT
         Tested Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/kcXY5cWAOsB","id":"kcXY5cWAOsB"}]}'}
     headers: {connection: close, content-language: en-US, content-length: '1955',
-      content-type: application/json;charset=UTF-8, date: 'Mon, 11 Feb 2013 07:42:55
-        GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=FF41040565122A25E94C2C803D33014E;
+      content-type: application/json;charset=UTF-8, date: 'Mon, 11 Feb 2013 08:39:41
+        GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=E1003B38CC77CE316856756CD6883FA2;
         Path=/; HttpOnly}
     status: {code: 200, message: OK}
