@@ -1,5 +1,5 @@
 <dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" dataSet="V1kJRs8CtW4" completeDate="{{ completeDate }}" period="{{ period }}" orgUnit="{{ orgUnit }}">
   {% for dataValue in dataValues %}
-    <dataValue dataElement="{{ dataValue.dataElement }}" value="{{ dataValue.value }}" />
+    <dataValue dataElement="{{ dataValue.dataElement }}" categoryOptionCombo= "{{dataValue.categoryOptionCombo}}" value="{{ dataValue.value }}" />
   {% endfor %}
 </dataValueSet>

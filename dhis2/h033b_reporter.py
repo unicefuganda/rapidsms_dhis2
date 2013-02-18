@@ -68,13 +68,30 @@ class H033B_Reporter(object):
     return '%s-%s-%sT%s:%s:%sZ'%(year_str,month_str,day_str,hour_str,minute_str,second_str)
 
   @classmethod
-  def get_dhis2_uuid_from_health_facility_base_id(self,time_arg):
+  def get_dhis2_orgunit_uuid(self,health_facility_base_id):
     ######################
     # TODO  
     ######################
     return '6VeE8JrylXn'
 
   @classmethod
-  def get_dhis2_id_for_eav_attrb_id(self,eav_attrib_id):
-    return Dhis2Mapping.objects.filter(id=attrib_id)[0].dhis2_uid
+  def prepare_report_for_submission_to_dhis(self,data):
+    expected  = { 
+      'orgUnit': "6VeE8JrylXn",
+      'completeDate': "2012-11-11T00:00:00Z",
+      'period': '201211',
+      'dataValues': [
+                      {
+                        'dataElement': 'mdIPCPfqXaJ',
+                        'value': 99,
+                        'categoryOptionCombo' :'gGhClrV5odI'
+                      },      
+                      {
+                        'dataElement': 'U7cokRIptxu',
+                        'value': 100,
+                        'categoryOptionCombo' : 'gGhClrV5odI'
+                      }
+                    ]
+              }
+    return expected
   

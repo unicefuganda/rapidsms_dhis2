@@ -25,10 +25,30 @@ DHIS2_CONNECTION_CONFIG = {
     'content-type': 'json'
 }
 
-#DHIS2_HEALTH_INDICATORS_NAME_ERASE_SUFFIX_REGEXES = ['\- WEP',r' \(.+\)' , r'\(', r'\)']
 DHIS2_HEALTH_INDICATORS_NAME_ERASE_SUFFIX_REGEXES = ['\- WEP', r'(?!^\()(?=.+)\(.+\)', r'\(', r'\)']
-
 JSON_EXTENSION = '.json'
+KNOWN_MATCHES = {
+
+    #Malaria Cases Treated Matches
+    u'(4 Months to 3 Years)'   : u'4+ months to 2 years',
+    u'(3+ to 7 Years)'         : u'3+ to 6 years',
+    u'(7+ to 12 Years)'        : u'7+ to 11 years',
+
+    # Act Consumption Matches
+    u'(Yellow Used)'           : u'6 tablet pack dispensed',
+    u'(Yellow in Stock?)'      : u'6 pack balance on hand',
+    u'(Blue Used)'             : u'12 tabled pack dispensed',
+    u'(Blue in Stock?)'        : u'12 pack on hand',
+    u'(Brown Used)'            : u'18 tabled pack dispensed',
+    u'(Brown in Stock?)'       : u'18 pack on hand',
+    u'(Green Used)'            : u'24 tablet pack dispensed',
+    u'(Green in Stock?)'       : u'24 pack on hand',
+    u'(Other ACT Used)'        : u'Other ACT dispensed',
+    u'(Other ACT in Stock)'    : u'Other balance on hand',
+    u'(Quinine Used)'          : u'Quinine dispensed',
+    u'(Quinine in Stock?)'     : u'Quinine on hand',
+
+}
 
 class Dhis2_Fetch_Health_Indicators(object):
     def __init__(self, match_threshold):
@@ -66,8 +86,10 @@ class Dhis2_Fetch_Health_Indicators(object):
     def find_matching_indicator_from_mtrack(self, dhis2_indicator_name):
         min_match_level = self.match_threshold
         all_mtrack_indicators = Attribute.objects.all()
-
         matching_indicator = None
+        
+        if dhis2_indicator_name in KNOWN_MATCHES : 
+            dhis2_indicator_name = KNOWN_MATCHES[dhis2_indicator_name]
 
         for mtrack_indicator in all_mtrack_indicators :
             match_level = self.get_indicators_names_match_level(dhis2_indicator_name, mtrack_indicator.name)
@@ -78,13 +100,18 @@ class Dhis2_Fetch_Health_Indicators(object):
         if matching_indicator :
             return   matching_indicator
 
-    def find_matches_and_update_mapping_table(self, dhis2_json):
-        mtrack_indicator  = self.find_matching_indicator_from_mtrack(dhis2_json['name'])
-        self.update_dhis2_mapping_db(dhis2_json, mtrack_indicator )
+    def find_matches_and_update_mapping_table(self, dhis2_dataelement):
+        mtrack_indicator  = self.find_matching_indicator_from_mtrack(dhis2_dataelement['name'])
+        self.update_dhis2_mapping_db(dhis2_dataelement, mtrack_indicator )
 
     def update_dhis2_mapping_db (self, dhis2_indicator, mtrack_indicator):
+        
+        mtrack_id = None
+        if mtrack_indicator :
+            mtrack_id = mtrack_indicator.id 
+
         Dhis2_Mtrac_Indicators_Mapping.objects.create(
-            mtrac_id = mtrack_indicator,
+            mtrac_id = mtrack_id,
             dhis2_uuid = dhis2_indicator['id'],
             dhis2_name  = dhis2_indicator['name'],
             dhis2_url  = dhis2_indicator['href'],
@@ -123,4 +150,10 @@ class Dhis2_Fetch_Health_Indicators(object):
                 indicator['id'] = json['id']
                 self.find_matches_and_update_mapping_table(indicator)
 
+    def fetch_elements_for_dataset(self,url):
+      return self.fetch(JSON_EXTENSION, url)['dataElements']
 
+    def fetch_and_update_all(self,url):
+        elements = self.fetch_elements_for_dataset(url)
+        for element in elements:
+            self.update_mappings_table(element['href'])
