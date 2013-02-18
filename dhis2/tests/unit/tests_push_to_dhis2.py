@@ -7,9 +7,7 @@ import datetime
 FIXTURES = os.path.abspath(dhis2.__path__[0]) + "/tests/fixtures/cassettes/"
 
 class Test_H033B_Reporter(TestCase):
-  def setup(self):
-    
-  
+
   def test_submit_report(self):
     submit_data = { 'orgUnit': "6VeE8JrylXn",
                     'completeDate': "2012-11-11T00:00:00Z",
