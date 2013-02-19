@@ -1,7 +1,19 @@
 from lettuce import *
 from dhis2.h033b_reporter import *
 import datetime
+from healthmodels.models.HealthFacility import HealthFacilityBase
 
+DUMMY_HEALTHFACILITY_UUID_MAPPINGS = {
+  515 : '6VeE8JrylXn',
+}
+
+@before.all
+def setup():
+  for health_facility_base_id in DUMMY_HEALTHFACILITY_UUID_MAPPINGS : 
+    facility = HealthFacilityBase.objects.get(id=health_facility_base_id)
+    facility.uuid = DUMMY_HEALTHFACILITY_UUID_MAPPINGS[health_facility_base_id]
+    facility.save(cascade_update=False)
+    
 @step(u'Report data must have all valid fields')
 def get_reports_data_for_submission(self):
   submission = XFormSubmission.objects.filter(id=416117)[0]
@@ -10,10 +22,21 @@ def get_reports_data_for_submission(self):
     
   data  = H033B_Reporter.get_reports_data_for_submission(submission)
 
-  assert data['orgUnit'] == 515
+  assert data['orgUnit'] == DUMMY_HEALTHFACILITY_UUID_MAPPINGS[515]
   assert data['completeDate'] == submission_time
-  for eav_id in data['dataValues'] : 
-    assert data['dataValues'][eav_id] == attribute_values[eav_id]
+  
+  assert len(data['dataValues']) ==2
+  
+  assert data['dataValues'][0]['dataElement'] == u'ck3jFjr8fOT' 
+  assert data['dataValues'][0]['categoryOptionCombo'] ==  u'gGhClrV5odI'
+  assert data['dataValues'][0]['value'] ==  0
+  
+  assert data['dataValues'][1]['dataElement'] == u'nG5hrCX3vyP' 
+  assert data['dataValues'][1]['categoryOptionCombo'] ==  u'gGhClrV5odI'
+  assert data['dataValues'][1]['value'] ==  0
+  
+
+  
 
 @step(u'Must fetch all submissions made within the specified period')
 def get_submissions_in_date_range(self):
@@ -22,3 +45,10 @@ def get_submissions_in_date_range(self):
   submissions_in_period  = H033B_Reporter.get_submissions_in_date_range(from_date,to_date)
   assert len(submissions_in_period) == 314
   
+
+@after.all
+def teardown(*args):
+  for health_facility_base_id in DUMMY_HEALTHFACILITY_UUID_MAPPINGS : 
+    facility = HealthFacilityBase.objects.get(id=health_facility_base_id)
+    facility.uuid = None
+    facility.save(cascade_update=False)
