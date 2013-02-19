@@ -4,6 +4,7 @@ from lxml import etree
 import urllib2, vcr, os, dhis2, sys
 import datetime
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping
+from mock import *
 
 FIXTURES = os.path.abspath(dhis2.__path__[0]) + "/tests/fixtures/cassettes/"
 
@@ -68,47 +69,14 @@ class Test_H033B_Reporter(TestCase):
       print dates_iso_string_map[date] , H033B_Reporter.get_utc_time_iso8601(date)
       self.assertEquals(dates_iso_string_map[date] , H033B_Reporter.get_utc_time_iso8601(date))
 
-  def xtest_generate_period_id_for_week(self):
-    start_dates = { 
-      datetime.datetime(2013, 01, 01, 23, 59, 59) : '2004W10'
-      }
+  def test_get_data_values_for_submission(self):
+    submission_value = MagicMock()
+    submission_value.attribute_id = 345
+    submission_value.value = 22
     
-    expected  = ''
-    
-  def test_prepare_data_values_for_submission_to_dhis(self):
-    test_data = {
-        'completeDate': datetime.datetime(2012, 10, 23, 6, 28, 39, 891455),
-        'dataValues': [{358: 100}],
-        'orgUnit': "6VeE8JrylXn" 
-        }
-        
-    expected  = { 
-      'orgUnit': "6VeE8JrylXn",
-      'completeDate': "2012-11-11T00:00:00Z",
-      'period': '2012W11',
-      'dataValues': [
-                      {
-                        'dataElement': 'U7cokRIptxu',
-                        'value': 100,
-                        'categoryOptionCombo' : 'gGhClrV5odI'
-                      }
-                    ]
-              }
-              
-    Dhis2_Mtrac_Indicators_Mapping.objects.create(mtrac_id=358,dhis2_uuid=u'U7cokRIptxu', dhis2_combo_id=u'gGhClrV5odI')
-    report_data = H033B_Reporter.prepare_report_for_submission_to_dhis(test_data) 
-       
-    self.assertEquals(report_data['orgUnit'], expected['orgUnit'])
-    self.assertEquals(report_data['dataValues'][0]['dataElement'], expected['dataValues'][0]['dataElement'])    
-    self.assertEquals(report_data['dataValues'][0]['value'], expected['dataValues'][0]['value'])    
-    self.assertEquals(report_data['dataValues'][0]['categoryOptionCombo'], expected['dataValues'][0]['categoryOptionCombo'])    
-    
+    Dhis2_Mtrac_Indicators_Mapping.objects.create(mtrac_id=submission_value.attribute_id, dhis2_uuid= u'test_uuid',dhis2_combo_id=u'test_combo_id')    
+    data =  H033B_Reporter.get_data_values_for_submission(submission_value)
 
-  def test_get_dataelement_id_and_combo_id_for_attribute(self):
-    mtrac_id = 358 ;
-    expected_element_id = u'U7cokRIptxu'
-    expected_combo_id   = u'gGhClrV5odI'
-    Dhis2_Mtrac_Indicators_Mapping.objects.create(mtrac_id=mtrac_id,dhis2_uuid=expected_element_id, dhis2_combo_id=expected_combo_id)
-    element_id,combo_id = H033B_Reporter.get_dataelement_id_and_combo_id_for_attribute(mtrac_id)
-    self.assertEquals(element_id,expected_element_id)
-    self.assertEquals(combo_id,expected_combo_id)
+    self.assertEquals(data['dataElement'], u'test_uuid')
+    self.assertEquals(data['value'],22)
+    self.assertEquals(data['categoryOptionCombo'], u'test_combo_id')

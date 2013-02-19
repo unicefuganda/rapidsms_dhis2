@@ -11,9 +11,9 @@
     url: /api/dataValueSets
   response:
     body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
-        process completed successfully</description><dataValueCount imported="2" updated="0"
+        process completed successfully</description><dataValueCount imported="0" updated="2"
         ignored="0"/><dataSetComplete>2012-11-11</dataSetComplete></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Mon,
-        18 Feb 2013 13:30:31 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=366589CF31D49054DE19C0367DDDE0C6;
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Tue,
+        19 Feb 2013 14:52:02 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=8640D31F511F89140045A99EB9D530F5;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}

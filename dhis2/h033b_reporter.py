@@ -38,17 +38,9 @@ class H033B_Reporter(object):
     
     submission_values = XFormSubmissionValue.objects.filter(submission=submission_arg)
     for submission_value in submission_values : 
-      data_value = {}
-      attrib_id = submission_value.attribute_id
-      dhis2_mapping = Dhis2_Mtrac_Indicators_Mapping.objects.filter(mtrac_id=attrib_id)
-      if dhis2_mapping:
-        element_id = dhis2_mapping[0].dhis2_uuid
-        combo_id = dhis2_mapping[0].dhis2_combo_id
-      
-        data_value['dataElement'] = element_id
-        data_value['value'] = submission_value.value
-        data_value['categoryOptionCombo']  =combo_id
-        data['dataValues'] .append(data_value)
+      dataValue = self.get_data_values_for_submission(submission_value)
+      if dataValue :
+        data['dataValues'].append(dataValue)
     return data
   
   @classmethod
@@ -76,26 +68,18 @@ class H033B_Reporter(object):
       second_str = str(0)+ second_str
 
     return '%s-%s-%sT%s:%s:%sZ'%(year_str,month_str,day_str,hour_str,minute_str,second_str)
+  
+  @classmethod
+  def get_data_values_for_submission(self, submission_value):
+    data_value = {}
+    attrib_id = submission_value.attribute_id
+    dhis2_mapping = Dhis2_Mtrac_Indicators_Mapping.objects.filter(mtrac_id=attrib_id)
+    if dhis2_mapping:
+      element_id = dhis2_mapping[0].dhis2_uuid
+      combo_id = dhis2_mapping[0].dhis2_combo_id
+    
+      data_value['dataElement'] = element_id
+      data_value['value'] = submission_value.value
+      data_value['categoryOptionCombo']  =combo_id
 
-  @classmethod
-  def prepare_report_for_submission_to_dhis(self,data):
-    attribute_values_list = data['dataValues'] 
-    dataElement_values= []
-    for attribute_values in attribute_values_list :
-      for attribute in  attribute_values: 
-        dataElement_value = {}
-        dhis2_mapping = Dhis2_Mtrac_Indicators_Mapping.objects.filter(mtrac_id=attribute)[0]
-        dataElement_value['dataElement'] = dhis2_mapping.dhis2_uuid
-        dataElement_value['value']= attribute_values[attribute]
-        dataElement_value['categoryOptionCombo'] = dhis2_mapping.dhis2_combo_id
-        dataElement_values.append(dataElement_value)
-      
-    data['dataValues'] = dataElement_values
-    
-    return data
-    
-  @classmethod
-  def get_dataelement_id_and_combo_id_for_attribute(self,attribute_id):
-    dhis2_mapping = Dhis2_Mtrac_Indicators_Mapping.objects.filter(mtrac_id=attribute_id)[0]
-    return dhis2_mapping.dhis2_uuid,dhis2_mapping.dhis2_combo_id
-    
+    return data_value
