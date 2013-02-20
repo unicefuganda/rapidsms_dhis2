@@ -6,7 +6,7 @@ from mtrack.models import XFormSubmissionExtras
 from rapidsms_xforms.models import XFormSubmissionValue, XForm, XFormSubmission
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping
 
-
+HMIS033B_REPORT_XML_TEMPLATE = "h033b_reporter.xml"
 
 class H033B_Reporter(object):
   URL     = "http://dhis/api/dataValueSets"
@@ -23,11 +23,14 @@ class H033B_Reporter(object):
 
   @classmethod
   def submit(self, data):
-    template = get_template("h033b_reporter.xml")
+    return self.send(self.generate_xml_report(data))
+  
+  @classmethod 
+  def generate_xml_report(self,data):
+    template = get_template(HMIS033B_REPORT_XML_TEMPLATE)
     data = template.render(Context(data))
-    return self.send(data)
-  
-  
+    return data
+    
   @classmethod
   def get_reports_data_for_submission(self,submission_arg):
     submission_extras = XFormSubmissionExtras.objects.filter(submission=submission_arg)[0]

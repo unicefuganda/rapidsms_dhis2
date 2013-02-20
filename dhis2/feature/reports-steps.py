@@ -34,9 +34,7 @@ def get_reports_data_for_submission(self):
   assert data['dataValues'][1]['dataElement'] == u'nG5hrCX3vyP' 
   assert data['dataValues'][1]['categoryOptionCombo'] ==  u'gGhClrV5odI'
   assert data['dataValues'][1]['value'] ==  0
-  
 
-  
 
 @step(u'Must fetch all submissions made within the specified period')
 def get_submissions_in_date_range(self):
