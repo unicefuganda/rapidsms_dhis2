@@ -1,11 +1,11 @@
 - request:
     body: !!python/object/new:django.utils.safestring.SafeUnicode [!!python/unicode "<dataValueSet\
         \ xmlns=\"http://dhis2.org/schema/dxf/2.0\" dataSet=\"V1kJRs8CtW4\" completeDate=\"\
-        2012-11-11T00:00:00Z\" period=\"201211\" orgUnit=\"6VeE8JrylXn\">\n  \n  \
-        \  <dataValue dataElement=\"U7cokRIptxu\" categoryOptionCombo= \"gGhClrV5odI\"\
+        2012-11-11T00:00:00Z\" period=\"2012W11\" orgUnit=\"6VeE8JrylXn\">\n  \n \
+        \   <dataValue dataElement=\"U7cokRIptxu\" categoryOptionCombo= \"gGhClrV5odI\"\
         \ value=\"100\" />\n  \n    <dataValue dataElement=\"mdIPCPfqXaJ\" categoryOptionCombo=\
         \ \"gGhClrV5odI\" value=\"99\" />\n  \n</dataValueSet>"]
-    headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Length: '356',
+    headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Length: '357',
       Content-Type: application/xml, Host: dhis, User-Agent: Python-urllib/2.7}
     method: POST
     url: /api/dataValueSets
@@ -13,7 +13,7 @@
     body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
         process completed successfully</description><dataValueCount imported="0" updated="2"
         ignored="0"/><dataSetComplete>2012-11-11</dataSetComplete></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Tue,
-        19 Feb 2013 14:52:02 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=8640D31F511F89140045A99EB9D530F5;
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Wed,
+        20 Feb 2013 16:42:39 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=A11879A6AFC39846A8946B6F58CF69B7;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}

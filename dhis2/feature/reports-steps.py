@@ -17,14 +17,12 @@ def setup():
 @step(u'Report data must have all valid fields')
 def get_reports_data_for_submission(self):
   submission = XFormSubmission.objects.filter(id=416117)[0]
-  attribute_values = {319: 206, 320: 229, 321: 0, 322: 0}
-  submission_time  = datetime.datetime(2013, 2, 5, 14, 53, 57, 616928)
-    
+  submission_time  = datetime.datetime(2013, 2, 5, 14, 53, 57, 616928)    
   data  = H033B_Reporter.get_reports_data_for_submission(submission)
 
   assert data['orgUnit'] == DUMMY_HEALTHFACILITY_UUID_MAPPINGS[515]
   assert data['completeDate'] == submission_time
-  
+  # assert data['period'] == ''
   assert len(data['dataValues']) ==2
   
   assert data['dataValues'][0]['dataElement'] == u'ck3jFjr8fOT' 
