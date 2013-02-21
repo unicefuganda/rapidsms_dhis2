@@ -4,8 +4,10 @@ from django.template.loader import get_template
 import urllib2, base64
 from mtrack.models import XFormSubmissionExtras
 from rapidsms_xforms.models import XFormSubmissionValue, XForm, XFormSubmission
-from dhis2.models import Dhis2_Mtrac_Indicators_Mapping
+from dhis2.models import Dhis2_Mtrac_Indicators_Mapping , Dhis2_Reports_Submissions_Log
 from datetime import timedelta
+import datetime
+from healthmodels.models.HealthFacility import HealthFacilityBase
 
 HMIS033B_REPORT_XML_TEMPLATE = "h033b_reporter.xml"
 HMIS_033B_PERIOD_ID = u'%dW%d'
@@ -73,9 +75,28 @@ class H033B_Reporter(object):
   def process_and_send_reports_for_last_week(self, date):
     last_monday = self.get_last_sunday(date) + timedelta(days=1)
     submissions_for_last_week = self.get_submissions_in_date_range(last_monday, date)
+    log_id = self.log_submission_started()
+    success_submissions_made=0
+    failure_submissions_made=0
+    failure_descriptions = []
+    
     for submission in submissions_for_last_week:
-      data = self.get_reports_data_for_submission(submission)  
-      self.submit(data)
+      data = self.get_reports_data_for_submission(submission) 
+      if data : 
+        try:
+          self.submit(data)
+          success_submissions_made += 1
+        except   Exception, e:
+          exception = type(e).__name__ +":"+ str(e)
+          failure_description = 'Failed to submit submission_id#%s. \nException: %s '%(submission.id,exception) 
+          failure_descriptions.append(failure_description)
+          failure_submissions_made += 1
+
+    if success_submission_made >0:      
+      self.log_submission( log_id=log_id, submission_count=success_submission_made, status=Dhis2_Reports_Submissions_Log.SUCCESS) 
+    if failure_submission_made >0:  
+      failiure_description = "failed to submit %d reports."%failure_submissions_made + failure_descriptions
+      self.log_submission( log_id=log_id, submission_count=success_submission_made, status=Dhis2_Reports_Submissions_Log.FAILURE, description = failiure_description) 
 
   @classmethod  
   def get_week_period_id_for_sunday(self, date):
@@ -94,23 +115,51 @@ class H033B_Reporter(object):
     return self.get_week_period_id_for_sunday(self.get_last_sunday(date))   
     
   @classmethod
-    def get_utc_time_iso8601(self,time_arg):
-      year_str = str(time_arg.year)
-      month_str =str(time_arg.month)
-      day_str = str(time_arg.day)
-      hour_str = str(time_arg.hour)
-      minute_str = str(time_arg.minute)
-      second_str = str(time_arg.second)
+  def get_utc_time_iso8601(self,time_arg):
+    year_str   = str(time_arg.year)
+    month_str  = str(time_arg.month)
+    day_str    = str(time_arg.day)
+    hour_str   = str(time_arg.hour)
+    minute_str = str(time_arg.minute)
+    second_str = str(time_arg.second)
 
-      if len(month_str) <2 : 
-        month_str = str(0)+ month_str
-      if len(day_str) <2 : 
-        day_str = str(0)+ day_str
-      if len(hour_str) <2 : 
-        hour_str = str(0)+ hour_str
-      if len(minute_str) <2 : 
-        minute_str = str(0)+ minute_str
-      if len(second_str) <2 : 
-        second_str = str(0)+ second_str
+    if len(month_str) <2 : 
+      month_str = str(0)+ month_str
+    if len(day_str) <2 : 
+      day_str = str(0)+ day_str
+    if len(hour_str) <2 : 
+      hour_str = str(0)+ hour_str
+    if len(minute_str) <2 : 
+      minute_str = str(0)+ minute_str
+    if len(second_str) <2 : 
+      second_str = str(0)+ second_str
 
-      return '%s-%s-%sT%s:%s:%sZ'%(year_str,month_str,day_str,hour_str,minute_str,second_str)
+    return '%s-%s-%sT%s:%s:%sZ'%(year_str,month_str,day_str,hour_str,minute_str,second_str)
+    
+  @classmethod
+  def log_submission_started(self) : 
+    return Dhis2_Reports_Submissions_Log.objects.create().id
+    
+  @classmethod
+  def log_submission_finished_with_success(self, log_id, submission_count, status, description='') :
+    log_record = Dhis2_Reports_Submissions_Log.objects.get(id=log_id)
+    log_record.time_finished= datetime.datetime.now()
+    log_record.number_of_submissions = submission_count
+    log_record.status = status
+    log_record.description = description
+    log_record.save()
+    
+def fix_uids(): 
+  uids = open('uid_dump.txt')
+  hms = HealthFacilityBase.objects.all()
+  i=0
+  for uid in uids : 
+      i+=1
+      hms[i].uuid = uid.strip()
+      hms[i].save(cascade_update=False)
+      print i
+      if i == len(hms) -1 : 
+        break 
+
+
+    

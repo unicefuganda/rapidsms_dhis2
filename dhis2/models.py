@@ -1,6 +1,5 @@
 from django.db import models
 
-
 def promote(modeladmin, request, queryset):
     queryset.update(created=True)
 
@@ -54,6 +53,18 @@ class Dhis2_Mtrac_Indicators_Mapping(models.Model):
       
   class Meta:
     db_table = u'dhis2_mtrack_indicators_mapping'
-    
-  
 
+class Dhis2_Reports_Submissions_Log(models.Model):
+  RUNNING = 'RUNNING'
+  FAILED  = 'FAILED'
+  SUCCESS = 'SUCCESS'
+  time_started          = models.DateTimeField(auto_now_add=True)
+  time_finished         = models.DateTimeField(null=True)
+  number_of_submissions = models.IntegerField(null=True)
+  status                = models.CharField(max_length=15, default=RUNNING)
+  description           = models.TextField(null=True)
+  
+  class Meta:
+    db_table = u'dhis2_reports_submissions_log'
+   
+  

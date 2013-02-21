@@ -54,7 +54,7 @@ class Test_H033B_Reporter(TestCase):
         assert str(datavalue['value']) == row[4]
   
       return True
- 
+   
     for date in dates_iso_string_map : 
       print dates_iso_string_map[date] , H033B_Reporter.get_utc_time_iso8601(date)
       self.assertEquals(dates_iso_string_map[date] , H033B_Reporter.get_utc_time_iso8601(date))
@@ -85,7 +85,23 @@ class Test_H033B_Reporter(TestCase):
   def temp_fix_remove_whitespaces(self,str):
     return str.replace(' ','').replace('\n', '')
     
-
+  
+  def test_iso_time(self):
+    dates_iso_string_map = {
+      datetime.datetime(2003, 12, 31, 23, 59, 45)   :  '2003-12-31T23:59:45Z' , 
+      datetime.datetime(2003, 1 , 31, 23, 59, 45)   :  '2003-01-31T23:59:45Z' , 
+      datetime.datetime(2003, 12, 1 , 0 , 0 , 0 )   :  '2003-12-01T00:00:00Z' , 
+      datetime.datetime(2003, 2 , 2 , 0 , 0 , 0 )   :  '2003-02-02T00:00:00Z' , 
+      datetime.datetime(2003, 12, 31, 23, 59, 59)   :  '2003-12-31T23:59:59Z' , 
+  
+    }
+  
+    for date in dates_iso_string_map : 
+      # print dates_iso_string_map[date] , H033B_Reporter.get_utc_time_iso8601(date)
+      self.assertEquals(dates_iso_string_map[date] , H033B_Reporter.get_utc_time_iso8601(date))
+  
+    
+  
   def test_get_week_period_id_for_sunday(self):
      periods_test_args = {
        datetime.datetime(2010, 1, 3, 23, 59, 45)     : u'2010W1'  , 
@@ -121,6 +137,30 @@ class Test_H033B_Reporter(TestCase):
         datetime.datetime(2010, 12, 31, 0, 0, 0)      : u'2010W52' ,
         datetime.datetime(2012, 1, 7, 0, 0, 0)        : u'2012W1' 
        }
-
+  
       for date in from_dates: 
         self.assertEquals(from_dates[date] , H033B_Reporter.get_period_id_for_submission(date))  
+  
+  def test_log_submission_started(self):
+    log_id = H033B_Reporter.log_submission_started()
+    log_record = Dhis2_Reports_Submissions_Log.objects.get(id=log_id)
+    time = datetime.datetime.now()
+    self.assertEquals(log_record.status , Dhis2_Reports_Submissions_Log.RUNNING)
+    self.assertIsNotNone(time)
+
+  def test_log_submission_finished_with_success(self):
+    log_record_id = H033B_Reporter.log_submission_started()
+
+    H033B_Reporter.log_submission_finished_with_success( 
+      log_id = log_record_id , 
+      submission_count=100,
+      status= Dhis2_Reports_Submissions_Log.SUCCESS,
+      description='Submitted succesfully to dhis2')
+    
+    log_record_fetched = Dhis2_Reports_Submissions_Log.objects.get(id=log_record_id)
+
+    self.assertEquals(log_record_fetched.number_of_submissions , 100)
+    self.assertEquals(log_record_fetched.description , 'Submitted succesfully to dhis2')
+    self.assertEquals(log_record_fetched.status , Dhis2_Reports_Submissions_Log.SUCCESS)
+    self.assertIsNotNone(log_record_fetched.time_finished)
+
