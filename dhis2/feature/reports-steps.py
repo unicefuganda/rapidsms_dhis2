@@ -22,7 +22,7 @@ def get_reports_data_for_submission(self):
 
   assert data['orgUnit'] == DUMMY_HEALTHFACILITY_UUID_MAPPINGS[515]
   assert data['completeDate'] == submission_time
-  # assert data['period'] == ''
+  assert data['period'] == '2013W5'
   assert len(data['dataValues']) ==2
   
   assert data['dataValues'][0]['dataElement'] == u'ck3jFjr8fOT' 

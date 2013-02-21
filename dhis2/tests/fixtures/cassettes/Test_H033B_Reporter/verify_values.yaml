@@ -3,15 +3,15 @@
     headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Type: application/xml,
       Host: dhis, User-Agent: Python-urllib/2.7}
     method: GET
-    url: /api/dataValueSets?dataSet=V1kJRs8CtW4&period=2012W11&orgUnit=6VeE8JrylXn
+    url: /api/dataValueSets?dataSet=V1kJRs8CtW4&period=2012W45&orgUnit=6VeE8JrylXn
   response:
     body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0"
-        dataSet="V1kJRs8CtW4" completeDate="2012-11-11" period="2012W11" orgUnit="6VeE8JrylXn"><dataValue
-        dataElement="U7cokRIptxu" period="2012W11" orgUnit="6VeE8JrylXn" categoryOptionCombo="gGhClrV5odI"
+        dataSet="V1kJRs8CtW4" completeDate="2012-11-11" period="2012W45" orgUnit="6VeE8JrylXn"><dataValue
+        dataElement="U7cokRIptxu" period="2012W45" orgUnit="6VeE8JrylXn" categoryOptionCombo="gGhClrV5odI"
         value="100" storedBy="api" followUp="false"/><dataValue dataElement="mdIPCPfqXaJ"
-        period="2012W11" orgUnit="6VeE8JrylXn" categoryOptionCombo="gGhClrV5odI" value="99"
+        period="2012W45" orgUnit="6VeE8JrylXn" categoryOptionCombo="gGhClrV5odI" value="99"
         storedBy="api" followUp="false"/></dataValueSet>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Wed,
-        20 Feb 2013 16:42:40 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=8D299D9E65D29C08A1F1C995E63604E5;
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Thu,
+        21 Feb 2013 08:29:14 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=DDB6764B9253F2041D4CAA60469DB0EE;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}

@@ -40,7 +40,8 @@ class H033B_Reporter(object):
       submission_extras = submission_extras_list[0]
       data = {}
       data['orgUnit']         = submission_extras.facility.uuid
-      data['completeDate']    = submission_arg.created 
+      data['completeDate']    = self.get_utc_time_iso8601(submission_arg.created)
+      data['period']          = self.get_period_id_for_submission(submission_arg.created)
       data['dataValues']      = []
 
       submission_values = XFormSubmissionValue.objects.filter(submission=submission_arg)
@@ -69,10 +70,12 @@ class H033B_Reporter(object):
     return XFormSubmission.objects.filter(created__range=[from_date, to_date])
     
   @classmethod
-  def process_reports_for_last_week(self, date):
+  def process_and_send_reports_for_last_week(self, date):
     last_monday = self.get_last_sunday(date) + timedelta(days=1)
     submissions_for_last_week = self.get_submissions_in_date_range(last_monday, date)
-    return self.get_reports_data_for_submission(submissions_for_last_week)  
+    for submission in submissions_for_last_week:
+      data = self.get_reports_data_for_submission(submission)  
+      self.submit(data)
 
   @classmethod  
   def get_week_period_id_for_sunday(self, date):
@@ -89,3 +92,25 @@ class H033B_Reporter(object):
   @classmethod
   def get_period_id_for_submission(self,date):
     return self.get_week_period_id_for_sunday(self.get_last_sunday(date))   
+    
+  @classmethod
+    def get_utc_time_iso8601(self,time_arg):
+      year_str = str(time_arg.year)
+      month_str =str(time_arg.month)
+      day_str = str(time_arg.day)
+      hour_str = str(time_arg.hour)
+      minute_str = str(time_arg.minute)
+      second_str = str(time_arg.second)
+
+      if len(month_str) <2 : 
+        month_str = str(0)+ month_str
+      if len(day_str) <2 : 
+        day_str = str(0)+ day_str
+      if len(hour_str) <2 : 
+        hour_str = str(0)+ hour_str
+      if len(minute_str) <2 : 
+        minute_str = str(0)+ minute_str
+      if len(second_str) <2 : 
+        second_str = str(0)+ second_str
+
+      return '%s-%s-%sT%s:%s:%sZ'%(year_str,month_str,day_str,hour_str,minute_str,second_str)
