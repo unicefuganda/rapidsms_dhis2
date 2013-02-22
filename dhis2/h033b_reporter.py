@@ -149,17 +149,6 @@ class H033B_Reporter(object):
     log_record.description = description
     log_record.save()
     
-def fix_uids(): 
-  uids = open('uid_dump.txt')
-  hms = HealthFacilityBase.objects.all()
-  i=0
-  for uid in uids : 
-      i+=1
-      hms[i].uuid = uid.strip()
-      hms[i].save(cascade_update=False)
-      print i
-      if i == len(hms) -1 : 
-        break 
 
 
     
