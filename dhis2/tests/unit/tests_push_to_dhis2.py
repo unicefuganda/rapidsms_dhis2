@@ -23,6 +23,7 @@ TEST_SUBMISSION_DATA = { 'orgUnit': "6VeE8JrylXn",
                                 }
                               ]
               }
+
 class Test_H033B_Reporter(TestCase):
   
   def test_submit_report(self):
@@ -147,10 +148,10 @@ class Test_H033B_Reporter(TestCase):
     time = datetime.datetime.now()
     self.assertEquals(log_record.status , Dhis2_Reports_Submissions_Log.RUNNING)
     self.assertIsNotNone(time)
-
+  
   def test_log_submission_finished_with_success(self):
     log_record_id = H033B_Reporter.log_submission_started()
-
+  
     H033B_Reporter.log_submission_finished_with_success( 
       log_id = log_record_id , 
       submission_count=100,
@@ -158,9 +159,12 @@ class Test_H033B_Reporter(TestCase):
       description='Submitted succesfully to dhis2')
     
     log_record_fetched = Dhis2_Reports_Submissions_Log.objects.get(id=log_record_id)
-
+  
     self.assertEquals(log_record_fetched.number_of_submissions , 100)
     self.assertEquals(log_record_fetched.description , 'Submitted succesfully to dhis2')
     self.assertEquals(log_record_fetched.status , Dhis2_Reports_Submissions_Log.SUCCESS)
     self.assertIsNotNone(log_record_fetched.time_finished)
 
+
+    
+    
