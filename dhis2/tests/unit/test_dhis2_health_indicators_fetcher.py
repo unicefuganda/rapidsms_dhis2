@@ -63,20 +63,20 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
         test_dhis2_name  = u'I DONT EXIST IN MTRACK...YEAHHHH - WEP'
         self.assertEquals(self.fetcher.find_matching_indicator_from_mtrack(test_dhis2_name),None)
 
-    def test_find_matches_and_update_mapping_table(self):
-        Dhis2_Mtrac_Indicators_Mapping.objects.all().delete()
-        disease = {"name":u"Malaria Cases - WEP", "id": u"fclvwNhzu7d", "href": u"http://dhis/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
-        self.fetcher.find_matches_and_update_mapping_table(disease)
-        record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_uuid='fclvwNhzu7d')
-        self.assertIsNotNone(record)
-        self.assertEquals(len(record), 1)
-        record = record[0]
-        self.assertEquals( record.dhis2_name, disease['name'])
-        self.assertEquals( record.dhis2_uuid, disease['id'])
-        self.assertEquals( record.dhis2_url, disease['href'])
-        self.assertEquals( record.dhis2_combo_id, disease['combo_id'])
-        self.assertEquals( record.mtrac_id, Attribute.objects.get(slug='cases_ma').id)
-        
+    # def test_find_matches_and_update_mapping_table(self):
+    #     Dhis2_Mtrac_Indicators_Mapping.objects.all().delete()
+    #     disease = {"name":u"Malaria Cases - WEP", "id": u"fclvwNhzu7d", "href": u"http://dhis/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
+    #     self.fetcher.find_matches_and_update_mapping_table(disease)
+    #     record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_uuid='fclvwNhzu7d')
+    #     self.assertIsNotNone(record)
+    #     self.assertEquals(len(record), 1)
+    #     record = record[0]
+    #     self.assertEquals( record.dhis2_name, disease['name'])
+    #     self.assertEquals( record.dhis2_uuid, disease['id'])
+    #     self.assertEquals( record.dhis2_url, disease['href'])
+    #     self.assertEquals( record.dhis2_combo_id, disease['combo_id'])
+    #     self.assertEquals( record.mtrac_id, Attribute.objects.get(slug='cases_ma').id)
+
     def test_find_matches_and_update_mapping_table_for_invalid_matches(self):
         disease = {"name":u"I wont be foundin mtrack", "id": u"fclvwNhzu7d", "href": u"http://dhis/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
         self.fetcher.find_matches_and_update_mapping_table(disease)
@@ -89,12 +89,12 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
         self.assertEquals( record.dhis2_url, disease['href'])
         self.assertEquals( record.dhis2_combo_id, disease['combo_id'])
         self.assertEquals( record.mtrac_id,None )
-        
+
 
     # def xtest_sync_indicators_group(self):
     #     indicator = disease = {"name":u"Malaria Cases - WEP", "id": u"fclvwNhzu7d", "href": u"http://dhis/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
     #     # mtrack_indicator = find_matching_indicator_from_mtrack()
-    # 
+    #
     #     record = Dhis2_Mtrac_Indicators_Mapping.objects.all()
     #     test_indicators_list = [
     #         'Suspected Malaria Cases',
@@ -164,11 +164,11 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
                              Attribute.objects.get(slug='test_pcy').id ])
 
             self.assertListEqual(record_mtrac , expected_list)
-            
+
     def test_fetch_elements_from_dataset(self):
         dataset_url = 'http://dhis/api/dataSets/V1kJRs8CtW4'
         with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
             elements = self.fetcher.fetch_elements_for_dataset(dataset_url)
             self.assertTrue(len(elements),39)
-            
+
 
