@@ -9,7 +9,7 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         # Adding model 'Dhis2_Attribute_Submission_Log'
-        db.create_table(u'dhis2_reports_submissions_results_log', (
+        db.create_table(u'dhis2_attribute_submissions_log', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('submission_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rapidsms_xforms.XFormSubmission'])),
             ('report_log_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['dhis2.Dhis2_Reports_Submissions_Log'])),
@@ -22,7 +22,7 @@ class Migration(SchemaMigration):
 
     def backwards(self, orm):
         # Deleting model 'Dhis2_Attribute_Submission_Log'
-        db.delete_table(u'dhis2_reports_submissions_results_log')
+        db.delete_table(u'dhis2_attribute_submissions_log')
 
 
     models = {
@@ -77,7 +77,7 @@ class Migration(SchemaMigration):
             'pmatch': ('django.db.models.fields.DecimalField', [], {'max_digits': '5', 'decimal_places': '3'})
         },
         'dhis2.dhis2_attribute_submission_log': {
-            'Meta': {'object_name': 'Dhis2_Attribute_Submission_Log', 'db_table': "u'dhis2_reports_submissions_results_log'"},
+            'Meta': {'object_name': 'Dhis2_Attribute_Submission_Log', 'db_table': "u'dhis2_attribute_submissions_log'"},
             'attribute_id': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eav.Attribute']"}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),

@@ -94,4 +94,4 @@ class Dhis2_Attribute_Submission_Log(models.Model):
   description           = models.TextField(null=True)
 
   class Meta:
-    db_table = u'dhis2_reports_submissions_results_log'
+    db_table = u'dhis2_attribute_submissions_log'
