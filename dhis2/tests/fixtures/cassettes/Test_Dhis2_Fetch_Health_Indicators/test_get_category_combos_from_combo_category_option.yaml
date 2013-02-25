@@ -1,26 +1,26 @@
 - request:
     body: null
     headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Type: application/json;
-        charset="UTF-8", Host: dhis, User-Agent: Python-urllib/2.7}
+        charset="UTF-8", Host: ec2-54-242-108-118.compute-1.amazonaws.com, User-Agent: Python-urllib/2.7}
     method: GET
     url: /api/categoryCombos/7O1Zh4rJoIn.json
   response:
-    body: {string: '{"name":"ACT Consumption","created":"2011-11-03T18:23:53.269+0000","lastUpdated":"2011-11-03T18:23:53.269+0000","user":null,"categories":[{"name":"ACT
-        Consumption","created":"2011-11-03T18:23:53.216+0000","lastUpdated":"2011-11-03T18:23:53.216+0000","user":null,"href":"http://dhis/api/categories/N8haWAQD6Yk","id":"N8haWAQD6Yk"}],"skipTotal":false,"href":"http://dhis/api/categoryCombos/7O1Zh4rJoIn","id":"7O1Zh4rJoIn","categoryOptionCombos":[{"name":"(Brown
-        Used)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/BrX1bohix6a","id":"BrX1bohix6a"},{"name":"(Blue
-        in Stock?)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/drJyZS90kYV","id":"drJyZS90kYV"},{"name":"(Yellow
-        Used)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/JFoz3bCuOZf","id":"JFoz3bCuOZf"},{"name":"(Yellow
-        in Stock?)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/NZv0UpKaE2N","id":"NZv0UpKaE2N"},{"name":"(Blue
-        Used)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/K2u96YEADns","id":"K2u96YEADns"},{"name":"(Quinine
-        in Stock?)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/UBBd8I8rh3Y","id":"UBBd8I8rh3Y"},{"name":"(Other
-        ACT Used)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/vdb7UfWrri9","id":"vdb7UfWrri9"},{"name":"(Quinine
-        Used)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/2y9HVtdKwpk","id":"2y9HVtdKwpk"},{"name":"(Green
-        Used)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/WlMwy0glMI4","id":"WlMwy0glMI4"},{"name":"(Green
-        in Stock?)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/29qEfC1U5P2","id":"29qEfC1U5P2"},{"name":"(Brown
-        in Stock?)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/rkVTCLTsu0U","id":"rkVTCLTsu0U"},{"name":"(Other
-        ACT in Stock)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/AcuD9Tregzw","id":"AcuD9Tregzw"}]}'}
-    headers: {connection: close, content-language: en-US, content-length: '2874',
-      content-type: application/json;charset=UTF-8, date: 'Mon, 11 Feb 2013 08:39:23
-        GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=6B533265A0CEFB1AE905D9C3D8720798;
+    body: {string: '{"name":"ACT Consumption","created":"2011-11-03T18:23:53.269+0000","lastUpdated":"2011-11-03T18:23:53.269+0000","categories":[{"name":"ACT
+        Consumption","created":"2011-11-03T18:23:53.216+0000","lastUpdated":"2011-11-03T18:23:53.216+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categories/N8haWAQD6Yk","id":"N8haWAQD6Yk"}],"skipTotal":false,"href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryCombos/7O1Zh4rJoIn","id":"7O1Zh4rJoIn","categoryOptionCombos":[{"name":"(Blue
+        in Stock?)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/drJyZS90kYV","id":"drJyZS90kYV"},{"name":"(Brown
+        Used)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/BrX1bohix6a","id":"BrX1bohix6a"},{"name":"(Other
+        ACT Used)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/vdb7UfWrri9","id":"vdb7UfWrri9"},{"name":"(Quinine
+        Used)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/2y9HVtdKwpk","id":"2y9HVtdKwpk"},{"name":"(Green
+        Used)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/WlMwy0glMI4","id":"WlMwy0glMI4"},{"name":"(Yellow
+        Used)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/JFoz3bCuOZf","id":"JFoz3bCuOZf"},{"name":"(Yellow
+        in Stock?)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/NZv0UpKaE2N","id":"NZv0UpKaE2N"},{"name":"(Green
+        in Stock?)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/29qEfC1U5P2","id":"29qEfC1U5P2"},{"name":"(Quinine
+        in Stock?)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/UBBd8I8rh3Y","id":"UBBd8I8rh3Y"},{"name":"(Blue
+        Used)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/K2u96YEADns","id":"K2u96YEADns"},{"name":"(Other
+        ACT in Stock)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/AcuD9Tregzw","id":"AcuD9Tregzw"},{"name":"(Brown
+        in Stock?)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/rkVTCLTsu0U","id":"rkVTCLTsu0U"}]}'}
+    headers: {connection: close, content-language: en-US, content-length: '3238',
+      content-type: application/json;charset=UTF-8, date: 'Mon, 25 Feb 2013 18:49:26
+        GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=E9C0EC901B8A4BF26308C99C7F4CB77D;
         Path=/; HttpOnly}
     status: {code: 200, message: OK}

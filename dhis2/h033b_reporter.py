@@ -4,7 +4,7 @@ from django.template.loader import get_template
 import urllib2, base64
 from mtrack.models import XFormSubmissionExtras
 from rapidsms_xforms.models import XFormSubmissionValue, XForm, XFormSubmission
-from dhis2.models import Dhis2_Mtrac_Indicators_Mapping , Dhis2_Reports_Submissions_Log
+from dhis2.models import Dhis2_Mtrac_Indicators_Mapping , Dhis2_Reports_Report_Task_Log
 from datetime import timedelta
 import datetime
 from healthmodels.models.HealthFacility import HealthFacilityBase
@@ -19,23 +19,19 @@ class H033B_Reporter(object):
       'Authorization': 'Basic ' + base64.b64encode("api:P@ssw0rd")
   }
 
-  @classmethod
   def send(self, data):
     request = urllib2.Request(self.URL, data = data, headers = self.HEADERS)
     request.get_method = lambda: "POST"
     return urllib2.urlopen(request)
 
-  @classmethod
   def submit(self, data):
     return self.send(self.generate_xml_report(data))
   
-  @classmethod 
   def generate_xml_report(self,data):
     template = get_template(HMIS033B_REPORT_XML_TEMPLATE)
     data = template.render(Context(data))
     return data
     
-  @classmethod
   def get_reports_data_for_submission(self,submission_arg):
     submission_extras_list = XFormSubmissionExtras.objects.filter(submission=submission_arg)
     if submission_extras_list : 
@@ -54,11 +50,11 @@ class H033B_Reporter(object):
       return data
     return None
     
-  @classmethod
   def get_data_values_for_submission(self, submission_value):
     data_value = {}
     attrib_id = submission_value.attribute_id
     dhis2_mapping = Dhis2_Mtrac_Indicators_Mapping.objects.filter(mtrac_id=attrib_id)
+
     if dhis2_mapping:
       element_id = dhis2_mapping[0].dhis2_uuid
       combo_id = dhis2_mapping[0].dhis2_combo_id
@@ -67,11 +63,9 @@ class H033B_Reporter(object):
       data_value['categoryOptionCombo']  =combo_id
     return data_value
     
-  @classmethod
   def get_submissions_in_date_range(self,from_date,to_date):
     return XFormSubmission.objects.filter(created__range=[from_date, to_date])
     
-  @classmethod
   def process_and_send_reports_for_last_week(self, date):
     last_monday = self.get_last_sunday(date) + timedelta(days=1)
     submissions_for_last_week = self.get_submissions_in_date_range(last_monday, date)
@@ -93,10 +87,10 @@ class H033B_Reporter(object):
           failure_submissions_made += 1
 
     if success_submission_made >0:      
-      self.log_submission( log_id=log_id, submission_count=success_submission_made, status=Dhis2_Reports_Submissions_Log.SUCCESS) 
+      self.log_submission( log_id=log_id, submission_count=success_submission_made, status=Dhis2_Reports_Report_Task_Log.SUCCESS) 
     if failure_submission_made >0:  
       failiure_description = "failed to submit %d reports."%failure_submissions_made + failure_descriptions
-      self.log_submission( log_id=log_id, submission_count=success_submission_made, status=Dhis2_Reports_Submissions_Log.FAILURE, description = failiure_description) 
+      self.log_submission( log_id=log_id, submission_count=success_submission_made, status=Dhis2_Reports_Report_Task_Log.FAILURE, description = failiure_description) 
 
   @classmethod  
   def get_week_period_id_for_sunday(self, date):
@@ -136,13 +130,12 @@ class H033B_Reporter(object):
 
     return '%s-%s-%sT%s:%s:%sZ'%(year_str,month_str,day_str,hour_str,minute_str,second_str)
     
-  @classmethod
+
   def log_submission_started(self) : 
-    return Dhis2_Reports_Submissions_Log.objects.create().id
+    return Dhis2_Reports_Report_Task_Log.objects.create().id
     
-  @classmethod
   def log_submission_finished_with_success(self, log_id, submission_count, status, description='') :
-    log_record = Dhis2_Reports_Submissions_Log.objects.get(id=log_id)
+    log_record = Dhis2_Reports_Report_Task_Log.objects.get(id=log_id)
     log_record.time_finished= datetime.datetime.now()
     log_record.number_of_submissions = submission_count
     log_record.status = status

@@ -1,12 +1,12 @@
 - request:
     body: null
     headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Type: application/json;
-        charset="UTF-8", Host: dhis, User-Agent: Python-urllib/2.7}
+        charset="UTF-8", Host: ec2-54-242-108-118.compute-1.amazonaws.com, User-Agent: Python-urllib/2.7}
     method: GET
     url: /api/categoryCombos/92DkrSOchnL.json
   response:
-    body: {string: '{"name":"default","created":"2011-11-03T18:23:53.269+0000","lastUpdated":"2011-11-03T18:23:53.269+0000","user":null,"categories":[{"name":"default","created":"2013-01-15T08:48:16.042+0000","lastUpdated":"2013-02-11T07:57:35.068+0000","user":null,"href":"http://dhis/api/categories/pYsblT57GHs","id":"pYsblT57GHs"}],"skipTotal":false,"href":"http://dhis/api/categoryCombos/92DkrSOchnL","id":"92DkrSOchnL","categoryOptionCombos":[{"name":"(default)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/gGhClrV5odI","id":"gGhClrV5odI"}]}'}
-    headers: {connection: close, content-language: en-US, content-length: '625', content-type: application/json;charset=UTF-8,
-      date: 'Mon, 11 Feb 2013 08:39:38 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=53C09F622AB91009C2F20A617E216CD3;
+    body: {string: '{"name":"default","created":"2011-11-03T18:23:53.269+0000","lastUpdated":"2011-11-03T18:23:53.269+0000","categories":[{"name":"default","created":"2013-01-15T08:48:16.042+0000","lastUpdated":"2013-02-25T14:00:54.482+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categories/pYsblT57GHs","id":"pYsblT57GHs"}],"skipTotal":false,"href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryCombos/92DkrSOchnL","id":"92DkrSOchnL","categoryOptionCombos":[{"name":"(default)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/gGhClrV5odI","id":"gGhClrV5odI"}]}'}
+    headers: {connection: close, content-language: en-US, content-length: '703', content-type: application/json;charset=UTF-8,
+      date: 'Mon, 25 Feb 2013 18:49:33 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=A872619B80BF909694F95CA0BD1BBCB2;
         Path=/; HttpOnly}
     status: {code: 200, message: OK}

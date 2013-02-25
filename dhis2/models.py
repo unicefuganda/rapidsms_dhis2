@@ -68,11 +68,11 @@ class Dhis2_Temp_Mtrac_Indicators_Mapping(models.Model):
   class Meta:
     db_table = u'dhis2_temp_mtrack_indicators_mapping'    
 
-class Dhis2_Reports_Submissions_Log(models.Model):
+class Dhis2_Reports_Report_Task_Log(models.Model):
   RUNNING = 'RUNNING'
   FAILED  = 'FAILED'
   SUCCESS = 'SUCCESS'
-  time_started          = models.DateTimeField(auto_now_add=True)
+  time_started          = models.DateTimeField(auto_now_add=True, blank=True)
   time_finished         = models.DateTimeField(null=True)
   number_of_submissions = models.IntegerField(null=True)
   status                = models.CharField(max_length=15, default=RUNNING)
@@ -82,14 +82,14 @@ class Dhis2_Reports_Submissions_Log(models.Model):
     db_table = u'dhis2_reports_submissions_log'
 
 
-class Dhis2_Attribute_Submission_Log(models.Model):
+class Dhis2_Reports_Submissions_Log(models.Model):
   SUCCESS = "SUCCESS"
   INVALID_SUBMISSION_DATA  = "INVALID_SUBMISSION_DATA"
   SOME_ATTRIBUTES_IGNORED = "SOME_ATTRIBUTES_IGNORED"
-
+  
+  task_id               = models.ForeignKey(Dhis2_Reports_Report_Task_Log)
   submission_id         = models.ForeignKey(XFormSubmission)
-  report_log_id         = models.ForeignKey(Dhis2_Reports_Submissions_Log)
-  attribute_id          = models.ForeignKey(Attribute)
+  reported_xml          = models.TextField(null=True)
   result                = models.CharField(max_length=50)
   description           = models.TextField(null=True)
 

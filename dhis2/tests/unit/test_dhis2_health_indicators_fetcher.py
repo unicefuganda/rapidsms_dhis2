@@ -6,7 +6,7 @@ import json
 from mock import *
 from eav.models import Attribute
 
-FRED_CONFIG = {"url": "http://dhis/api/", "username": "api", "password": "P@ssw0rd"}
+FRED_CONFIG = {"url": "http://ec2-54-242-108-118.compute-1.amazonaws.com/api/", "username": "api", "password": "P@ssw0rd"}
 FIXTURES = os.path.abspath(dhis2.__path__[0]) + "/tests/fixtures/cassettes/"
 
 URLS = {
@@ -65,7 +65,7 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
 
     # def test_find_matches_and_update_mapping_table(self):
     #     Dhis2_Mtrac_Indicators_Mapping.objects.all().delete()
-    #     disease = {"name":u"Malaria Cases - WEP", "id": u"fclvwNhzu7d", "href": u"http://dhis/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
+    #     disease = {"name":u"Malaria Cases - WEP", "id": u"fclvwNhzu7d", "href": u"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
     #     self.fetcher.find_matches_and_update_mapping_table(disease)
     #     record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_uuid='fclvwNhzu7d')
     #     self.assertIsNotNone(record)
@@ -78,7 +78,7 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
     #     self.assertEquals( record.mtrac_id, Attribute.objects.get(slug='cases_ma').id)
 
     def test_find_matches_and_update_mapping_table_for_invalid_matches(self):
-        disease = {"name":u"I wont be foundin mtrack", "id": u"fclvwNhzu7d", "href": u"http://dhis/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
+        disease = {"name":u"I wont be foundin mtrack", "id": u"fclvwNhzu7d", "href": u"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
         self.fetcher.find_matches_and_update_mapping_table(disease)
         record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_uuid='fclvwNhzu7d')
         self.assertIsNotNone(record)
@@ -92,7 +92,7 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
 
 
     # def xtest_sync_indicators_group(self):
-    #     indicator = disease = {"name":u"Malaria Cases - WEP", "id": u"fclvwNhzu7d", "href": u"http://dhis/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
+    #     indicator = disease = {"name":u"Malaria Cases - WEP", "id": u"fclvwNhzu7d", "href": u"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
     #     # mtrack_indicator = find_matching_indicator_from_mtrack()
     #
     #     record = Dhis2_Mtrac_Indicators_Mapping.objects.all()
@@ -108,18 +108,18 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
     #         self.assertIsNotNone(Dhis2_Mtrac_Indicators_Mapping.objects.filetr(dhis2_name = test_indicator_name))
 
     def test_get_indicator_combo_option_id_default(self):
-        category_combo_url = 'http://dhis/api/categoryCombos/92DkrSOchnL'
+        category_combo_url = 'http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryCombos/92DkrSOchnL'
         with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
             self.assertEqual(self.fetcher.get_indicator_combo_option_id(category_combo_url), 'gGhClrV5odI')
 
     def test_get_indicator_combo_option_non_default(self):
-        category_combo_url = 'http://dhis/api/categoryCombos/7O1Zh4rJoIn'
+        category_combo_url = 'http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryCombos/7O1Zh4rJoIn'
         with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
             self.assertIsNone(self.fetcher.get_indicator_combo_option_id(category_combo_url) )
 
 
     def test_get_category_combos_from_combo_category_option(self):
-        category_combo_url = 'http://dhis/api/categoryCombos/7O1Zh4rJoIn'
+        category_combo_url = 'http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryCombos/7O1Zh4rJoIn'
         with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
             indicators = self.fetcher.get_category_combos_from_combo_category_option(category_combo_url)
 
@@ -130,13 +130,13 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
                  self.assertIsNotNone(indicator['href'])
 
     def test_get_combo_id_from_indicator(self):
-        url = 'http://dhis/api/dataElements/fTwT8uX9Uto'
+        url = 'http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataElements/fTwT8uX9Uto'
         with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
             combo_id = self.fetcher.get_combo_id_from_indicator(url)
             self.assertEquals(combo_id,'gGhClrV5odI')
 
     def test_update_mappings_table_with_default_indicator(self):
-        disease_url = 'http://dhis/api/dataElements/fTwT8uX9Uto'
+        disease_url = 'http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataElements/fTwT8uX9Uto'
         with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
             self.fetcher.update_mappings_table(disease_url)
             record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_url= disease_url)
@@ -148,7 +148,7 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
             self.assertEqual(record.mtrac_id, Attribute.objects.get(slug='cases_ae').id)
 
     def test_update_mappings_table_with_non_default_indicator(self):
-        indicator_url = 'http://dhis/api/dataElements/KPmTI3TGwZw'
+        indicator_url = 'http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataElements/KPmTI3TGwZw'
         with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
             self.fetcher.update_mappings_table(indicator_url)
             record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_uuid= 'KPmTI3TGwZw')
@@ -166,7 +166,7 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
             self.assertListEqual(record_mtrac , expected_list)
 
     def test_fetch_elements_from_dataset(self):
-        dataset_url = 'http://dhis/api/dataSets/V1kJRs8CtW4'
+        dataset_url = 'http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataSets/V1kJRs8CtW4'
         with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
             elements = self.fetcher.fetch_elements_for_dataset(dataset_url)
             self.assertTrue(len(elements),39)

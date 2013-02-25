@@ -6,6 +6,7 @@ from healthmodels.models.HealthFacility import HealthFacilityBase
 DUMMY_HEALTHFACILITY_UUID_MAPPINGS = {
   515 : '6VeE8JrylXn',
 }
+h033b_reporter = H033B_Reporter()
 
 @before.all
 def setup():
@@ -18,7 +19,7 @@ def setup():
 def get_reports_data_for_submission(self):
   submission = XFormSubmission.objects.filter(id=416117)[0]
   submission_time  = datetime.datetime(2013, 2, 5, 14, 53, 57, 616928)    
-  data  = H033B_Reporter.get_reports_data_for_submission(submission)
+  data  =  h033b_reporter.get_reports_data_for_submission(submission)
 
   assert data['orgUnit'] == DUMMY_HEALTHFACILITY_UUID_MAPPINGS[515]
   # assert data['completeDate'] == submission_time
@@ -38,7 +39,7 @@ def get_reports_data_for_submission(self):
 def get_submissions_in_date_range(self):
   from_date = datetime.datetime(2011, 12, 18, 00, 00, 00)
   to_date = datetime.datetime(2011, 12, 19, 23, 59, 59)
-  submissions_in_period  = H033B_Reporter.get_submissions_in_date_range(from_date,to_date)
+  submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
   assert len(submissions_in_period) == 314
   
 

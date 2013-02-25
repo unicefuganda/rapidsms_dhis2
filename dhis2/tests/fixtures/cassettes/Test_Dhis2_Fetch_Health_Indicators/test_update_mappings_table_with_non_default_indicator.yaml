@@ -1,21 +1,22 @@
 - request:
     body: null
     headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Type: application/json;
-        charset="UTF-8", Host: !!python/unicode 'dhis', User-Agent: Python-urllib/2.7}
+        charset="UTF-8", Host: !!python/unicode 'ec2-54-242-108-118.compute-1.amazonaws.com',
+      User-Agent: Python-urllib/2.7}
     method: GET
     url: !!python/unicode '/api/categoryCombos/IohHeDqzJk1.json'
   response:
-    body: {string: '{"name":"Malaria Surveillance Tests","created":"2011-11-03T18:23:53.269+0000","lastUpdated":"2011-11-03T18:23:53.269+0000","user":null,"categories":[{"name":"Malaria
-        Surveillance Tests - None agg","created":"2011-11-03T18:23:53.216+0000","lastUpdated":"2011-11-03T18:23:53.216+0000","user":null,"href":"http://dhis/api/categories/X4xJFAOorSp","id":"X4xJFAOorSp"}],"skipTotal":false,"href":"http://dhis/api/categoryCombos/IohHeDqzJk1","id":"IohHeDqzJk1","categoryOptionCombos":[{"name":"(Microscopy
-        Positive Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/3rYpFjLrrYa","id":"3rYpFjLrrYa"},{"name":"(Microscopy
-        Tested Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/t8Jv78lnSbU","id":"t8Jv78lnSbU"},{"name":"(Positive
-        Cases 5+ Years)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/Kp9EiDyxPNp","id":"Kp9EiDyxPNp"},{"name":"(Suspected
-        Malaria Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/3W3d2AqT4Aq","id":"3W3d2AqT4Aq"},{"name":"(Positve
-        Cases Under 5 Years)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/t4m0M8uKbwF","id":"t4m0M8uKbwF"},{"name":"(RDT
-        Positve Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/PfdPCxOoiBj","id":"PfdPCxOoiBj"},{"name":"(RDT
-        Tested Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","user":null,"href":"http://dhis/api/categoryOptionCombos/kcXY5cWAOsB","id":"kcXY5cWAOsB"}]}'}
-    headers: {connection: close, content-language: en-US, content-length: '1955',
-      content-type: application/json;charset=UTF-8, date: 'Thu, 21 Feb 2013 09:50:26
-        GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=E5578D4A0E63D39AE62E68E9125884C1;
+    body: {string: '{"name":"Malaria Surveillance Tests","created":"2011-11-03T18:23:53.269+0000","lastUpdated":"2011-11-03T18:23:53.269+0000","categories":[{"name":"Malaria
+        Surveillance Tests - None agg","created":"2011-11-03T18:23:53.216+0000","lastUpdated":"2011-11-03T18:23:53.216+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categories/X4xJFAOorSp","id":"X4xJFAOorSp"}],"skipTotal":false,"href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryCombos/IohHeDqzJk1","id":"IohHeDqzJk1","categoryOptionCombos":[{"name":"(Microscopy
+        Positive Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/3rYpFjLrrYa","id":"3rYpFjLrrYa"},{"name":"(Positive
+        Cases 5+ Years)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/Kp9EiDyxPNp","id":"Kp9EiDyxPNp"},{"name":"(Microscopy
+        Tested Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/t8Jv78lnSbU","id":"t8Jv78lnSbU"},{"name":"(Suspected
+        Malaria Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/3W3d2AqT4Aq","id":"3W3d2AqT4Aq"},{"name":"(Positve
+        Cases Under 5 Years)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/t4m0M8uKbwF","id":"t4m0M8uKbwF"},{"name":"(RDT
+        Positve Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/PfdPCxOoiBj","id":"PfdPCxOoiBj"},{"name":"(RDT
+        Tested Cases)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/kcXY5cWAOsB","id":"kcXY5cWAOsB"}]}'}
+    headers: {connection: close, content-language: en-US, content-length: '2189',
+      content-type: application/json;charset=UTF-8, date: 'Mon, 25 Feb 2013 19:46:46
+        GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=D7334D3F8364BD031D19D8B8B0E20F76;
         Path=/; HttpOnly}
     status: {code: 200, message: OK}

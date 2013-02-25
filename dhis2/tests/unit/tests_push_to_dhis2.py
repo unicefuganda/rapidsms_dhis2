@@ -25,11 +25,13 @@ TEST_SUBMISSION_DATA = { 'orgUnit': "6VeE8JrylXn",
               }
 
 class Test_H033B_Reporter(TestCase):
+  def setUp(self):
+    self.h033b_reporter = H033B_Reporter()
   
   def test_submit_report(self):
   
     with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
-      response = H033B_Reporter.submit(TEST_SUBMISSION_DATA)
+      response = self.h033b_reporter.submit(TEST_SUBMISSION_DATA)
     assert response.getcode() == 200
     assert response.geturl() == "http://dhis/api/dataValueSets"
     assert response.info().getheader('Content-type') == 'application/xml;charset=UTF-8'
@@ -39,8 +41,8 @@ class Test_H033B_Reporter(TestCase):
   def verify_values(self, data):
     with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
       query = "?dataSet=V1kJRs8CtW4&period=%s&orgUnit=%s" %(data['period'], data['orgUnit'])
-      url = H033B_Reporter.URL + query
-      request = urllib2.Request(url, headers=H033B_Reporter.HEADERS)
+      url = self.h033b_reporter.URL + query
+      request = urllib2.Request(url, headers=self.h033b_reporter.HEADERS)
       response = urllib2.urlopen(request)
       xml = etree.fromstring(response.read())
       rows = []
@@ -57,8 +59,8 @@ class Test_H033B_Reporter(TestCase):
       return True
    
     for date in dates_iso_string_map : 
-      print dates_iso_string_map[date] , H033B_Reporter.get_utc_time_iso8601(date)
-      self.assertEquals(dates_iso_string_map[date] , H033B_Reporter.get_utc_time_iso8601(date))
+      print dates_iso_string_map[date] , self.h033b_reporter.get_utc_time_iso8601(date)
+      self.assertEquals(dates_iso_string_map[date] , self.h033b_reporter.get_utc_time_iso8601(date))
   
   def test_get_data_values_for_submission(self):
     submission_value = MagicMock()
@@ -66,14 +68,14 @@ class Test_H033B_Reporter(TestCase):
     submission_value.value = 22
     
     Dhis2_Mtrac_Indicators_Mapping.objects.create(mtrac_id=submission_value.attribute_id, dhis2_uuid= u'test_uuid',dhis2_combo_id=u'test_combo_id')    
-    data =  H033B_Reporter.get_data_values_for_submission(submission_value)
+    data =  self.h033b_reporter.get_data_values_for_submission(submission_value)
   
     self.assertEquals(data['dataElement'], u'test_uuid')
     self.assertEquals(data['value'],22)
     self.assertEquals(data['categoryOptionCombo'], u'test_combo_id')
     
   def test_generate_xml_report(self):
-    rendered_xml  = H033B_Reporter.generate_xml_report(TEST_SUBMISSION_DATA)
+    rendered_xml  = self.h033b_reporter.generate_xml_report(TEST_SUBMISSION_DATA)
     expected_xml = u'<dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" dataSet="V1kJRs8CtW4" completeDate="2012-11-11T00:00:00Z" period="2012W45" orgUnit="6VeE8JrylXn">\
                         <dataValue dataElement="U7cokRIptxu"  categoryOptionCombo= "gGhClrV5odI" value="100" />\
                         <dataValue dataElement="mdIPCPfqXaJ" categoryOptionCombo= "gGhClrV5odI" value="99" />\
@@ -98,8 +100,8 @@ class Test_H033B_Reporter(TestCase):
     }
   
     for date in dates_iso_string_map : 
-      # print dates_iso_string_map[date] , H033B_Reporter.get_utc_time_iso8601(date)
-      self.assertEquals(dates_iso_string_map[date] , H033B_Reporter.get_utc_time_iso8601(date))
+      # print dates_iso_string_map[date] , self.h033b_reporter.get_utc_time_iso8601(date)
+      self.assertEquals(dates_iso_string_map[date] , self.h033b_reporter.get_utc_time_iso8601(date))
   
     
   
@@ -114,7 +116,7 @@ class Test_H033B_Reporter(TestCase):
       }
      
      for date in periods_test_args : 
-       self.assertEquals(periods_test_args[date] , H033B_Reporter.get_week_period_id_for_sunday(date))
+       self.assertEquals(periods_test_args[date] , self.h033b_reporter.get_week_period_id_for_sunday(date))
       
   def test_get_last_sunday_for_day(self):
       days = {
@@ -127,7 +129,7 @@ class Test_H033B_Reporter(TestCase):
        }
   
       for date in days : 
-        self.assertEquals(days[date] , H033B_Reporter.get_last_sunday(date))
+        self.assertEquals(days[date] , self.h033b_reporter.get_last_sunday(date))
         
   def test_get_period_id_from_submissions_on_given_dates(self):
       from_dates = {
@@ -140,29 +142,29 @@ class Test_H033B_Reporter(TestCase):
        }
   
       for date in from_dates: 
-        self.assertEquals(from_dates[date] , H033B_Reporter.get_period_id_for_submission(date))  
+        self.assertEquals(from_dates[date] , self.h033b_reporter.get_period_id_for_submission(date))  
   
   def test_log_submission_started(self):
-    log_id = H033B_Reporter.log_submission_started()
-    log_record = Dhis2_Reports_Submissions_Log.objects.get(id=log_id)
+    log_id = self.h033b_reporter.log_submission_started()
+    log_record = Dhis2_Reports_Report_Task_Log.objects.get(id=log_id)
     time = datetime.datetime.now()
-    self.assertEquals(log_record.status , Dhis2_Reports_Submissions_Log.RUNNING)
+    self.assertEquals(log_record.status , Dhis2_Reports_Report_Task_Log.RUNNING)
     self.assertIsNotNone(time)
   
   def test_log_submission_finished_with_success(self):
-    log_record_id = H033B_Reporter.log_submission_started()
+    log_record_id = self.h033b_reporter.log_submission_started()
   
-    H033B_Reporter.log_submission_finished_with_success( 
+    self.h033b_reporter.log_submission_finished_with_success( 
       log_id = log_record_id , 
       submission_count=100,
-      status= Dhis2_Reports_Submissions_Log.SUCCESS,
+      status= Dhis2_Reports_Report_Task_Log.SUCCESS,
       description='Submitted succesfully to dhis2')
     
-    log_record_fetched = Dhis2_Reports_Submissions_Log.objects.get(id=log_record_id)
+    log_record_fetched = Dhis2_Reports_Report_Task_Log.objects.get(id=log_record_id)
   
     self.assertEquals(log_record_fetched.number_of_submissions , 100)
     self.assertEquals(log_record_fetched.description , 'Submitted succesfully to dhis2')
-    self.assertEquals(log_record_fetched.status , Dhis2_Reports_Submissions_Log.SUCCESS)
+    self.assertEquals(log_record_fetched.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
     self.assertIsNotNone(log_record_fetched.time_finished)
 
 
