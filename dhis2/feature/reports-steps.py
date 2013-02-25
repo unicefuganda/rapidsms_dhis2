@@ -19,7 +19,10 @@ def setup():
 def get_reports_data_for_submission(self):
   submission = XFormSubmission.objects.filter(id=416117)[0]
   submission_time  = datetime.datetime(2013, 2, 5, 14, 53, 57, 616928)    
-  data  =  h033b_reporter.get_reports_data_for_submission(submission)
+  data  =  h033b_reporter.get_reports_data_for_submission(XFormSubmissionExtras.objects.filter(submission=submission))
+  submission_values = XFormSubmissionValue.objects.filter(submission=submission)
+  h033b_reporter.set_data_values_from_submission_value(data,submission_values)
+  
 
   assert data['orgUnit'] == DUMMY_HEALTHFACILITY_UUID_MAPPINGS[515]
   # assert data['completeDate'] == submission_time

@@ -145,23 +145,21 @@ class Test_H033B_Reporter(TestCase):
         self.assertEquals(from_dates[date] , self.h033b_reporter.get_period_id_for_submission(date))  
   
   def test_log_submission_started(self):
-    log_id = self.h033b_reporter.log_submission_started()
-    log_record = Dhis2_Reports_Report_Task_Log.objects.get(id=log_id)
+    self.h033b_reporter.log_submission_started()
+    log_record = Dhis2_Reports_Report_Task_Log.objects.all()[0]
     time = datetime.datetime.now()
     self.assertEquals(log_record.status , Dhis2_Reports_Report_Task_Log.RUNNING)
     self.assertIsNotNone(time)
   
   def test_log_submission_finished_with_success(self):
-    log_record_id = self.h033b_reporter.log_submission_started()
+    self.h033b_reporter.log_submission_started()
   
     self.h033b_reporter.log_submission_finished_with_success( 
-      log_id = log_record_id , 
       submission_count=100,
       status= Dhis2_Reports_Report_Task_Log.SUCCESS,
       description='Submitted succesfully to dhis2')
     
-    log_record_fetched = Dhis2_Reports_Report_Task_Log.objects.get(id=log_record_id)
-  
+    log_record_fetched = Dhis2_Reports_Report_Task_Log.objects.all()[0]
     self.assertEquals(log_record_fetched.number_of_submissions , 100)
     self.assertEquals(log_record_fetched.description , 'Submitted succesfully to dhis2')
     self.assertEquals(log_record_fetched.status , Dhis2_Reports_Report_Task_Log.SUCCESS)

@@ -26,30 +26,30 @@ class H033B_Reporter(object):
 
   def submit(self, data):
     return self.send(self.generate_xml_report(data))
-  
+
   def generate_xml_report(self,data):
     template = get_template(HMIS033B_REPORT_XML_TEMPLATE)
     data = template.render(Context(data))
     return data
-    
-  def get_reports_data_for_submission(self,submission_arg):
-    submission_extras_list = XFormSubmissionExtras.objects.filter(submission=submission_arg)
+
+  def get_reports_data_for_submission(self,submission_extras_list):
     if submission_extras_list : 
       submission_extras = submission_extras_list[0]
       data = {}
       data['orgUnit']         = submission_extras.facility.uuid
-      data['completeDate']    = self.get_utc_time_iso8601(submission_arg.created)
-      data['period']          = self.get_period_id_for_submission(submission_arg.created)
-      data['dataValues']      = []
-
-      submission_values = XFormSubmissionValue.objects.filter(submission=submission_arg)
-      for submission_value in submission_values : 
-        dataValue = self.get_data_values_for_submission(submission_value)
-        if dataValue :
-          data['dataValues'].append(dataValue)
+      data['completeDate']    = self.get_utc_time_iso8601(submission_extras.cdate)
+      data['period']          = self.get_period_id_for_submission(submission_extras.cdate)
       return data
+      
     return None
-    
+  
+  def set_data_values_from_submission_value(self,data,submission_values):
+    data['dataValues']    = []
+    for submission_value in submission_values : 
+      dataValue = self.get_data_values_for_submission(submission_value)
+      if dataValue :
+        data['dataValues'].append(dataValue)
+
   def get_data_values_for_submission(self, submission_value):
     data_value = {}
     attrib_id = submission_value.attribute_id
@@ -62,20 +62,23 @@ class H033B_Reporter(object):
       data_value['value'] = submission_value.value
       data_value['categoryOptionCombo']  =combo_id
     return data_value
-    
+
   def get_submissions_in_date_range(self,from_date,to_date):
     return XFormSubmission.objects.filter(created__range=[from_date, to_date])
     
   def process_and_send_reports_for_last_week(self, date):
     last_monday = self.get_last_sunday(date) + timedelta(days=1)
     submissions_for_last_week = self.get_submissions_in_date_range(last_monday, date)
-    log_id = self.log_submission_started()
+    self.log_submission_started()
     success_submissions_made=0
     failure_submissions_made=0
     failure_descriptions = []
     
     for submission in submissions_for_last_week:
-      data = self.get_reports_data_for_submission(submission) 
+      data = self.get_reports_data_for_submission(XFormSubmissionExtras.objects.filter(submission=submission)) 
+      submission_values = XFormSubmissionValue.objects.filter(submission=submission)
+      h033b_reporter.set_data_values_from_submission_value(data,submission_values)
+      
       if data : 
         try:
           self.submit(data)
@@ -87,10 +90,10 @@ class H033B_Reporter(object):
           failure_submissions_made += 1
 
     if success_submission_made >0:      
-      self.log_submission( log_id=log_id, submission_count=success_submission_made, status=Dhis2_Reports_Report_Task_Log.SUCCESS) 
+      self.log_submission( submission_count=success_submission_made, status=Dhis2_Reports_Report_Task_Log.SUCCESS) 
     if failure_submission_made >0:  
       failiure_description = "failed to submit %d reports."%failure_submissions_made + failure_descriptions
-      self.log_submission( log_id=log_id, submission_count=success_submission_made, status=Dhis2_Reports_Report_Task_Log.FAILURE, description = failiure_description) 
+      self.log_submission(submission_count=success_submission_made, status=Dhis2_Reports_Report_Task_Log.FAILURE, description = failiure_description) 
 
   @classmethod  
   def get_week_period_id_for_sunday(self, date):
@@ -132,16 +135,15 @@ class H033B_Reporter(object):
     
 
   def log_submission_started(self) : 
-    return Dhis2_Reports_Report_Task_Log.objects.create().id
+    self.task_id =  Dhis2_Reports_Report_Task_Log.objects.create().id
     
-  def log_submission_finished_with_success(self, log_id, submission_count, status, description='') :
-    log_record = Dhis2_Reports_Report_Task_Log.objects.get(id=log_id)
+  def log_submission_finished_with_success(self,submission_count, status, description='') :
+    log_record = Dhis2_Reports_Report_Task_Log.objects.get(id=self.task_id)
     log_record.time_finished= datetime.datetime.now()
     log_record.number_of_submissions = submission_count
     log_record.status = status
     log_record.description = description
     log_record.save()
     
-
 
     
