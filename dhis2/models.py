@@ -82,16 +82,16 @@ class Dhis2_Reports_Submissions_Log(models.Model):
     db_table = u'dhis2_reports_submissions_log'
 
 
-class Dhis2_Reports_Submissions_Results_Log(models.Model):
-  SUCCESS = 'SUCCESS'
-  INVALID_SUBMISSION_DATA  = 'INVALID_SUBMISSION_DATA'
-  SOME_ATTRIBUTES_IGNORED = 'SOME_ATTRIBUTES_IGNORED'
+class Dhis2_Attribute_Submission_Log(models.Model):
+  SUCCESS = "SUCCESS"
+  INVALID_SUBMISSION_DATA  = "INVALID_SUBMISSION_DATA"
+  SOME_ATTRIBUTES_IGNORED = "SOME_ATTRIBUTES_IGNORED"
+
   submission_id         = models.ForeignKey(XFormSubmission)
   report_log_id         = models.ForeignKey(Dhis2_Reports_Submissions_Log)
   attribute_id          = models.ForeignKey(Attribute)
-  result                = models.CharField(max_length=15)
+  result                = models.CharField(max_length=50)
   description           = models.TextField(null=True)
 
   class Meta:
     db_table = u'dhis2_reports_submissions_results_log'
-  

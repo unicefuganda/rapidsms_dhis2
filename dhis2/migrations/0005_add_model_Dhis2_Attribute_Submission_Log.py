@@ -8,20 +8,20 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Dhis2_Reports_Submissions_Results_Log'
+        # Adding model 'Dhis2_Attribute_Submission_Log'
         db.create_table(u'dhis2_reports_submissions_results_log', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('submission_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['rapidsms_xforms.XFormSubmission'])),
             ('report_log_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['dhis2.Dhis2_Reports_Submissions_Log'])),
             ('attribute_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eav.Attribute'])),
-            ('result', self.gf('django.db.models.fields.CharField')(max_length=15)),
+            ('result', self.gf('django.db.models.fields.CharField')(max_length=50)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True)),
         ))
-        db.send_create_signal('dhis2', ['Dhis2_Reports_Submissions_Results_Log'])
+        db.send_create_signal('dhis2', ['Dhis2_Attribute_Submission_Log'])
 
 
     def backwards(self, orm):
-        # Deleting model 'Dhis2_Reports_Submissions_Results_Log'
+        # Deleting model 'Dhis2_Attribute_Submission_Log'
         db.delete_table(u'dhis2_reports_submissions_results_log')
 
 
@@ -76,6 +76,15 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
             'pmatch': ('django.db.models.fields.DecimalField', [], {'max_digits': '5', 'decimal_places': '3'})
         },
+        'dhis2.dhis2_attribute_submission_log': {
+            'Meta': {'object_name': 'Dhis2_Attribute_Submission_Log', 'db_table': "u'dhis2_reports_submissions_results_log'"},
+            'attribute_id': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eav.Attribute']"}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'report_log_id': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['dhis2.Dhis2_Reports_Submissions_Log']"}),
+            'result': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'submission_id': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rapidsms_xforms.XFormSubmission']"})
+        },
         'dhis2.dhis2_mtrac_indicators_mapping': {
             'Meta': {'object_name': 'Dhis2_Mtrac_Indicators_Mapping', 'db_table': "u'dhis2_mtrack_indicators_mapping'"},
             'dhis2_combo_id': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
@@ -93,15 +102,6 @@ class Migration(SchemaMigration):
             'status': ('django.db.models.fields.CharField', [], {'default': "'RUNNING'", 'max_length': '15'}),
             'time_finished': ('django.db.models.fields.DateTimeField', [], {'null': 'True'}),
             'time_started': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'})
-        },
-        'dhis2.dhis2_reports_submissions_results_log': {
-            'Meta': {'object_name': 'Dhis2_Reports_Submissions_Results_Log', 'db_table': "u'dhis2_reports_submissions_results_log'"},
-            'attribute_id': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eav.Attribute']"}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'report_log_id': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['dhis2.Dhis2_Reports_Submissions_Log']"}),
-            'result': ('django.db.models.fields.CharField', [], {'max_length': '15'}),
-            'submission_id': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['rapidsms_xforms.XFormSubmission']"})
         },
         'dhis2.dhis2_temp_mtrac_indicators_mapping': {
             'Meta': {'object_name': 'Dhis2_Temp_Mtrac_Indicators_Mapping', 'db_table': "u'dhis2_temp_mtrack_indicators_mapping'"},
