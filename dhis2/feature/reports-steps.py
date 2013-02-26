@@ -37,14 +37,12 @@ def get_reports_data_for_submission(self):
   assert data['dataValues'][1]['categoryOptionCombo'] ==  u'gGhClrV5odI'
   assert data['dataValues'][1]['value'] ==  0
 
-
 @step(u'Must fetch all submissions made within the specified period')
 def get_submissions_in_date_range(self):
   from_date = datetime.datetime(2011, 12, 18, 00, 00, 00)
   to_date = datetime.datetime(2011, 12, 19, 23, 59, 59)
   submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
   assert len(submissions_in_period) == 314
-  
 
 @after.all
 def teardown(*args):

@@ -8,12 +8,13 @@ from dhis2.models import Dhis2_Mtrac_Indicators_Mapping , Dhis2_Reports_Report_T
 from datetime import timedelta
 import datetime
 from healthmodels.models.HealthFacility import HealthFacilityBase
+from xml.dom.minidom import parseString
 
 HMIS033B_REPORT_XML_TEMPLATE = "h033b_reporter.xml"
 HMIS_033B_PERIOD_ID = u'%dW%d'
 
 class H033B_Reporter(object):
-  URL     = "http://dhis/api/dataValueSets"
+  URL     = "http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataValueSets"
   HEADERS = {
       'Content-type': 'application/xml',
       'Authorization': 'Basic ' + base64.b64encode("api:P@ssw0rd")
@@ -25,7 +26,8 @@ class H033B_Reporter(object):
     return urllib2.urlopen(request)
 
   def submit(self, data):
-    return self.send(self.generate_xml_report(data))
+    response = self.send(self.generate_xml_report(data))
+    return self.parse_submission_response(response.read())
 
   def generate_xml_report(self,data):
     template = get_template(HMIS033B_REPORT_XML_TEMPLATE)
@@ -145,5 +147,25 @@ class H033B_Reporter(object):
     log_record.description = description
     log_record.save()
     
-
+  def parse_submission_response(self,response_xml):
+    dom = parseString(response_xml)
+    result=dom.getElementsByTagName('dataValueCount')[0]
+    imported  =int(result.getAttribute('imported'))
+    updated   =int(result.getAttribute('updated'))
+    ignored   =int(result.getAttribute('ignored'))
+    error=None
+    
+    conflicts = dom.getElementsByTagName('conflict')
+    if conflicts : 
+      error = ''
+      for conflict in conflicts : 
+        error+='%s  : %s\n'%(conflict.getAttribute('object') ,conflict.getAttribute('value'))
+        
+    result= {}
+    result['imported']  = imported
+    result['updated']   = updated
+    result['ignored']   = ignored
+    result['error']     = error
+    
+    return result
     

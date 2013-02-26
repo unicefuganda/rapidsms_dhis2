@@ -6,8 +6,8 @@
     method: GET
     url: !!python/unicode '/api/categoryCombos/92DkrSOchnL.json'
   response:
-    body: {string: '{"name":"default","created":"2011-11-03T18:23:53.269+0000","lastUpdated":"2011-11-03T18:23:53.269+0000","categories":[{"name":"default","created":"2013-01-15T08:48:16.042+0000","lastUpdated":"2013-02-25T14:00:54.482+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categories/pYsblT57GHs","id":"pYsblT57GHs"}],"skipTotal":false,"href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryCombos/92DkrSOchnL","id":"92DkrSOchnL","categoryOptionCombos":[{"name":"(default)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/gGhClrV5odI","id":"gGhClrV5odI"}]}'}
+    body: {string: '{"name":"default","created":"2011-11-03T18:23:53.269+0000","lastUpdated":"2011-11-03T18:23:53.269+0000","categories":[{"name":"default","created":"2013-01-15T08:48:16.042+0000","lastUpdated":"2013-02-26T07:29:33.109+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categories/pYsblT57GHs","id":"pYsblT57GHs"}],"skipTotal":false,"href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryCombos/92DkrSOchnL","id":"92DkrSOchnL","categoryOptionCombos":[{"name":"(default)","created":"2011-11-03T18:23:53.405+0000","lastUpdated":"2011-11-03T18:23:53.405+0000","href":"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryOptionCombos/gGhClrV5odI","id":"gGhClrV5odI"}]}'}
     headers: {connection: close, content-language: en-US, content-length: '703', content-type: application/json;charset=UTF-8,
-      date: 'Mon, 25 Feb 2013 19:46:39 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=DA6F3F89052FBD095875415617F4D240;
+      date: 'Tue, 26 Feb 2013 12:53:40 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=06A8BA857C9A22EE3A4DFB80B2CC6D05;
         Path=/; HttpOnly}
     status: {code: 200, message: OK}

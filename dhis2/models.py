@@ -86,9 +86,9 @@ class Dhis2_Reports_Submissions_Log(models.Model):
   SUCCESS = "SUCCESS"
   INVALID_SUBMISSION_DATA  = "INVALID_SUBMISSION_DATA"
   SOME_ATTRIBUTES_IGNORED = "SOME_ATTRIBUTES_IGNORED"
-  
+  ERROR                   = 'ERROR'
   task_id               = models.ForeignKey(Dhis2_Reports_Report_Task_Log)
-  submission_id         = models.ForeignKey(XFormSubmission)
+  submission_id         = models.IntegerField()
   reported_xml          = models.TextField(null=True)
   result                = models.CharField(max_length=50)
   description           = models.TextField(null=True)

@@ -24,20 +24,42 @@ TEST_SUBMISSION_DATA = { 'orgUnit': "6VeE8JrylXn",
                               ]
               }
 
+ERROR_XML_RESPONSE = '\
+<?xml version="1.0" encoding="UTF-8"?>\
+<importSummary \
+    xmlns="http://dhis2.org/schema/dxf/2.0">\
+    <status>SUCCESS</status>\
+    <description>Import process completed successfully</description>\
+    <dataValueCount imported="1" updated="1" ignored="1"/>\
+    <conflicts>\
+        <conflict object="OrganisationUnit" value="Must be provided to complete data set"/>\
+        <conflict object="OrganisationUnit"/>\
+        <conflict object="OrganisationUnit"/>\
+    </conflicts>\
+</importSummary>'
+
+SUCCESS_XML_RESPONSE = '\
+<?xml version="1.0" encoding="UTF-8"?>\
+<importSummary \
+    xmlns="http://dhis2.org/schema/dxf/2.0">\
+    <status>SUCCESS</status>\
+    <description>Import process completed successfully</description>\
+    <dataValueCount imported="3" updated="2" ignored="0"/>\
+    <dataSetComplete>2012-11-11</dataSetComplete>\
+</importSummary>'
+
 class Test_H033B_Reporter(TestCase):
   def setUp(self):
     self.h033b_reporter = H033B_Reporter()
   
-  def test_submit_report(self):
-  
+  def test_submit(self):
     with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
-      response = self.h033b_reporter.submit(TEST_SUBMISSION_DATA)
-    assert response.getcode() == 200
-    assert response.geturl() == "http://dhis/api/dataValueSets"
-    assert response.info().getheader('Content-type') == 'application/xml;charset=UTF-8'
-  
-    assert self.verify_values(TEST_SUBMISSION_DATA) == True
-    
+      result = self.h033b_reporter.submit(TEST_SUBMISSION_DATA)
+    accepted_attributes_values = result['updated'] + result['imported']
+    self.assertEquals(accepted_attributes_values,2)
+    self.assertIsNone(result['error'])
+
+      
   def verify_values(self, data):
     with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
       query = "?dataSet=V1kJRs8CtW4&period=%s&orgUnit=%s" %(data['period'], data['orgUnit'])
@@ -87,8 +109,7 @@ class Test_H033B_Reporter(TestCase):
     
   def temp_fix_remove_whitespaces(self,str):
     return str.replace(' ','').replace('\n', '')
-    
-  
+
   def test_iso_time(self):
     dates_iso_string_map = {
       datetime.datetime(2003, 12, 31, 23, 59, 45)   :  '2003-12-31T23:59:45Z' , 
@@ -100,11 +121,8 @@ class Test_H033B_Reporter(TestCase):
     }
   
     for date in dates_iso_string_map : 
-      # print dates_iso_string_map[date] , self.h033b_reporter.get_utc_time_iso8601(date)
       self.assertEquals(dates_iso_string_map[date] , self.h033b_reporter.get_utc_time_iso8601(date))
-  
-    
-  
+
   def test_get_week_period_id_for_sunday(self):
      periods_test_args = {
        datetime.datetime(2010, 1, 3, 23, 59, 45)     : u'2010W1'  , 
@@ -164,7 +182,19 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(log_record_fetched.description , 'Submitted succesfully to dhis2')
     self.assertEquals(log_record_fetched.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
     self.assertIsNotNone(log_record_fetched.time_finished)
+  
+  def test_parse_submission_response_with_errror(self):
+    result= self.h033b_reporter.parse_submission_response(ERROR_XML_RESPONSE)
+    self.assertEquals(result['ignored'],1 )
+    self.assertEquals(result['imported'],1)
+    self.assertEquals(result['updated'],1 )
+    self.assertIsNotNone(result['error'])
+  
+  def test_parse_submission_response_no_error(self):
+    result = self.h033b_reporter.parse_submission_response(SUCCESS_XML_RESPONSE)
+    self.assertEquals(result['ignored'],0 )
+    self.assertEquals(result['imported'],3)
+    self.assertEquals(result['updated'],2 )
 
+    self.assertIsNone(result['error'])
 
-    
-    
