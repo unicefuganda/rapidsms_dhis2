@@ -187,19 +187,23 @@ class Test_H033B_Reporter(TestCase):
     self.assertIsNotNone(log_record_fetched.time_finished)
 
   def test_parse_submission_response_with_errror(self):
-    result= self.h033b_reporter.parse_submission_response(ERROR_XML_RESPONSE)
+    request_xml = 'xx'
+    result= self.h033b_reporter.parse_submission_response(ERROR_XML_RESPONSE,request_xml)
     self.assertEquals(result['ignored'],1 )
     self.assertEquals(result['imported'],1)
     self.assertEquals(result['updated'],1 )
     self.assertIsNotNone(result['error'])
+    self.assertEquals(result['request_xml'],request_xml)
 
   def test_parse_submission_response_no_error(self):
-    result = self.h033b_reporter.parse_submission_response(SUCCESS_XML_RESPONSE)
+    request_xml = 'xx'
+    result = self.h033b_reporter.parse_submission_response(SUCCESS_XML_RESPONSE,request_xml)
     self.assertEquals(result['ignored'],0 )
     self.assertEquals(result['imported'],3)
     self.assertEquals(result['updated'],2 )
 
     self.assertIsNone(result['error'])
+    self.assertEquals(result['request_xml'],request_xml)
 
   def test_get_reports_data_for_submission_for_valid_data(self):
       submission_extras_obj = XFormSubmissionExtras()

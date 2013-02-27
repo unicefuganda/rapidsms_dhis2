@@ -4,7 +4,7 @@ from django.template.loader import get_template
 import urllib2, base64
 from mtrack.models import XFormSubmissionExtras
 from rapidsms_xforms.models import XFormSubmissionValue, XForm, XFormSubmission
-from dhis2.models import Dhis2_Mtrac_Indicators_Mapping , Dhis2_Reports_Report_Task_Log
+from dhis2.models import Dhis2_Mtrac_Indicators_Mapping , Dhis2_Reports_Report_Task_Log ,Dhis2_Reports_Submissions_Log
 from datetime import timedelta
 import datetime
 from healthmodels.models.HealthFacility import HealthFacilityBase
@@ -12,6 +12,11 @@ from xml.dom.minidom import parseString
 
 HMIS033B_REPORT_XML_TEMPLATE = "h033b_reporter.xml"
 HMIS_033B_PERIOD_ID = u'%dW%d'
+ERROR_MESSAGE_NO_SUBMISSION_EXTRA = 'No XFormSubmissionExtras data exists for the submission '
+ERROR_MESSAGE_NO_HMS_INDICATOR    = 'No valid HMS033b indicators reported for the submission'
+ERROR_MESSAGE_ALL_VALUES_IGNORED  = 'All values rejected by remote server'
+ERROR_MESSAGE_SOME_VALUES_IGNORED = 'Some values rejected by remote server'
+ERROR_MESSAGE_CONNECTION_FAILED   = 'Error communicating with the remote server'
 
 class H033B_Reporter(object):
   URL     = "http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataValueSets"
@@ -26,8 +31,9 @@ class H033B_Reporter(object):
     return urllib2.urlopen(request)
 
   def submit(self, data):
-    response = self.send(self.generate_xml_report(data))
-    return self.parse_submission_response(response.read())
+    xml_request = self.generate_xml_report(data)
+    response = self.send(xml_request)
+    return self.parse_submission_response(response.read(),xml_request)
 
   def generate_xml_report(self,data):
     template = get_template(HMIS033B_REPORT_XML_TEMPLATE)
@@ -68,35 +74,6 @@ class H033B_Reporter(object):
   def get_submissions_in_date_range(self,from_date,to_date):
     return XFormSubmission.objects.filter(created__range=[from_date, to_date])
     
-  def process_and_send_reports_for_last_week(self, date):
-    last_monday = self.get_last_sunday(date) + timedelta(days=1)
-    submissions_for_last_week = self.get_submissions_in_date_range(last_monday, date)
-    self.log_submission_started()
-    success_submissions_made=0
-    failure_submissions_made=0
-    failure_descriptions = []
-    
-    for submission in submissions_for_last_week:
-      data = self.get_reports_data_for_submission(XFormSubmissionExtras.objects.filter(submission=submission)) 
-      submission_values = XFormSubmissionValue.objects.filter(submission=submission)
-      h033b_reporter.set_data_values_from_submission_value(data,submission_values)
-      
-      if data : 
-        try:
-          self.submit(data)
-          success_submissions_made += 1
-        except   Exception, e:
-          exception = type(e).__name__ +":"+ str(e)
-          failure_description = 'Failed to submit submission_id#%s. \nException: %s '%(submission.id,exception) 
-          failure_descriptions.append(failure_description)
-          failure_submissions_made += 1
-
-    if success_submission_made >0:      
-      self.log_submission( submission_count=success_submission_made, status=Dhis2_Reports_Report_Task_Log.SUCCESS) 
-    if failure_submission_made >0:  
-      failiure_description = "failed to submit %d reports."%failure_submissions_made + failure_descriptions
-      self.log_submission(submission_count=success_submission_made, status=Dhis2_Reports_Report_Task_Log.FAILURE, description = failiure_description) 
-
   @classmethod  
   def get_week_period_id_for_sunday(self, date):
     year  = date.year
@@ -137,17 +114,17 @@ class H033B_Reporter(object):
     
 
   def log_submission_started(self) : 
-    self.task_id =  Dhis2_Reports_Report_Task_Log.objects.create().id
+    self.current_task =  Dhis2_Reports_Report_Task_Log.objects.create()
     
   def log_submission_finished_with_success(self,submission_count, status, description='') :
-    log_record = Dhis2_Reports_Report_Task_Log.objects.get(id=self.task_id)
+    log_record = self.current_task
     log_record.time_finished= datetime.datetime.now()
     log_record.number_of_submissions = submission_count
     log_record.status = status
     log_record.description = description
     log_record.save()
     
-  def parse_submission_response(self,response_xml):
+  def parse_submission_response(self,response_xml,request_xml):
     dom = parseString(response_xml)
     result=dom.getElementsByTagName('dataValueCount')[0]
     imported  =int(result.getAttribute('imported'))
@@ -166,6 +143,76 @@ class H033B_Reporter(object):
     result['updated']   = updated
     result['ignored']   = ignored
     result['error']     = error
+    result['request_xml']=request_xml
     
     return result
+    
+  
+  def get_data_submission(self,submission):                                                                       
+    data = None
+    failure_description = None
+    try : 
+      data  =  self.get_reports_data_for_submission(XFormSubmissionExtras.objects.filter(submission=submission))
+    
+      if not data :
+        raise LookupError(ERROR_MESSAGE_NO_SUBMISSION_EXTRA)
+    
+      submission_values = XFormSubmissionValue.objects.filter(submission=submission)  
+      self.set_data_values_from_submission_value(data,submission_values)
+    
+      if not data['dataValues'] : 
+        raise LookupError(ERROR_MESSAGE_NO_HMS_INDICATOR)
+      
+    except LookupError, e:
+      failure_description = str(e)
+    except Exception, e:
+      exception = type(e).__name__ +":"+ str(e)
+      failure_description = 'Unknown Erorr ! : %s'%(exception) 
+  
+    if failure_description : 
+      report_submissions_log = Dhis2_Reports_Submissions_Log.objects.create(
+          task_id       = self.current_task,
+          submission_id = submission.id, 
+          result        = Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA,
+          description   = failure_description 
+          )
+
+    return data
+  
+  def submit_submission(self,submission):
+    data =self.get_data_submission(submission)
+    result = self.submit(data)
+    accepted_attributes_values = result['updated'] + result['imported']
+    log_message=''
+    
+    if result['error'] :      
+      log_result  = Dhis2_Reports_Submissions_Log.ERROR
+      log_message = result['error']
+    elif not accepted_attributes_values : 
+      log_message = ERROR_MESSAGE_ALL_VALUES_IGNORED
+      log_result  = Dhis2_Reports_Submissions_Log.ERROR
+    elif result['ignored'] : 
+      log_message = ERROR_MESSAGE_SOME_VALUES_IGNORED
+      log_result  = Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED
+    else :
+      log_result  = Dhis2_Reports_Report_Task_Log.SUCCESS
+    
+    Dhis2_Reports_Submissions_Log.objects.create(
+        task_id = self.current_task,
+        submission_id = submission.id,
+        reported_xml = result['request_xml'], 
+        result = log_result,
+        description =log_message
+        )
+  # def initiate_weekly_reports_submission(self):
+  #   last_monday = self.get_last_sunday(date) + timedelta(days=1)
+  #   submissions_for_last_week = self.get_submissions_in_date_range(last_monday, date)
+  #   self.log_submission_started()
+  #   try : 
+  #   except urllib2.URLError , e: 
+  #     error_message =  ERROR_MESSAGE_CONNECTION_FAILED
+  #     exception = type(e).__name__ +":"+ str(e)
+  #   except : 
+  #   else :
+  #   
     
