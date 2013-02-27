@@ -90,23 +90,6 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
         self.assertEquals( record.dhis2_combo_id, disease['combo_id'])
         self.assertEquals( record.mtrac_id,None )
 
-
-    # def xtest_sync_indicators_group(self):
-    #     indicator = disease = {"name":u"Malaria Cases - WEP", "id": u"fclvwNhzu7d", "href": u"http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
-    #     # mtrack_indicator = find_matching_indicator_from_mtrack()
-    #
-    #     record = Dhis2_Mtrac_Indicators_Mapping.objects.all()
-    #     test_indicators_list = [
-    #         'Suspected Malaria Cases',
-    #         'RDT Tested Cases',
-    #         'RDT Positve Cases',
-    #         'Microscopy Tested Cases',
-    #         'Microscopy Positive Cases',
-    #         'Positve Cases Under 5 Years',
-    #         'Positive Cases 5+ Years' ]
-    #     for test_indicator_name in test_indicators_list :
-    #         self.assertIsNotNone(Dhis2_Mtrac_Indicators_Mapping.objects.filetr(dhis2_name = test_indicator_name))
-
     def test_get_indicator_combo_option_id_default(self):
         category_combo_url = 'http://ec2-54-242-108-118.compute-1.amazonaws.com/api/categoryCombos/92DkrSOchnL'
         with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
