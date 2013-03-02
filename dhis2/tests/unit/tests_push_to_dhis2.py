@@ -7,7 +7,40 @@ from dhis2.models import Dhis2_Mtrac_Indicators_Mapping
 from mock import *
 from mtrack.models import XFormSubmissionExtras
 from healthmodels.models.HealthFacility import HealthFacilityBase
-from rapidsms_xforms.models import XFormSubmissionValue
+from rapidsms_xforms.models import XFormSubmissionValue,XForm,XFormSubmission
+from dhis2.tests.test_helper import Submissions_Test_Helper
+from healthmodels.models.HealthFacility import HealthFacilityBase
+
+A_VALID_DHIS2_UUID = u'6VeE8JrylXn'
+SOME_VALID_DHIS_ELEMENT_ID_AND_COMBO =  {
+  u'NoJfAIcxjSY' : u'gGhClrV5odI',
+  u'OMxmmYvvLai' : u'gGhClrV5odI',
+  u'w3mO7SZdbb8' : u'gGhClrV5odI',
+  u'UKYPpKnSBK4' : u'gGhClrV5odI',
+  u'fclvwNhzu7d' : u'gGhClrV5odI',
+  u'JTc25LIvtQb' : u'gGhClrV5odI',
+  u'hBcX7S7xBcu' : u'gGhClrV5odI',
+  u'tTGAElxDIWg' : u'gGhClrV5odI',
+  u'yvbPC5zDb3c' : u'gGhClrV5odI',
+  u'tjTnFJ1QdVz' : u'gGhClrV5odI',
+  u'6WfcY8YJ73L' : u'BrX1bohix6a',
+  u'6WfcY8YJ73L' : u'drJyZS90kYV',
+  u'6WfcY8YJ73L' : u'JFoz3bCuOZf',
+  u'6WfcY8YJ73L' : u'NZv0UpKaE2N',
+  u'6WfcY8YJ73L' : u'K2u96YEADns',
+  u'6WfcY8YJ73L' : u'UBBd8I8rh3Y',
+  u'6WfcY8YJ73L' : u'vdb7UfWrri9',
+  u'6WfcY8YJ73L' : u'2y9HVtdKwpk',
+  u'6WfcY8YJ73L' : u'WlMwy0glMI4',
+  u'6WfcY8YJ73L' : u'29qEfC1U5P2',
+  u'6WfcY8YJ73L' : u'rkVTCLTsu0U',
+  u'6WfcY8YJ73L' : u'AcuD9Tregzw',
+  u'BX2PYPKm8F9' : u'gGhClrV5odI',
+  u'r3xIBQaeLsT' : u'gGhClrV5odI',
+  u'IkI01xB7RIi' : u'gGhClrV5odI',
+  u'JxUexqKeXtZ' : u'gGhClrV5odI',
+}
+ACTS_XFORM_ID = 55
 
 FIXTURES = os.path.abspath(dhis2.__path__[0]) + "/tests/fixtures/cassettes/"
 TEST_SUBMISSION_DATA = { 'orgUnit': "6VeE8JrylXn",
@@ -61,8 +94,8 @@ class Test_H033B_Reporter(TestCase):
     accepted_attributes_values = result['updated'] + result['imported']
     self.assertEquals(accepted_attributes_values,2)
     self.assertIsNone(result['error'])
-
-
+  
+  
   def verify_values(self, data):
     with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
       query = "?dataSet=V1kJRs8CtW4&period=%s&orgUnit=%s" %(data['period'], data['orgUnit'])
@@ -73,46 +106,45 @@ class Test_H033B_Reporter(TestCase):
       rows = []
       for i in xml.iterchildren():
         rows.append(i)
-
+  
       assert len(rows) == len(data['dataValues'])
-
+  
       for key, datavalue in enumerate(data['dataValues']):
         row = rows[key].values()
         assert datavalue['dataElement'] == row[0]
         assert str(datavalue['value']) == row[4]
-
+  
       return True
-
+  
     for date in dates_iso_string_map :
-      print dates_iso_string_map[date] , self.h033b_reporter.get_utc_time_iso8601(date)
       self.assertEquals(dates_iso_string_map[date] , self.h033b_reporter.get_utc_time_iso8601(date))
-
+  
   def test_get_data_values_for_submission(self):
     submission_value = MagicMock()
     submission_value.attribute_id = 345
     submission_value.value = 22
-
+  
     Dhis2_Mtrac_Indicators_Mapping.objects.create(mtrac_id=submission_value.attribute_id, dhis2_uuid= u'test_uuid',dhis2_combo_id=u'test_combo_id')
     data =  self.h033b_reporter.get_data_values_for_submission(submission_value)
-
+  
     self.assertEquals(data['dataElement'], u'test_uuid')
     self.assertEquals(data['value'],22)
     self.assertEquals(data['categoryOptionCombo'], u'test_combo_id')
-
+  
   def test_generate_xml_report(self):
     rendered_xml  = self.h033b_reporter.generate_xml_report(TEST_SUBMISSION_DATA)
     expected_xml = u'<dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" dataSet="V1kJRs8CtW4" completeDate="2012-11-11T00:00:00Z" period="2012W45" orgUnit="6VeE8JrylXn">\
                         <dataValue dataElement="U7cokRIptxu"  categoryOptionCombo= "gGhClrV5odI" value="100" />\
                         <dataValue dataElement="mdIPCPfqXaJ" categoryOptionCombo= "gGhClrV5odI" value="99" />\
                       </dataValueSet>'
-
+  
     rendered_xml =self.temp_fix_remove_whitespaces(rendered_xml)
     expected_xml =self.temp_fix_remove_whitespaces(expected_xml)
     self.assertEquals(rendered_xml,expected_xml)
-
+  
   def temp_fix_remove_whitespaces(self,str):
     return str.replace(' ','').replace('\n', '')
-
+  
   def test_iso_time(self):
     dates_iso_string_map = {
       datetime.datetime(2003, 12, 31, 23, 59, 45)   :  '2003-12-31T23:59:45Z' ,
@@ -120,12 +152,12 @@ class Test_H033B_Reporter(TestCase):
       datetime.datetime(2003, 12, 1 , 0 , 0 , 0 )   :  '2003-12-01T00:00:00Z' ,
       datetime.datetime(2003, 2 , 2 , 0 , 0 , 0 )   :  '2003-02-02T00:00:00Z' ,
       datetime.datetime(2003, 12, 31, 23, 59, 59)   :  '2003-12-31T23:59:59Z' ,
-
+  
     }
-
+  
     for date in dates_iso_string_map :
       self.assertEquals(dates_iso_string_map[date] , self.h033b_reporter.get_utc_time_iso8601(date))
-
+  
   def test_get_week_period_id_for_sunday(self):
      periods_test_args = {
        datetime.datetime(2010, 1, 3, 23, 59, 45)     : u'2010W1'  ,
@@ -135,10 +167,10 @@ class Test_H033B_Reporter(TestCase):
        datetime.datetime(2010, 12, 26, 23, 59, 59)   : u'2010W52',
        datetime.datetime(2012, 1, 1, 23, 59, 59)     : u'2012W1'
       }
-
+  
      for date in periods_test_args :
        self.assertEquals(periods_test_args[date] , self.h033b_reporter.get_week_period_id_for_sunday(date))
-
+  
   def test_get_last_sunday_for_day(self):
       days = {
         datetime.datetime(2010, 1, 7, 0, 0, 0)     : datetime.datetime(2010, 1, 3, 0, 0, 0) ,
@@ -148,10 +180,10 @@ class Test_H033B_Reporter(TestCase):
         datetime.datetime(2010, 12, 31, 0, 0, 0)   : datetime.datetime(2010, 12, 26, 0, 0, 0)  ,
         datetime.datetime(2012, 1, 7, 0, 0, 0)     :  datetime.datetime(2012, 1, 1, 0, 0, 0)
        }
-
+  
       for date in days :
         self.assertEquals(days[date] , self.h033b_reporter.get_last_sunday(date))
-
+  
   def test_get_period_id_from_submissions_on_given_dates(self):
       from_dates = {
         datetime.datetime(2010, 1, 7, 0, 0, 0)        : u'2010W1',
@@ -161,31 +193,31 @@ class Test_H033B_Reporter(TestCase):
         datetime.datetime(2010, 12, 31, 0, 0, 0)      : u'2010W52' ,
         datetime.datetime(2012, 1, 7, 0, 0, 0)        : u'2012W1'
        }
-
+  
       for date in from_dates:
         self.assertEquals(from_dates[date] , self.h033b_reporter.get_period_id_for_submission(date))
-
+  
   def test_log_submission_started(self):
     self.h033b_reporter.log_submission_started()
     log_record = Dhis2_Reports_Report_Task_Log.objects.all()[0]
     time = datetime.datetime.now()
     self.assertEquals(log_record.status , Dhis2_Reports_Report_Task_Log.RUNNING)
     self.assertIsNotNone(time)
-
-  def test_log_submission_finished_with_success(self):
+  
+  def test_log_submission_finished(self):
     self.h033b_reporter.log_submission_started()
-
-    self.h033b_reporter.log_submission_finished_with_success(
+  
+    self.h033b_reporter.log_submission_finished(
       submission_count=100,
       status= Dhis2_Reports_Report_Task_Log.SUCCESS,
       description='Submitted succesfully to dhis2')
-
+  
     log_record_fetched = Dhis2_Reports_Report_Task_Log.objects.all()[0]
     self.assertEquals(log_record_fetched.number_of_submissions , 100)
     self.assertEquals(log_record_fetched.description , 'Submitted succesfully to dhis2')
     self.assertEquals(log_record_fetched.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
     self.assertIsNotNone(log_record_fetched.time_finished)
-
+  
   def test_parse_submission_response_with_errror(self):
     request_xml = 'xx'
     result= self.h033b_reporter.parse_submission_response(ERROR_XML_RESPONSE,request_xml)
@@ -194,33 +226,33 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(result['updated'],1 )
     self.assertIsNotNone(result['error'])
     self.assertEquals(result['request_xml'],request_xml)
-
+  
   def test_parse_submission_response_no_error(self):
     request_xml = 'xx'
     result = self.h033b_reporter.parse_submission_response(SUCCESS_XML_RESPONSE,request_xml)
     self.assertEquals(result['ignored'],0 )
     self.assertEquals(result['imported'],3)
     self.assertEquals(result['updated'],2 )
-
+  
     self.assertIsNone(result['error'])
     self.assertEquals(result['request_xml'],request_xml)
-
+  
   def test_get_reports_data_for_submission_for_valid_data(self):
       submission_extras_obj = XFormSubmissionExtras()
       test_uuid = u'TEST_UUID'
       cdate  = datetime.datetime(2003, 1, 1, 23, 59, 45)
       test_facility = HealthFacilityBase(uuid = test_uuid)
-
+  
       submission_extras_obj.cdate= cdate
       submission_extras_obj.facility =test_facility
       data = self.h033b_reporter.get_reports_data_for_submission([submission_extras_obj])
-
+  
       self.assertEquals(data['orgUnit'],test_uuid)
       self.assertEquals(data['completeDate'],u'2003-01-01T23:59:45Z')
       self.assertEquals(data['period'],u'2002W52')
-
+  
   def test_set_data_values_from_submission_value(self):
-
+  
       value1={
           'attribute_id': 362 ,
           'value'       : 9989 ,
@@ -229,14 +261,14 @@ class Test_H033B_Reporter(TestCase):
       }
       submission_values = self.get_submission_values_and_mappings([value1])
       data = {}
-
+  
       self.h033b_reporter.set_data_values_from_submission_value(data,submission_values)
-
+  
       self.assertEquals(data['dataValues'][0]['dataElement'] ,u'test_dhis2_uuid_1' )
       self.assertEquals(data['dataValues'][0]['value'] ,9989 )
       self.assertEquals(data['dataValues'][0]['categoryOptionCombo'] ,u'XCV' )
-
-
+  
+  
   def get_submission_values_and_mappings(self,key_values_mapping_list):
       submission_values = []
       for kvm in key_values_mapping_list :
@@ -246,4 +278,51 @@ class Test_H033B_Reporter(TestCase):
         Dhis2_Mtrac_Indicators_Mapping.objects.create(mtrac_id=kvm['attribute_id'],dhis2_uuid=kvm['dhis2_uuid'],dhis2_combo_id=kvm['categoryOptionCombo'])
         submission_values.append(submission_value)
       return submission_values
-
+      
+  def test_xformsubmissionextras_does_not_exist(self):
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {u'epd': 53,
+     u'eps': 62,
+     u'fpd': 71,
+     u'fps': 80,
+     u'spd': 17,
+     u'sps': 26,
+     u'tpd': 35,
+     u'tps': 44}
+    submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+      attributes_and_values=attributes_and_values,facility = None)     
+    subextra = XFormSubmissionExtras.objects.filter(submission=submission).delete()
+    Submissions_Test_Helper.xformsubmissionextras_does_not_exist(submission.id)
+    
+  def test_xformsubmission_no_valid_hmis_indicator_exists(step):
+    VITAMIN_A_XFORM_ID= 63
+    xform_id = VITAMIN_A_XFORM_ID
+    attributes_and_values = {
+     u'male1': 44,
+     u'female1': 45,
+     u'male2': 46,
+     u'female2': 47
+     }
+    facility= Submissions_Test_Helper.create_facility()
+    submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+      attributes_and_values=attributes_and_values,facility= facility)    
+    Submissions_Test_Helper.no_valid_hms_indicator_exists(submission.id)
+    
+  def test_dhis2_returns_error(self):
+      xform_id = ACTS_XFORM_ID
+      attributes_and_values = {u'epd': 53,
+       u'eps': 62,
+       u'fpd': 71,
+       u'fps': 80,
+       u'spd': 17,
+       u'sps': 26,
+       u'tpd': 35,
+       u'tps': 44}
+      
+      facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+      submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+        attributes_and_values=attributes_and_values,facility = facility)     
+      Submissions_Test_Helper.create_mappings_for_submission(submission,SOME_VALID_DHIS_ELEMENT_ID_AND_COMBO)
+      Submissions_Test_Helper.dhis2_returns_error(submission.id)
+    
+  

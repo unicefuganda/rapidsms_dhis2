@@ -116,7 +116,7 @@ class H033B_Reporter(object):
   def log_submission_started(self) : 
     self.current_task =  Dhis2_Reports_Report_Task_Log.objects.create()
     
-  def log_submission_finished_with_success(self,submission_count, status, description='') :
+  def log_submission_finished(self,submission_count, status, description='') :
     log_record = self.current_task
     log_record.time_finished= datetime.datetime.now()
     log_record.number_of_submissions = submission_count
@@ -125,6 +125,7 @@ class H033B_Reporter(object):
     log_record.save()
     
   def parse_submission_response(self,response_xml,request_xml):
+    
     dom = parseString(response_xml)
     result=dom.getElementsByTagName('dataValueCount')[0]
     imported  =int(result.getAttribute('imported'))
@@ -152,7 +153,8 @@ class H033B_Reporter(object):
     data = None
     failure_description = None
     try : 
-      data  =  self.get_reports_data_for_submission(XFormSubmissionExtras.objects.filter(submission=submission))
+      a=XFormSubmissionExtras.objects.filter(submission=submission)
+      data  =  self.get_reports_data_for_submission(a)      
     
       if not data :
         raise LookupError(ERROR_MESSAGE_NO_SUBMISSION_EXTRA)
@@ -184,6 +186,7 @@ class H033B_Reporter(object):
     result = self.submit(data)
     accepted_attributes_values = result['updated'] + result['imported']
     log_message=''
+    sucess = False
     
     if result['error'] :      
       log_result  = Dhis2_Reports_Submissions_Log.ERROR
@@ -196,6 +199,7 @@ class H033B_Reporter(object):
       log_result  = Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED
     else :
       log_result  = Dhis2_Reports_Report_Task_Log.SUCCESS
+      sucess =True
     
     Dhis2_Reports_Submissions_Log.objects.create(
         task_id = self.current_task,
@@ -204,15 +208,29 @@ class H033B_Reporter(object):
         result = log_result,
         description =log_message
         )
-  # def initiate_weekly_reports_submission(self):
-  #   last_monday = self.get_last_sunday(date) + timedelta(days=1)
-  #   submissions_for_last_week = self.get_submissions_in_date_range(last_monday, date)
-  #   self.log_submission_started()
-  #   try : 
-  #   except urllib2.URLError , e: 
-  #     error_message =  ERROR_MESSAGE_CONNECTION_FAILED
-  #     exception = type(e).__name__ +":"+ str(e)
-  #   except : 
-  #   else :
-  #   
+  def initiate_weekly_reports_submission(self,date):
+    last_monday = self.get_last_sunday(date) + timedelta(days=1)
+    submissions_for_last_week = self.get_submissions_in_date_range(last_monday, date)
+    self.log_submission_started()
+    sucesssful_submissions  =  0
+    connection_failed = False
+    status = Dhis2_Reports_Report_Task_Log.SUCCESS
+    description = ''
     
+    for submission in submissions_for_last_week:
+      try :
+        if self.submit_submission(submission) :
+          sucesssful_submissions +=1          
+      except urllib2.URLError , e: 
+        exception = type(e).__name__ +":"+ str(e)
+        connection_failed = True
+        status = Dhis2_Reports_Report_Task_Log.FAILED
+        description = ERROR_MESSAGE_CONNECTION_FAILED + ' Exception : '+exception
+        break
+    
+    
+    self.log_submission_finished(
+      submission_count=successful_submissions,
+      status= status,
+      description=description)
+  

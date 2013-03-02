@@ -3,13 +3,17 @@ from dhis2.h033b_reporter import *
 import datetime
 from healthmodels.models.HealthFacility import HealthFacilityBase
 import urllib2, vcr, os, dhis2, sys
+from eav.models import Attribute ,Value
+from mtrack.models import XFormSubmissionExtras
+from rapidsms_xforms.models import XFormSubmissionValue, XForm, XFormSubmission
+from dhis2.models import Dhis2_Temp_Mtrac_Indicators_Mapping
 
 FIXTURES = os.path.abspath(dhis2.__path__[0]) + "/tests/fixtures/cassettes/"
 
 class Submissions_Test_Helper(object):
   
   @classmethod
-  def xformsubmissionextras_does_not_exist(step,submission_id):
+  def xformsubmissionextras_does_not_exist(self,submission_id):
     h033b_reporter = H033B_Reporter()
     h033b_reporter.log_submission_started()
     submission = XFormSubmission.objects.get(id=submission_id)
@@ -51,6 +55,8 @@ class Submissions_Test_Helper(object):
       self.restore_submission_attribute_mapping(crapped_attribute_id,crapped_uuid_backup)
 
     log = Dhis2_Reports_Submissions_Log.objects.filter(task_id=h033b_reporter.current_task)[0]
+    
+
     assert log.reported_xml
     assert log.task_id        == h033b_reporter.current_task
     assert log.submission_id  == submission.id
@@ -76,4 +82,34 @@ class Submissions_Test_Helper(object):
     mapping = Dhis2_Mtrac_Indicators_Mapping.objects.filter(mtrac_id=crapped_attribute_id)[0]
     mapping.dhis2_uuid = crapped_uuid_backup
     mapping.save()
-
+    
+  @classmethod  
+  def create_sudo_submission_object(self,xform_id,attributes_and_values,facility):
+    xform = XForm.objects.get(id=xform_id)
+    submission = XFormSubmission.objects.create(xform=xform)
+    xform.update_submission_from_dict(submission, attributes_and_values)
+    subextra = XFormSubmissionExtras.objects.create(submission=submission, facility = facility)
+    return submission
+    
+  @classmethod
+  def create_facility(facility_name='test_facility',dhis2_uuid='test_uuid'):
+    facility = HealthFacilityBase()
+    facility.name = facility_name;
+    facility.uuid = dhis2_uuid
+    facility.save(cascade_update=False)
+    return facility
+    
+  
+  @classmethod
+  def create_mappings_for_submission(self,submission,valid_dhis2_ids_list):
+    sub_values = XFormSubmissionValue.objects.filter(submission=submission)
+    index_dhis2_ids_list = 0
+    mappings = valid_dhis2_ids_list.items()
+    
+    for sub_value in sub_values : 
+      attrib_id = sub_value.attribute_id
+      dhis2_uid = mappings[index_dhis2_ids_list][0]
+      dhis2_combo_id = mappings[index_dhis2_ids_list][1]
+      Dhis2_Mtrac_Indicators_Mapping.objects.create(mtrac_id = attrib_id,dhis2_uuid =dhis2_uid ,dhis2_combo_id=dhis2_combo_id)
+      index_dhis2_ids_list = (index_dhis2_ids_list+1)%len(valid_dhis2_ids_list)
+      

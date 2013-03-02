@@ -50,17 +50,16 @@ def get_submissions_in_date_range(self):
   submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
   assert len(submissions_in_period) == 314
 
-@step(u'Must make correct log table entries where XFormSubmissionExtras doesnt exist')
-def xformsubmissionextras_does_not_exist(step):
-  Submissions_Test_Helper.xformsubmissionextras_does_not_exist(NO_SUBMISSION_EXTRA_SUBMISSION_ID)
 
-@step(u'Must make correct log table entries where no valid indicators exist')
-def no_valid_hms_indicator_exists(step):
-  Submissions_Test_Helper.no_valid_hms_indicator_exists(NO_VALID_HMS_ATTRIBUTE_SUBMISSION_ID)
+@step(u'Must fetch all submissions that have no error')
+def get_submissions_in_date_range(self):
+  from_date = datetime.datetime(2011, 12, 18, 00, 00, 00)
+  to_date = datetime.datetime(2011, 12, 19, 23, 59, 59)
+  
+  
+  submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
+  assert len(submissions_in_period) == 314
 
-@step(u'Must make correct log table entries where some indicators ignored by dhis2')
-def dhis2_returns_error(self):
-  Submissions_Test_Helper.dhis2_returns_error(SOME_ATTRIBUTES_IGNORED_SUBMISSION_ID)
 
 @after.all
 def teardown(*args):
