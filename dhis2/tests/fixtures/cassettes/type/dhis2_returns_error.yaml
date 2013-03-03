@@ -1,17 +1,17 @@
 - request:
     body: !!python/object/new:django.utils.safestring.SafeUnicode [!!python/unicode "<dataValueSet\
         \ xmlns=\"http://dhis2.org/schema/dxf/2.0\" dataSet=\"V1kJRs8CtW4\" completeDate=\"\
-        2013-03-02T21:54:42Z\" period=\"2013W8\" orgUnit=\"6VeE8JrylXn\">\n  \n  \
+        2013-03-03T17:26:33Z\" period=\"2013W8\" orgUnit=\"6VeE8JrylXn\">\n  \n  \
         \  <dataValue dataElement=\"CRAPPED\" categoryOptionCombo= \"gGhClrV5odI\"\
-        \ value=\"71\" />\n  \n    <dataValue dataElement=\"tjTnFJ1QdVz\" categoryOptionCombo=\
-        \ \"gGhClrV5odI\" value=\"35\" />\n  \n    <dataValue dataElement=\"tTGAElxDIWg\"\
+        \ value=\"71\" />\n  \n    <dataValue dataElement=\"NoJfAIcxjSY\" categoryOptionCombo=\
+        \ \"gGhClrV5odI\" value=\"35\" />\n  \n    <dataValue dataElement=\"w3mO7SZdbb8\"\
         \ categoryOptionCombo= \"gGhClrV5odI\" value=\"44\" />\n  \n    <dataValue\
-        \ dataElement=\"yvbPC5zDb3c\" categoryOptionCombo= \"gGhClrV5odI\" value=\"\
-        80\" />\n  \n    <dataValue dataElement=\"OMxmmYvvLai\" categoryOptionCombo=\
+        \ dataElement=\"UKYPpKnSBK4\" categoryOptionCombo= \"gGhClrV5odI\" value=\"\
+        80\" />\n  \n    <dataValue dataElement=\"IkI01xB7RIi\" categoryOptionCombo=\
         \ \"gGhClrV5odI\" value=\"53\" />\n  \n    <dataValue dataElement=\"r3xIBQaeLsT\"\
         \ categoryOptionCombo= \"gGhClrV5odI\" value=\"26\" />\n  \n    <dataValue\
-        \ dataElement=\"NoJfAIcxjSY\" categoryOptionCombo= \"gGhClrV5odI\" value=\"\
-        17\" />\n  \n    <dataValue dataElement=\"w3mO7SZdbb8\" categoryOptionCombo=\
+        \ dataElement=\"BX2PYPKm8F9\" categoryOptionCombo= \"gGhClrV5odI\" value=\"\
+        17\" />\n  \n    <dataValue dataElement=\"fclvwNhzu7d\" categoryOptionCombo=\
         \ \"gGhClrV5odI\" value=\"62\" />\n  \n</dataValueSet>"]
     headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Length: '909',
       Content-Type: application/xml, Host: ec2-54-242-108-118.compute-1.amazonaws.com,
@@ -21,9 +21,9 @@
   response:
     body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
         process completed successfully</description><dataValueCount imported="0" updated="7"
-        ignored="1"/><dataSetComplete>2013-03-02</dataSetComplete><conflicts><conflict
+        ignored="1"/><dataSetComplete>2013-03-03</dataSetComplete><conflicts><conflict
         object="DataElement" value="CRAPPED"/></conflicts></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Sat,
-        02 Mar 2013 18:55:29 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=4B7193E621EE1519A0169A6B21552C86;
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Sun,
+        03 Mar 2013 14:26:39 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=B31E4223A31C0CA3073BA81A60B2A42F;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}
