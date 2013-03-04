@@ -141,7 +141,6 @@ class Test_H033B_Reporter(TestCase):
       datetime.datetime(2003, 12, 1 , 0 , 0 , 0 )   :  '2003-12-01T00:00:00Z' ,
       datetime.datetime(2003, 2 , 2 , 0 , 0 , 0 )   :  '2003-02-02T00:00:00Z' ,
       datetime.datetime(2003, 12, 31, 23, 59, 59)   :  '2003-12-31T23:59:59Z' ,
-  
     }
   
     for date in dates_iso_string_map :
@@ -149,6 +148,7 @@ class Test_H033B_Reporter(TestCase):
   
   def test_get_week_period_id_for_sunday(self):
      periods_test_args = {
+       datetime.datetime(2013, 1, 4, 0, 0, 0)        : u'2013W1' ,
        datetime.datetime(2010, 1, 3, 23, 59, 45)     : u'2010W1'  ,
        datetime.datetime(2010, 1 , 10, 23, 59, 45)   : u'2010W2'  ,
        datetime.datetime(2010, 2, 7 , 0 , 0 , 0 )    : u'2010W6' ,
@@ -282,6 +282,8 @@ class Test_H033B_Reporter(TestCase):
     subextra = XFormSubmissionExtras.objects.filter(submission=submission).delete()
     Submissions_Test_Helper.xformsubmissionextras_does_not_exist(submission.id)
     
+    
+    
   def test_xformsubmission_no_valid_hmis_indicator_exists(step):
     xform_id = VITAMIN_A_XFORM_ID
     attributes_and_values = {
@@ -382,10 +384,14 @@ class Test_H033B_Reporter(TestCase):
     to_date = datetime.datetime(2011, 12, 19, 23, 59, 59)
     
     submission = XFormSubmission.objects.all().delete()
+    facility= Submissions_Test_Helper.create_facility()
     
     for x in range(submissions_count) : 
+      facility= Submissions_Test_Helper.create_facility(facility_name=u'test_facility'+str(x),dhis2_uuid=u'test_uuid2'+str(x))
+      
       submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
-        attributes_and_values=attributes_and_values,facility = None)
+        attributes_and_values=attributes_and_values,facility = facility)
+        
       submission.created = from_date + timedelta(seconds = ((to_date-from_date).seconds + x/submissions_count))
       submission.save()
     
@@ -393,7 +399,7 @@ class Test_H033B_Reporter(TestCase):
   
     submissions_in_period  = self.h033b_reporter.get_submissions_in_date_range(from_date,to_date)
     self.assertEquals(len(submissions_in_period) , submissions_count)
-
+  
   def test_get_submissions_in_date_range_has_no_error_records(self):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {}
@@ -402,15 +408,217 @@ class Test_H033B_Reporter(TestCase):
     from_date = datetime.datetime(2011, 12, 18, 00, 00, 00)
     to_date = datetime.datetime(2011, 12, 19, 23, 59, 59)
     
-    submission = XFormSubmission.objects.all().delete()
+    XFormSubmission.objects.all().delete()
     
     for x in range(submissions_count) : 
+      facility= Submissions_Test_Helper.create_facility(facility_name=u'test_facility'+str(x),dhis2_uuid=u'test_uuid2'+str(x))
+      
       submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
-        attributes_and_values=attributes_and_values,facility = None)
+        attributes_and_values=attributes_and_values,facility = facility)
       submission.created = from_date + timedelta(seconds = ((to_date-from_date).seconds + x/submissions_count))
+      
       if error_submissions > x :
         submission.has_errors = True
       submission.save()
     
     submissions_in_period  = self.h033b_reporter.get_submissions_in_date_range(from_date,to_date)
     self.assertEquals(len(submissions_in_period) , submissions_count-error_submissions)
+  
+  def test_remove_duplicate_reports_missing_extras(self):
+    h033b_reporter = H033B_Reporter()
+    
+    xform_id = VITAMIN_A_XFORM_ID
+    attributes_and_values = {
+     u'male1': 44,
+     u'female1': 45,
+     u'male2': 46,
+     u'female2': 47
+     }
+     
+    
+    XFormSubmission.objects.all().delete()
+     
+    facility1= Submissions_Test_Helper.create_facility()
+    facility2= Submissions_Test_Helper.create_facility(facility_name=u'test_facility2',dhis2_uuid=u'test_uuid2')
+    
+    good_submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+      attributes_and_values=attributes_and_values,facility= facility1)   
+    
+    bad_submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+      attributes_and_values=attributes_and_values,facility= facility2)    
+    XFormSubmissionExtras.objects.filter(submission=bad_submission).delete()    
+      
+    submissions_list = h033b_reporter.remove_duplicate_and_invalid_reports(XFormSubmission.objects.all())
+    
+    self.assertEquals([good_submission], submissions_list)
+  
+    
+  
+  def test_remove_duplicate_reports(self):
+    h033b_reporter = H033B_Reporter()
+    
+    xform_id = VITAMIN_A_XFORM_ID
+    attributes_and_values = {
+     u'male1': 44,
+     u'female1': 45,
+     u'male2': 46,
+     u'female2': 47
+     }
+     
+    attributes_and_values2 = {
+      u'epd': 53,
+         u'eps': 62,
+         }
+    
+    XFormSubmission.objects.all().delete()
+     
+    facility= Submissions_Test_Helper.create_facility()
+    
+    x1 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+      attributes_and_values=attributes_and_values,facility= facility)   
+    
+    x2 =Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+      attributes_and_values=attributes_and_values,facility= facility)    
+    
+    latest_submission1 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+      attributes_and_values=attributes_and_values,facility= facility)    
+    
+  
+    facility2= Submissions_Test_Helper.create_facility(facility_name=u'test_facility2',dhis2_uuid=u'test_uuid2')
+    Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+       attributes_and_values=attributes_and_values,facility= facility2)   
+     
+  
+    latest_submission2 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+       attributes_and_values=attributes_and_values,facility= facility2)
+  
+    Submissions_Test_Helper.create_sudo_submission_object(xform_id=ACTS_XFORM_ID,
+          attributes_and_values=attributes_and_values2,facility= facility2)
+          
+    latest_submission3 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=ACTS_XFORM_ID,
+      attributes_and_values=attributes_and_values2,facility= facility2)    
+    
+    facility3= Submissions_Test_Helper.create_facility(facility_name=u'test_facility3',dhis2_uuid=u'test_uuid3')
+    
+    bad1 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=ACTS_XFORM_ID,
+      attributes_and_values=attributes_and_values2,facility= facility2)
+    bad2 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=ACTS_XFORM_ID,
+        attributes_and_values=attributes_and_values2,facility= facility3)
+    XFormSubmissionExtras.objects.filter(submission=bad1).delete()
+    XFormSubmissionExtras.objects.filter(submission=bad2).delete()
+        
+    latest_submission4 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=ACTS_XFORM_ID,
+      attributes_and_values=attributes_and_values2,facility= facility3)
+    
+    submissions_list = h033b_reporter.remove_duplicate_and_invalid_reports(XFormSubmission.objects.all())
+    
+    assert x1.created < x2.created
+    assert latest_submission1.created >  x2.created
+    
+    self.assertEquals(len(submissions_list),4  )
+    self.assertTrue(latest_submission1 in submissions_list)
+    self.assertTrue(latest_submission2 in submissions_list)
+    self.assertTrue(latest_submission3 in submissions_list)
+    self.assertTrue(latest_submission4 in submissions_list)
+    
+    
+  
+  def test_get_submissions_in_date_range_has_extras_but_no_facility_id(self):
+    h033b_reporter = H033B_Reporter()
+    
+    xform_id = VITAMIN_A_XFORM_ID
+    attributes_and_values = {
+     u'male1': 44,
+     u'female1': 45,
+     u'male2': 46,
+     u'female2': 47
+     }
+     
+    
+    XFormSubmission.objects.all().delete()
+     
+    facility1= Submissions_Test_Helper.create_facility()
+    facility2= Submissions_Test_Helper.create_facility(facility_name=u'test_facility2',dhis2_uuid=u'test_uuid2')
+    
+    good_submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+      attributes_and_values=attributes_and_values,facility= facility1)   
+    
+    bad_submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+      attributes_and_values=attributes_and_values,facility= facility2)    
+    bad_extra  = XFormSubmissionExtras.objects.filter(submission=bad_submission)[0]
+    bad_extra.facility = None
+    bad_extra.save()
+        
+      
+    submissions_list = h033b_reporter.remove_duplicate_and_invalid_reports(XFormSubmission.objects.all())
+    
+    self.assertEquals([good_submission], submissions_list)
+    
+  
+  def test_weekly_submissions(self):
+    h033b_reporter = H033B_Reporter()
+    
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {
+      u'epd': 53,
+         u'eps': 62,
+    }
+    some_valid_facility_uuids = [
+      u'6VeE8JrylXn',
+      u'xYZq8eBXMrD',
+      u'nBDPw7Qhd7r'
+    ] 
+    xfrom_field_mappings = [
+      {
+        'x_form_field_command_id' : u'epd',
+        'dhis2_uuid'  :u'NoJfAIcxjSY',
+        'combo_id'    : u'gGhClrV5odI'
+      },
+      {
+        'x_form_field_command_id' : u'eps',
+        'dhis2_uuid'  :u'OMxmmYvvLai',
+        'combo_id'    : u'gGhClrV5odI'
+      }
+    ]
+
+    submissions_count = 3
+    from_date = datetime.datetime(2013, 1, 21, 00, 00, 00)
+    to_date = datetime.datetime(2013, 1, 24, 23, 59, 59)
+    
+    XFormSubmission.objects.all().delete()
+    Dhis2_Reports_Report_Task_Log.objects.all().delete()
+    Dhis2_Reports_Submissions_Log.objects.all().delete()
+    
+    for xfrom_field_mapping in xfrom_field_mappings :
+      mtrac_id  = XFormField.objects.filter(command=xfrom_field_mapping['x_form_field_command_id'])[0].attribute_ptr_id
+      Dhis2_Mtrac_Indicators_Mapping.objects.create(
+        mtrac_id = mtrac_id,
+        dhis2_uuid = xfrom_field_mapping['dhis2_uuid'] ,
+        dhis2_combo_id= xfrom_field_mapping['combo_id']
+      )
+      
+    
+    for x in range(submissions_count) : 
+      facility= Submissions_Test_Helper.create_facility(facility_name=u'test_facility'+str(x),dhis2_uuid=some_valid_facility_uuids[x%len(some_valid_facility_uuids )])
+      
+      submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+        attributes_and_values=attributes_and_values,facility = facility)
+      submission.created = from_date + timedelta(seconds = ((to_date-from_date).seconds + x/submissions_count))
+      submission.save()
+    
+    with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
+      h033b_reporter.initiate_weekly_submissions(to_date)
+    
+        
+    log_record_for_task = h033b_reporter.current_task
+    log_record_for_submissions =  Dhis2_Reports_Submissions_Log.objects.all()
+    
+    self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()),1)
+    self.assertEquals(len(Dhis2_Reports_Submissions_Log.objects.all()),3)
+    self.assertEquals(log_record_for_task.number_of_submissions , submissions_count)
+    self.assertEquals(log_record_for_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
+    
+    for log_record_for_submission in log_record_for_submissions : 
+      self.assertEquals(log_record_for_submission.result,Dhis2_Reports_Report_Task_Log.SUCCESS)
+      
+

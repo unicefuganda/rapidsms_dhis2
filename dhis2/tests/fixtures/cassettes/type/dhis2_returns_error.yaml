@@ -1,7 +1,7 @@
 - request:
     body: !!python/object/new:django.utils.safestring.SafeUnicode [!!python/unicode "<dataValueSet\
         \ xmlns=\"http://dhis2.org/schema/dxf/2.0\" dataSet=\"V1kJRs8CtW4\" completeDate=\"\
-        2013-03-03T17:26:33Z\" period=\"2013W8\" orgUnit=\"6VeE8JrylXn\">\n  \n  \
+        2013-03-04T15:48:45Z\" period=\"2013W9\" orgUnit=\"6VeE8JrylXn\">\n  \n  \
         \  <dataValue dataElement=\"CRAPPED\" categoryOptionCombo= \"gGhClrV5odI\"\
         \ value=\"71\" />\n  \n    <dataValue dataElement=\"NoJfAIcxjSY\" categoryOptionCombo=\
         \ \"gGhClrV5odI\" value=\"35\" />\n  \n    <dataValue dataElement=\"w3mO7SZdbb8\"\
@@ -21,9 +21,38 @@
   response:
     body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
         process completed successfully</description><dataValueCount imported="0" updated="7"
-        ignored="1"/><dataSetComplete>2013-03-03</dataSetComplete><conflicts><conflict
+        ignored="1"/><dataSetComplete>2013-03-04</dataSetComplete><conflicts><conflict
         object="DataElement" value="CRAPPED"/></conflicts></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Sun,
-        03 Mar 2013 14:26:39 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=B31E4223A31C0CA3073BA81A60B2A42F;
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Mon,
+        04 Mar 2013 13:04:27 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=CDC1BCA82FD3CFDFDA5D636A0FCF306E;
+        Path=/; HttpOnly, transfer-encoding: chunked}
+    status: {code: 200, message: OK}
+- request:
+    body: !!python/object/new:django.utils.safestring.SafeUnicode [!!python/unicode "<dataValueSet\
+        \ xmlns=\"http://dhis2.org/schema/dxf/2.0\" dataSet=\"V1kJRs8CtW4\" completeDate=\"\
+        2013-03-04T16:57:50Z\" period=\"2013W9\" orgUnit=\"6VeE8JrylXn\">\n  \n  \
+        \  <dataValue dataElement=\"CRAPPED\" categoryOptionCombo= \"gGhClrV5odI\"\
+        \ value=\"71\" />\n  \n    <dataValue dataElement=\"NoJfAIcxjSY\" categoryOptionCombo=\
+        \ \"gGhClrV5odI\" value=\"35\" />\n  \n    <dataValue dataElement=\"w3mO7SZdbb8\"\
+        \ categoryOptionCombo= \"gGhClrV5odI\" value=\"44\" />\n  \n    <dataValue\
+        \ dataElement=\"UKYPpKnSBK4\" categoryOptionCombo= \"gGhClrV5odI\" value=\"\
+        80\" />\n  \n    <dataValue dataElement=\"IkI01xB7RIi\" categoryOptionCombo=\
+        \ \"gGhClrV5odI\" value=\"53\" />\n  \n    <dataValue dataElement=\"r3xIBQaeLsT\"\
+        \ categoryOptionCombo= \"gGhClrV5odI\" value=\"26\" />\n  \n    <dataValue\
+        \ dataElement=\"BX2PYPKm8F9\" categoryOptionCombo= \"gGhClrV5odI\" value=\"\
+        17\" />\n  \n    <dataValue dataElement=\"fclvwNhzu7d\" categoryOptionCombo=\
+        \ \"gGhClrV5odI\" value=\"62\" />\n  \n</dataValueSet>"]
+    headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Length: '909',
+      Content-Type: application/xml, Host: ec2-54-242-108-118.compute-1.amazonaws.com,
+      User-Agent: Python-urllib/2.7}
+    method: POST
+    url: /api/dataValueSets
+  response:
+    body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
+        process completed successfully</description><dataValueCount imported="0" updated="7"
+        ignored="1"/><dataSetComplete>2013-03-04</dataSetComplete><conflicts><conflict
+        object="DataElement" value="CRAPPED"/></conflicts></importSummary>'}
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Mon,
+        04 Mar 2013 13:57:56 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=A184F170E5BCF35FED3BB0D02DBB086F;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}

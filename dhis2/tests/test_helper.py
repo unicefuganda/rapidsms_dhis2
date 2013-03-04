@@ -92,7 +92,7 @@ class Submissions_Test_Helper(object):
     return submission
     
   @classmethod
-  def create_facility(facility_name='test_facility',dhis2_uuid='test_uuid'):
+  def create_facility(self,facility_name=u'test_facility',dhis2_uuid=u'test_uuid'):
     facility = HealthFacilityBase()
     facility.name = facility_name;
     facility.uuid = dhis2_uuid

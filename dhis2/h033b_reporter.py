@@ -17,7 +17,7 @@ ERROR_MESSAGE_NO_HMS_INDICATOR    = u'No valid HMS033b indicators reported for t
 ERROR_MESSAGE_ALL_VALUES_IGNORED  = u'All values rejected by remote server'
 ERROR_MESSAGE_SOME_VALUES_IGNORED = u'Some values rejected by remote server'
 ERROR_MESSAGE_CONNECTION_FAILED   = u'Error communicating with the remote server'
-
+ERROR_MESSAGE_UNEXPECTED_ERROR    = u'Unexpected error while submitting reports to DHIS2'
 class H033B_Reporter(object):
   URL     = "http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataValueSets"
   HEADERS = {
@@ -73,7 +73,8 @@ class H033B_Reporter(object):
     return data_value
 
   def get_submissions_in_date_range(self,from_date,to_date):
-    return XFormSubmission.objects.filter(created__range=[from_date, to_date],has_errors=False)
+    submissions = XFormSubmission.objects.filter(created__range=[from_date, to_date],has_errors=False)
+    return self.remove_duplicate_and_invalid_reports ( submissions )
     
   @classmethod  
   def get_week_period_id_for_sunday(self, date):
@@ -200,7 +201,7 @@ class H033B_Reporter(object):
     else :
       log_result  = Dhis2_Reports_Report_Task_Log.SUCCESS
       sucess =True
-    
+  
     Dhis2_Reports_Submissions_Log.objects.create(
         task_id = self.current_task,
         submission_id = submission.id,
@@ -208,28 +209,72 @@ class H033B_Reporter(object):
         result = log_result,
         description =log_message
         )
+    return log_result == Dhis2_Reports_Report_Task_Log.SUCCESS
+   
+  def remove_duplicate_and_invalid_reports(self, submission_query_set):
+    submissions_list = submission_query_set.order_by('xform','created')[:]
+    submissions_list =  self.__remove_submisisons_with_missing_extras(submissions_list)
     
-  def initiate_weekly_reports_submission(self,date):
+    submissions_list  =sorted(submissions_list,key=self.__get_facilty_id)
+    cleaned_list = []
+    count =0
+    submissions_count = len(submissions_list)
+
+    for count in range(submissions_count): 
+      if count == submissions_count-1 : 
+        cleaned_list.append(submissions_list[count])
+      elif not self.__are_submissions_duplicate(submissions_list[count] ,submissions_list[count+1] ):
+        cleaned_list.append(submissions_list[count]) 
+    
+    return cleaned_list
+   
+  def __are_submissions_duplicate(self,submission1,submission2):
+    if  submission1.xform.id == submission2.xform.id : 
+      return self.__get_facilty_id(submission1) == self.__get_facilty_id(submission2)
+    return False
+  
+  def __get_facilty_id(self,submission ):
+    return XFormSubmissionExtras.objects.filter(submission=submission)[0].facility.id
+  
+  def __remove_submisisons_with_missing_extras(self,submissions):
+    cleaned_submissions = []
+    
+    for submission in submissions : 
+      xtras = XFormSubmissionExtras.objects.filter(submission=submission)
+      if xtras and xtras[0].facility: 
+        cleaned_submissions.append(submission)  
+    return cleaned_submissions
+        
+    
+  def initiate_weekly_submissions(self,date):
     last_monday = self.get_last_sunday(date) + timedelta(days=1)
     submissions_for_last_week = self.get_submissions_in_date_range(last_monday, date)
+
     self.log_submission_started()
-    sucesssful_submissions  =  0
+    successful_submissions  =  0
     connection_failed = False
     status = Dhis2_Reports_Report_Task_Log.SUCCESS
     description = ''
-    
-    for submission in submissions_for_last_week:
-      try :
-        if self.submit_submission(submission) :
-          sucesssful_submissions +=1          
-      except urllib2.URLError , e: 
-        exception = type(e).__name__ +":"+ str(e)
-        connection_failed = True
-        status = Dhis2_Reports_Report_Task_Log.FAILED
-        description = ERROR_MESSAGE_CONNECTION_FAILED + ' Exception : '+exception
-        break
-       
-    self.log_submission_finished(
-      submission_count=successful_submissions,
-      status= status,
-      description=description)
+    try : 
+      for submission in submissions_for_last_week:
+        try :
+          if self.submit_submission(submission) :            
+            successful_submissions +=1          
+        except urllib2.URLError , e: 
+          exception = type(e).__name__ +":"+ str(e)
+          connection_failed = True
+          status = Dhis2_Reports_Report_Task_Log.FAILED
+          description = ERROR_MESSAGE_CONNECTION_FAILED + ' Exception : '+exception
+          break
+        except Exception ,e : 
+          exception = type(e).__name__ +":"+ str(e)
+          connection_failed = True
+          status = Dhis2_Reports_Report_Task_Log.FAILED
+          description = ERROR_MESSAGE_UNEXPECTED_ERROR + ' Exception : '+exception
+          raise e
+    finally : 
+      self.log_submission_finished(
+        submission_count=successful_submissions,
+        status= status,
+        description=description)
+
