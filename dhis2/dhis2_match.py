@@ -106,15 +106,9 @@ class Dhis2_Fetch_Health_Indicators(object):
 
     def update_dhis2_mapping_db (self, dhis2_indicator, mtrack_indicator):
         
-        mtrack_id = None
-        if mtrack_indicator :
-            mtrack_id = mtrack_indicator.id 
-
         Dhis2_Mtrac_Indicators_Mapping.objects.create(
-            mtrac_id = mtrack_id,
+            eav_attribute = mtrack_indicator,
             dhis2_uuid = dhis2_indicator['id'],
-            dhis2_name  = dhis2_indicator['name'],
-            dhis2_url  = dhis2_indicator['href'],
             dhis2_combo_id = dhis2_indicator['combo_id'])
 
 

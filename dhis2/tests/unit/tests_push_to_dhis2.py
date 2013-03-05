@@ -10,6 +10,7 @@ from healthmodels.models.HealthFacility import HealthFacilityBase
 from rapidsms_xforms.models import XFormSubmissionValue,XForm,XFormSubmission,XFormField
 from dhis2.tests.test_helper import Submissions_Test_Helper
 from healthmodels.models.HealthFacility import HealthFacilityBase
+from eav.models import Attribute
 
 A_VALID_DHIS2_UUID = u'6VeE8JrylXn'
 SOME_VALID_DHIS_ELEMENT_ID_AND_COMBO =  {
@@ -110,10 +111,10 @@ class Test_H033B_Reporter(TestCase):
   
   def test_get_data_values_for_submission(self):
     submission_value = MagicMock()
-    submission_value.attribute_id = 345
     submission_value.value = 22
-  
-    Dhis2_Mtrac_Indicators_Mapping.objects.create(mtrac_id=submission_value.attribute_id, dhis2_uuid= u'test_uuid',dhis2_combo_id=u'test_combo_id')
+    submission_value.attribute = Attribute.objects.get(id=345)
+    
+    Dhis2_Mtrac_Indicators_Mapping.objects.create(eav_attribute= submission_value.attribute, dhis2_uuid= u'test_uuid',dhis2_combo_id=u'test_combo_id')
     data =  self.h033b_reporter.get_data_values_for_submission(submission_value)
   
     self.assertEquals(data['dataElement'], u'test_uuid')
@@ -263,7 +264,9 @@ class Test_H033B_Reporter(TestCase):
         submission_value = XFormSubmissionValue()
         submission_value.attribute_id = kvm['attribute_id']
         submission_value.value = kvm['value']
-        Dhis2_Mtrac_Indicators_Mapping.objects.create(mtrac_id=kvm['attribute_id'],dhis2_uuid=kvm['dhis2_uuid'],dhis2_combo_id=kvm['categoryOptionCombo'])
+        eav_attribute = Attribute.objects.get(id=kvm['attribute_id'])
+        
+        Dhis2_Mtrac_Indicators_Mapping.objects.create(eav_attribute=eav_attribute,dhis2_uuid=kvm['dhis2_uuid'],dhis2_combo_id=kvm['categoryOptionCombo'])
         submission_values.append(submission_value)
       return submission_values
       
@@ -337,8 +340,10 @@ class Test_H033B_Reporter(TestCase):
     
     for xfrom_field_mapping in xfrom_field_mappings :
       mtrac_id  = XFormField.objects.filter(command=xfrom_field_mapping['x_form_field_command_id'])[0].attribute_ptr_id
+      eav_attribute = Attribute.objects.get(id=mtrac_id)
+      
       Dhis2_Mtrac_Indicators_Mapping.objects.create(
-        mtrac_id = mtrac_id,
+        eav_attribute = eav_attribute,
         dhis2_uuid = xfrom_field_mapping['dhis2_uuid'] ,
         dhis2_combo_id= xfrom_field_mapping['combo_id']
       )
@@ -591,8 +596,10 @@ class Test_H033B_Reporter(TestCase):
     
     for xfrom_field_mapping in xfrom_field_mappings :
       mtrac_id  = XFormField.objects.filter(command=xfrom_field_mapping['x_form_field_command_id'])[0].attribute_ptr_id
+      eav_attribute = Attribute.objects.get(id=mtrac_id)
+      
       Dhis2_Mtrac_Indicators_Mapping.objects.create(
-        mtrac_id = mtrac_id,
+        eav_attribute = eav_attribute,
         dhis2_uuid = xfrom_field_mapping['dhis2_uuid'] ,
         dhis2_combo_id= xfrom_field_mapping['combo_id']
       )

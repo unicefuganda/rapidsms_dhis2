@@ -9,6 +9,7 @@ from datetime import timedelta
 import datetime
 from healthmodels.models.HealthFacility import HealthFacilityBase
 from xml.dom.minidom import parseString
+from eav.models import Attribute
 
 HMIS033B_REPORT_XML_TEMPLATE      = "h033b_reporter.xml"
 HMIS_033B_PERIOD_ID               = u'%dW%d'
@@ -60,8 +61,9 @@ class H033B_Reporter(object):
 
   def get_data_values_for_submission(self, submission_value):
     data_value      = {}
-    attrib_id       = submission_value.attribute_id
-    dhis2_mapping   = Dhis2_Mtrac_Indicators_Mapping.objects.filter(mtrac_id=attrib_id)
+    eav_attribute = submission_value.attribute
+    
+    dhis2_mapping   = Dhis2_Mtrac_Indicators_Mapping.objects.filter(eav_attribute=eav_attribute)
 
     if dhis2_mapping:
       element_id                        = dhis2_mapping[0].dhis2_uuid

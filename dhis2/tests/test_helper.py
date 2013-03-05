@@ -67,7 +67,8 @@ class Submissions_Test_Helper(object):
   def corrupt_submission_attribute_mapping(self,submission):
     for submission_value in XFormSubmissionValue.objects.filter(submission=submission) :
       crapped_attribute_id = submission_value.attribute_id
-      mapping = Dhis2_Mtrac_Indicators_Mapping.objects.filter(mtrac_id=crapped_attribute_id)
+      eav_attribute = Attribute.objects.get(id=crapped_attribute_id)
+      mapping = Dhis2_Mtrac_Indicators_Mapping.objects.filter(eav_attribute=eav_attribute)
       if mapping : 
         mapping=mapping[0]
         break
@@ -79,7 +80,9 @@ class Submissions_Test_Helper(object):
 
   @classmethod
   def restore_submission_attribute_mapping(self,crapped_attribute_id,crapped_uuid_backup):
-    mapping = Dhis2_Mtrac_Indicators_Mapping.objects.filter(mtrac_id=crapped_attribute_id)[0]
+    eav_attribute = Attribute.objects.get(id=crapped_attribute_id)
+    
+    mapping = Dhis2_Mtrac_Indicators_Mapping.objects.filter(eav_attribute=eav_attribute)[0]
     mapping.dhis2_uuid = crapped_uuid_backup
     mapping.save()
     
@@ -107,9 +110,9 @@ class Submissions_Test_Helper(object):
     mappings = valid_dhis2_ids_list.items()
     
     for sub_value in sub_values : 
-      attrib_id = sub_value.attribute_id
       dhis2_uid = mappings[index_dhis2_ids_list][0]
       dhis2_combo_id = mappings[index_dhis2_ids_list][1]
-      Dhis2_Mtrac_Indicators_Mapping.objects.create(mtrac_id = attrib_id,dhis2_uuid =dhis2_uid ,dhis2_combo_id=dhis2_combo_id)
+      
+      Dhis2_Mtrac_Indicators_Mapping.objects.create(eav_attribute = sub_value.attribute,dhis2_uuid =dhis2_uid ,dhis2_combo_id=dhis2_combo_id)
       index_dhis2_ids_list = (index_dhis2_ids_list+1)%len(valid_dhis2_ids_list)
       
