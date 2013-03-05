@@ -249,7 +249,7 @@ class H033B_Reporter(object):
     return cleaned_submissions
         
     
-  def initiate_weekly_submissions(self,date):
+  def initiate_weekly_submissions(self,date=datetime.datetime.now()):
     last_monday = self.get_last_sunday(date) + timedelta(days=1)
     submissions_for_last_week = self.get_submissions_in_date_range(last_monday, date)
 

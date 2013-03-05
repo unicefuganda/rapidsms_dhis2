@@ -143,3 +143,32 @@
         05 Mar 2013 09:18:52 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=54EF1A5C4EA48173670EBD4F28B15AB8;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}
+- request:
+    body: !!python/object/new:django.utils.safestring.SafeUnicode [!!python/unicode "<dataValueSet\
+        \ xmlns=\"http://dhis2.org/schema/dxf/2.0\" dataSet=\"V1kJRs8CtW4\" completeDate=\"\
+        2013-03-05T13:33:35Z\" period=\"2013W9\" orgUnit=\"6VeE8JrylXn\">\n  \n  \
+        \  <dataValue dataElement=\"CRAPPED\" categoryOptionCombo= \"gGhClrV5odI\"\
+        \ value=\"71\" />\n  \n    <dataValue dataElement=\"NoJfAIcxjSY\" categoryOptionCombo=\
+        \ \"gGhClrV5odI\" value=\"35\" />\n  \n    <dataValue dataElement=\"w3mO7SZdbb8\"\
+        \ categoryOptionCombo= \"gGhClrV5odI\" value=\"44\" />\n  \n    <dataValue\
+        \ dataElement=\"UKYPpKnSBK4\" categoryOptionCombo= \"gGhClrV5odI\" value=\"\
+        80\" />\n  \n    <dataValue dataElement=\"IkI01xB7RIi\" categoryOptionCombo=\
+        \ \"gGhClrV5odI\" value=\"53\" />\n  \n    <dataValue dataElement=\"r3xIBQaeLsT\"\
+        \ categoryOptionCombo= \"gGhClrV5odI\" value=\"26\" />\n  \n    <dataValue\
+        \ dataElement=\"BX2PYPKm8F9\" categoryOptionCombo= \"gGhClrV5odI\" value=\"\
+        17\" />\n  \n    <dataValue dataElement=\"fclvwNhzu7d\" categoryOptionCombo=\
+        \ \"gGhClrV5odI\" value=\"62\" />\n  \n</dataValueSet>"]
+    headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Length: '909',
+      Content-Type: application/xml, Host: ec2-54-242-108-118.compute-1.amazonaws.com,
+      User-Agent: Python-urllib/2.7}
+    method: POST
+    url: /api/dataValueSets
+  response:
+    body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
+        process completed successfully</description><dataValueCount imported="0" updated="7"
+        ignored="1"/><dataSetComplete>2013-03-05</dataSetComplete><conflicts><conflict
+        object="DataElement" value="CRAPPED"/></conflicts></importSummary>'}
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Tue,
+        05 Mar 2013 10:33:45 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=55B84B0C33277FE98466BE859B3826F0;
+        Path=/; HttpOnly, transfer-encoding: chunked}
+    status: {code: 200, message: OK}
