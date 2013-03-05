@@ -604,12 +604,15 @@ class Test_H033B_Reporter(TestCase):
       submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
         attributes_and_values=attributes_and_values,facility = facility)
       submission.created = from_date + timedelta(seconds = ((to_date-from_date).seconds + x/submissions_count))
+      xtras = XFormSubmissionExtras.objects.filter(submission=submission)[0]
+      xtras.cdate = submission.created
+      xtras.save()
       submission.save()
     
     with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
       h033b_reporter.initiate_weekly_submissions(to_date)
     
-        
+    
     log_record_for_task = h033b_reporter.current_task
     log_record_for_submissions =  Dhis2_Reports_Submissions_Log.objects.all()
     

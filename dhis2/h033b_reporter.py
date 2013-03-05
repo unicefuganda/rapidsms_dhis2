@@ -127,7 +127,7 @@ class H033B_Reporter(object):
     log_record.save()
 
     
-  def parse_submission_response(self,response_xml,request_xml):
+  def parse_submission_response(self,response_xml,request_xml):    
     dom      = parseString(response_xml)
     result   = dom.getElementsByTagName('dataValueCount')[0]
     imported = int(result.getAttribute('imported'))
@@ -155,8 +155,8 @@ class H033B_Reporter(object):
     data = None
     failure_description = None
     try : 
-      a    = XFormSubmissionExtras.objects.filter(submission=submission)
-      data = self.get_reports_data_for_submission(a)      
+      sub_extra    = XFormSubmissionExtras.objects.filter(submission=submission)
+      data = self.get_reports_data_for_submission(sub_extra)      
       if not data :
         raise LookupError(ERROR_MESSAGE_NO_SUBMISSION_EXTRA)  
            
@@ -184,7 +184,9 @@ class H033B_Reporter(object):
     
   def submit_submission(self,submission):
     data =self.get_data_submission(submission)
+    
     result = self.submit(data)
+       
     accepted_attributes_values = result['updated'] + result['imported']
     log_message=''
     sucess = False
@@ -201,6 +203,7 @@ class H033B_Reporter(object):
     else :
       log_result  = Dhis2_Reports_Report_Task_Log.SUCCESS
       sucess =True
+
   
     Dhis2_Reports_Submissions_Log.objects.create(
         task_id = self.current_task,
