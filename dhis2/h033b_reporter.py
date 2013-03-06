@@ -11,6 +11,7 @@ from healthmodels.models.HealthFacility import HealthFacilityBase
 from xml.dom.minidom import parseString
 from eav.models import Attribute
 
+DEFAULT_ORG_UNIT_ID_SCHEME        = u'uuid'
 HMIS033B_REPORT_XML_TEMPLATE      = "h033b_reporter.xml"
 HMIS_033B_PERIOD_ID               = u'%dW%d'
 ERROR_MESSAGE_NO_SUBMISSION_EXTRA = u'No XFormSubmissionExtras data exists for the submission '
@@ -59,7 +60,7 @@ class H033B_Reporter(object):
       if dataValue :
         data['dataValues'].append(dataValue)
 
-  def get_data_values_for_submission(self, submission_value):
+  def get_data_values_for_submission(self, submission_value,orgUnitIdScheme=DEFAULT_ORG_UNIT_ID_SCHEME):
     data_value      = {}
     eav_attribute = submission_value.attribute
     
@@ -71,6 +72,7 @@ class H033B_Reporter(object):
       data_value['dataElement']         = element_id
       data_value['value']               = submission_value.value
       data_value['categoryOptionCombo'] = combo_id
+      data_value['orgUnitIdScheme']     = orgUnitIdScheme
 
     return data_value
 

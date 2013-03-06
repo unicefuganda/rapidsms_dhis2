@@ -32,20 +32,21 @@ SOME_VALID_DHIS_ELEMENT_ID_AND_COMBO =  {
 ACTS_XFORM_ID = 55
 VITAMIN_A_XFORM_ID= 63
 
-FIXTURES = os.path.abspath(dhis2.__path__[0]) + "/tests/fixtures/cassettes/"
-TEST_SUBMISSION_DATA = { 'orgUnit': "6VeE8JrylXn",
-                'completeDate': "2012-11-11T00:00:00Z",
-                'period': '2012W45',
+FIXTURES = os.path.abspath(dhis2.__path__[0]) + u"/tests/fixtures/cassettes/"
+TEST_SUBMISSION_DATA = { 'orgUnit': u"e8085011-b276-41ea-b5c0-a60bb4be61ef",
+                'completeDate': u"2012-11-11T00:00:00Z",
+                'period': u'2012W45',
+                "orgUnitIdScheme":u"uuid",
                 'dataValues': [
                                 {
-                                  'dataElement': 'U7cokRIptxu',
+                                  'dataElement': u'U7cokRIptxu',
                                   'value': 100,
                                   'categoryOptionCombo' : 'gGhClrV5odI'
                                 },
                                 {
-                                  'dataElement': 'mdIPCPfqXaJ',
+                                  'dataElement': u'mdIPCPfqXaJ',
                                   'value': 99,
-                                  'categoryOptionCombo' :'gGhClrV5odI'
+                                  'categoryOptionCombo' :u'gGhClrV5odI'
                                 }
                               ]
               }
@@ -120,20 +121,38 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(data['dataElement'], u'test_uuid')
     self.assertEquals(data['value'],22)
     self.assertEquals(data['categoryOptionCombo'], u'test_combo_id')
+    self.assertEquals(data['orgUnitIdScheme'], u'uuid')
+    
+    
   
   def test_generate_xml_report(self):
-    rendered_xml  = self.h033b_reporter.generate_xml_report(TEST_SUBMISSION_DATA)
-    expected_xml = u'<dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" dataSet="V1kJRs8CtW4" completeDate="2012-11-11T00:00:00Z" period="2012W45" orgUnit="6VeE8JrylXn">\
-                        <dataValue dataElement="U7cokRIptxu"  categoryOptionCombo= "gGhClrV5odI" value="100" />\
-                        <dataValue dataElement="mdIPCPfqXaJ" categoryOptionCombo= "gGhClrV5odI" value="99" />\
-                      </dataValueSet>'
+    rendered_xml  = self.h033b_reporter.generate_xml_report(TEST_SUBMISSION_DATA)                                      
+    dom = parseString(rendered_xml)
+    dataValueSet   = dom.getElementsByTagName  ('dataValueSet')[0]
+    element_data_values  = dom.getElementsByTagName ('dataValue')
+    
+    self.assertEquals(dataValueSet.getAttribute('completeDate'),TEST_SUBMISSION_DATA['completeDate'])
+    self.assertEquals(dataValueSet.getAttribute('period'),TEST_SUBMISSION_DATA['period'])
+    self.assertEquals(dataValueSet.getAttribute('orgUnitIdScheme'),TEST_SUBMISSION_DATA['orgUnitIdScheme'])
+    self.assertEquals(dataValueSet.getAttribute('orgUnit'),TEST_SUBMISSION_DATA['orgUnit']) 
+    for element_data_value in element_data_values :
+
+      data_element = element_data_value.getAttribute('dataElement')
+      category_option_combo = element_data_value.getAttribute('categoryOptionCombo')
+      value = element_data_value.getAttribute('value')
+      data_value = self.__find_element_id_data_values(data_element,TEST_SUBMISSION_DATA['dataValues'])
+      
+      self.assertEquals(data_element,data_value['dataElement'])
+      self.assertEquals(category_option_combo,data_value['categoryOptionCombo'])
+      self.assertEquals(int(value),data_value['value'])
   
-    rendered_xml =self.temp_fix_remove_whitespaces(rendered_xml)
-    expected_xml =self.temp_fix_remove_whitespaces(expected_xml)
-    self.assertEquals(rendered_xml,expected_xml)
-  
-  def temp_fix_remove_whitespaces(self,str):
-    return str.replace(' ','').replace('\n', '')
+  def __find_element_id_data_values(self,data_element,data_values):
+    for data_value in data_values : 
+      if data_value['dataElement'] == data_element  :
+        return data_value
+    
+    assertion_failure_message = "Data element %s not found in %s"%(data_element,data_values)
+    raise AssertionError( assertion_failure_message ) 
   
   def test_iso_time(self):
     dates_iso_string_map = {
