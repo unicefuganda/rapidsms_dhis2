@@ -87,7 +87,7 @@ class Submissions_Test_Helper(object):
     mapping.save()
     
   @classmethod  
-  def create_sudo_submission_object(self,xform_id,attributes_and_values,facility):
+  def create_submission_object(self,xform_id,attributes_and_values,facility):
     xform = XForm.objects.get(id=xform_id)
     submission = XFormSubmission.objects.create(xform=xform)
     xform.update_submission_from_dict(submission, attributes_and_values)

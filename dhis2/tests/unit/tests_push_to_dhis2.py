@@ -299,7 +299,7 @@ class Test_H033B_Reporter(TestCase):
      u'sps': 26,
      u'tpd': 35,
      u'tps': 44}
-    submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility = None)     
     subextra = XFormSubmissionExtras.objects.filter(submission=submission).delete()
     Submissions_Test_Helper.xformsubmissionextras_does_not_exist(submission.id)
@@ -315,7 +315,7 @@ class Test_H033B_Reporter(TestCase):
      u'female2': 47
      }
     facility= Submissions_Test_Helper.create_facility()
-    submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility= facility)    
     Submissions_Test_Helper.no_valid_hms_indicator_exists(submission.id)
     
@@ -331,7 +331,7 @@ class Test_H033B_Reporter(TestCase):
      u'tps': 44}
     
     facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
-    submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility = facility)     
     Submissions_Test_Helper.create_mappings_for_submission(submission,SOME_VALID_DHIS_ELEMENT_ID_AND_COMBO)
     Submissions_Test_Helper.dhis2_returns_error(submission.id)
@@ -372,7 +372,7 @@ class Test_H033B_Reporter(TestCase):
     facility.uuid = facility_uuid
     facility.save(cascade_update=False)
     
-    submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility = facility)
       
     submission_time  =  datetime.datetime(2013, 1, 4, 0, 0, 0) 
@@ -413,7 +413,7 @@ class Test_H033B_Reporter(TestCase):
     for x in range(submissions_count) : 
       facility= Submissions_Test_Helper.create_facility(facility_name=u'test_facility'+str(x),dhis2_uuid=u'test_uuid2'+str(x))
       
-      submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+      submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
         attributes_and_values=attributes_and_values,facility = facility)
         
       submission.created = from_date + timedelta(seconds = ((to_date-from_date).seconds + x/submissions_count))
@@ -437,7 +437,7 @@ class Test_H033B_Reporter(TestCase):
     for x in range(submissions_count) : 
       facility= Submissions_Test_Helper.create_facility(facility_name=u'test_facility'+str(x),dhis2_uuid=u'test_uuid2'+str(x))
       
-      submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+      submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
         attributes_and_values=attributes_and_values,facility = facility)
       submission.created = from_date + timedelta(seconds = ((to_date-from_date).seconds + x/submissions_count))
       
@@ -465,10 +465,10 @@ class Test_H033B_Reporter(TestCase):
     facility1= Submissions_Test_Helper.create_facility()
     facility2= Submissions_Test_Helper.create_facility(facility_name=u'test_facility2',dhis2_uuid=u'test_uuid2')
     
-    good_submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    good_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility= facility1)   
     
-    bad_submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    bad_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility= facility2)    
     XFormSubmissionExtras.objects.filter(submission=bad_submission).delete()    
       
@@ -498,40 +498,40 @@ class Test_H033B_Reporter(TestCase):
      
     facility= Submissions_Test_Helper.create_facility()
     
-    x1 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    x1 = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility= facility)   
     
-    x2 =Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    x2 =Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility= facility)    
     
-    latest_submission1 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    latest_submission1 = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility= facility)    
     
   
     facility2= Submissions_Test_Helper.create_facility(facility_name=u'test_facility2',dhis2_uuid=u'test_uuid2')
-    Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
        attributes_and_values=attributes_and_values,facility= facility2)   
      
   
-    latest_submission2 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    latest_submission2 = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
        attributes_and_values=attributes_and_values,facility= facility2)
   
-    Submissions_Test_Helper.create_sudo_submission_object(xform_id=ACTS_XFORM_ID,
+    Submissions_Test_Helper.create_submission_object(xform_id=ACTS_XFORM_ID,
           attributes_and_values=attributes_and_values2,facility= facility2)
           
-    latest_submission3 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=ACTS_XFORM_ID,
+    latest_submission3 = Submissions_Test_Helper.create_submission_object(xform_id=ACTS_XFORM_ID,
       attributes_and_values=attributes_and_values2,facility= facility2)    
     
     facility3= Submissions_Test_Helper.create_facility(facility_name=u'test_facility3',dhis2_uuid=u'test_uuid3')
     
-    bad1 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=ACTS_XFORM_ID,
+    bad1 = Submissions_Test_Helper.create_submission_object(xform_id=ACTS_XFORM_ID,
       attributes_and_values=attributes_and_values2,facility= facility2)
-    bad2 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=ACTS_XFORM_ID,
+    bad2 = Submissions_Test_Helper.create_submission_object(xform_id=ACTS_XFORM_ID,
         attributes_and_values=attributes_and_values2,facility= facility3)
     XFormSubmissionExtras.objects.filter(submission=bad1).delete()
     XFormSubmissionExtras.objects.filter(submission=bad2).delete()
         
-    latest_submission4 = Submissions_Test_Helper.create_sudo_submission_object(xform_id=ACTS_XFORM_ID,
+    latest_submission4 = Submissions_Test_Helper.create_submission_object(xform_id=ACTS_XFORM_ID,
       attributes_and_values=attributes_and_values2,facility= facility3)
     
     submissions_list = h033b_reporter.remove_duplicate_and_invalid_reports(XFormSubmission.objects.all())
@@ -564,10 +564,10 @@ class Test_H033B_Reporter(TestCase):
     facility1= Submissions_Test_Helper.create_facility()
     facility2= Submissions_Test_Helper.create_facility(facility_name=u'test_facility2',dhis2_uuid=u'test_uuid2')
     
-    good_submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    good_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility= facility1)   
     
-    bad_submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+    bad_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility= facility2)    
     bad_extra  = XFormSubmissionExtras.objects.filter(submission=bad_submission)[0]
     bad_extra.facility = None
@@ -628,7 +628,7 @@ class Test_H033B_Reporter(TestCase):
     for x in range(submissions_count) : 
       facility= Submissions_Test_Helper.create_facility(facility_name=u'test_facility'+str(x),dhis2_uuid=some_valid_facility_uuids[x%len(some_valid_facility_uuids )])
       
-      submission = Submissions_Test_Helper.create_sudo_submission_object(xform_id=xform_id,
+      submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
         attributes_and_values=attributes_and_values,facility = facility)
       submission.created = from_date + timedelta(seconds = ((to_date-from_date).seconds + x/submissions_count))
       xtras = XFormSubmissionExtras.objects.filter(submission=submission)[0]

@@ -14,6 +14,7 @@ import datetime
 import random 
 from dhis2.views import *
 from math import *
+from dhis2.tests.test_helper import Submissions_Test_Helper
 
 COUNT_OF_TEST_TASK_LOGS = 15 
 TEST_USER_NAME = 'smoke'
@@ -72,11 +73,24 @@ def show_submission_tasks(step):
   assert world.browser.is_text_present("<Page 2 of %d>"%number_of_log_pages)
 
 
-@step(u'and I select a  task')
+@step(u'And I select a  task')
 def select_a_task_log(step):
   world.browser.is_element_present_by_css("a[class=task_id]", wait_time=3)
   world.selected_task_id = world.browser.find_by_css("a[class=task_id]").first.html
   world.browser.find_by_css("a[class=task_id]").first.click()
+
+@step(u'And I have some submissions for that task')
+def create_some_submission_logs(step):
+  world.test_tasks_created = []
+  for count in range(COUNT_OF_TEST_TASK_LOGS) :
+    task_log = Dhis2_Reports_Report_Task_Log.objects.create(
+     time_finished         = datetime.datetime.now(),
+     number_of_submissions = random.randrange(0,999999),
+     status                = __generate_random_status(),
+     description           = 'testing view for h033b reporter '
+    )
+    world.test_tasks_created.append(task_log)
+
 
 @step(u'Then the corresponding task details page appears')
 def select_a_task_log(step):

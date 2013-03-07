@@ -9,7 +9,8 @@ Feature: Fred API
   Scenario: DHIS2 Reports Task Details Page
     Given I have some submission tasks run
     And I am logged in 
-    and I select a  task
+    And I select a  task
+    And I have some submissions for that task
     Then the corresponding task details page appears 
     Delete the test task logs created
     
