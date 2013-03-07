@@ -6,14 +6,90 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>H033b Reporter Tasks</title>
   <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.9.0/build/reset/reset-min.css">
-  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}fred_consumer/stylesheets/bootstrap.min.css"/>
-  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}fred_consumer/stylesheets/style.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}dhis2/stylesheets/bootstrap.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}dhis2/stylesheets/style.css"/>
 </head>
 <body>
-  <div class="container">
-    <p>
-      <h1>Hello reporter<h2>
-      </p>
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <ul class="nav">
+        </ul>
+      </div>
+    </div>
   </div>
+  <br><br><br><br>
+  <div class="container well">
+    <table class="table table-hover table-bordered">
+      <thead>
+        <tr>
+          <th>
+            Start time
+          </th>
+          <th>
+            Running time
+          </th>
+          <th>
+            Result
+          </th>
+          <th>
+            Description
+          </th>
+          <th>
+            Number of submissions
+          </th>
+          
+        </tr>
+      </thead>
+      
+     <tbody>
+        {% for task in task_logs_paginator.object_list %}
+          <tr>
+            <td>
+              {{ time_started }}
+            </td>
+            <td>
+              {{ running_time  }}
+            </td>
+            <td>
+              {{  result }}
+            </td>
+            <td>
+              {{ description}}
+            </td>
+            <td>
+              {{ number_of_submissions }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+      
+      
+  </div> 
+  
+  
+  {% if tasks_logs.object_list > 0 %}
+  <div class="pagination">
+      <ul>
+      {% if tasks_logs.has_previous %}
+          <li><a href="?page={{ tasks_logs.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">&lsaquo;&lsaquo; Prev</a></li>
+      {% else %}
+          <li class="disabled prev"><a href="#">&lsaquo;&lsaquo; Prev</a></li>
+      {% endif %}
+       <li  class="disabled prev">
+         <a href="#">
+          {{ tasks }}
+         </a>
+       </li>
+      {% if tasks.has_next %}
+          <li><a href="?page={{ tasks_logs.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">Next &rsaquo;&rsaquo;</a></li>
+      {% else %}
+          <li class="disabled next"><a href="#">Next &rsaquo;&rsaquo;</a></li>
+      {% endif %}
+      </ul>
+  </div>
+  {% endif %}
+
 </body>
 </html>

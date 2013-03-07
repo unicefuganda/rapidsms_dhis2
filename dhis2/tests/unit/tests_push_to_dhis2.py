@@ -579,7 +579,7 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals([good_submission], submissions_list)
     
   
-  def test_weekly_submissions(self):
+  def test_weekly_submissions(self,submissions_count=3,delete_old_submissions=True):
     h033b_reporter = H033B_Reporter()
     
     xform_id = ACTS_XFORM_ID
@@ -605,13 +605,14 @@ class Test_H033B_Reporter(TestCase):
       }
     ]
 
-    submissions_count = 3
+    
     from_date = datetime.datetime(2013, 1, 21, 00, 00, 00)
     to_date = datetime.datetime(2013, 1, 24, 23, 59, 59)
     
-    XFormSubmission.objects.all().delete()
-    Dhis2_Reports_Report_Task_Log.objects.all().delete()
-    Dhis2_Reports_Submissions_Log.objects.all().delete()
+    if delete_old_submissions : 
+      XFormSubmission.objects.all().delete()
+      Dhis2_Reports_Report_Task_Log.objects.all().delete()
+      Dhis2_Reports_Submissions_Log.objects.all().delete()
     
     for xfrom_field_mapping in xfrom_field_mappings :
       mtrac_id  = XFormField.objects.filter(command=xfrom_field_mapping['x_form_field_command_id'])[0].attribute_ptr_id
