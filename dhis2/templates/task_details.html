@@ -25,65 +25,55 @@
         <thead>
           <tr>
             <th>
-              ID
+              Submissions ID
             </th>
             <th>
-              Time Started
-            </th>
-            <th>
-              Running Time
+              Report XML
             </th>
             <th>
               Result
             </th>
             <th>
-              Descrition
-            </th>
-            <th>
-              Number of submissions
+              Description
             </th>
           </tr>
         </thead>
         <tbody>
-          {% for task_log in tasks_logs_paginator.object_list %}
+          
+          {% for task_submission in task_submissions_paginator.object_list %}
             <tr>
               <td>
-                <a class="task_id" href='{{ task_log.id }}'> {{ task_log.id }}</a>
+                {{ task_submission.submission_id }}
               </td>
               <td>
-                {{ task_log.time_started }}
+                {{ task_submission.reported_xml }}
               </td>
               <td>
-                {{ task_log.running_time }}
+                {{ task_submission.result }}
               </td>
               <td>
-                {{ task_log.status }}
+                {{ task_submission.description }}
               </td>
-              <td>
-                {{ task_log.description }}
-              </td>
-              <td>
-                {{ task_log.number_of_submissions }}
-              </td>
+
             </tr>
           {% endfor %}
         </tbody>
       </table>
-      {% if tasks_logs_paginator.object_list > 0 %}
+      {% if task_submissions_paginator.object_list > 0 %}
       <div class="pagination">
           <ul>
-          {% if tasks_logs_paginator.has_previous %}
-              <li><a href="?page={{ tasks_logs_paginator.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">&lsaquo;&lsaquo; Prev</a></li>
+          {% if task_submissions_paginator.has_previous %}
+              <li><a href="?page={{ task_submissions_paginator.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">&lsaquo;&lsaquo; Prev</a></li>
           {% else %}
               <li class="disabled prev"><a href="#">&lsaquo;&lsaquo; Prev</a></li>
           {% endif %}
            <li  class="disabled prev">
              <a href="#">
-              {{ tasks_logs_paginator }}
+              {{ task_submissions_paginator }}
              </a>
            </li>
-          {% if tasks_logs_paginator.has_next %}
-              <li><a href="?page={{ tasks_logs_paginator.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">Next &rsaquo;&rsaquo;</a></li>
+          {% if task_submissions_paginator.has_next %}
+              <li><a href="?page={{ task_submissions_paginator.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">Next &rsaquo;&rsaquo;</a></li>
           {% else %}
               <li class="disabled next"><a href="#">Next &rsaquo;&rsaquo;</a></li>
           {% endif %}

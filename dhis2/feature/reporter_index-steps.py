@@ -12,17 +12,19 @@ import reversion, json
 from dhis2.models import Dhis2_Reports_Report_Task_Log
 import datetime
 import random 
+from dhis2.views import *
+from math import *
 
 COUNT_OF_TEST_TASK_LOGS = 15 
 TEST_USER_NAME = 'smoke'
 TEST_USER_PASSWORD = 'password'
 
-@before.all
-def set_browser():
+@before.each_scenario
+def set_browser(scenario):
   world.browser = Browser()
 
-@after.all
-def close_browser(*args):
+@after.each_scenario
+def close_browser(scenario):
   world.browser.quit()
   
 @step(u'Given I have some submission tasks run')
@@ -47,9 +49,50 @@ def __generate_random_status():
 
 @step('I must see all submission tasks on the index page')
 def show_submission_tasks(step):
-  sleep(4)
-  pass
+  number_of_log_pages = max(ceil(len(Dhis2_Reports_Report_Task_Log.objects.all())/TASK_LOG_RECORDS_PER_PAGE),1)
   
+  print '*'*100
+  print number_of_log_pages
+  print len(Dhis2_Reports_Report_Task_Log.objects.all())/TASK_LOG_RECORDS_PER_PAGE
+  print len(Dhis2_Reports_Report_Task_Log.objects.all())
+  print '*'*100
+  assert world.browser.is_text_present("ID")
+  assert world.browser.is_text_present("Time Started")
+  assert world.browser.is_text_present("Result")
+  assert world.browser.is_text_present("Descrition")
+  assert world.browser.is_text_present("Number of submissions")
+  assert world.browser.is_text_present("<Page 1 of %d>"%number_of_log_pages)
+  world.browser.is_element_present_by_css("a[class=next]", wait_time=3)
+  world.browser.find_by_css("a[class=next]").first.click()
+  assert world.browser.is_text_present("ID")
+  assert world.browser.is_text_present("Time Started")
+  assert world.browser.is_text_present("Result")
+  assert world.browser.is_text_present("Descrition")
+  assert world.browser.is_text_present("Number of submissions")
+  assert world.browser.is_text_present("<Page 2 of %d>"%number_of_log_pages)
+
+
+@step(u'and I select a  task')
+def select_a_task_log(step):
+  world.browser.is_element_present_by_css("a[class=task_id]", wait_time=3)
+  world.selected_task_id = world.browser.find_by_css("a[class=task_id]").first.html
+  world.browser.find_by_css("a[class=task_id]").first.click()
+
+@step(u'Then the corresponding task details page appears')
+def select_a_task_log(step):
+  task = Dhis2_Reports_Report_Task_Log.objects.get(id= int(world.selected_task_id))
+  submissions_tasks = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task)
+  
+  number_of_submission_pages = max(ceil (len(submissions_tasks)/TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE),1)
+  
+  assert world.browser.is_text_present("Submissions ID")
+  assert world.browser.is_text_present("Report XML")
+  assert world.browser.is_text_present("Result")
+  assert world.browser.is_text_present("Description")
+  assert world.browser.is_text_present("<Page 1 of %d>"%number_of_submission_pages)  
+  
+  
+
 @step(u'Delete the test task logs created')
 def delete_test_logs(step):
   for test_task in world.test_tasks_created :

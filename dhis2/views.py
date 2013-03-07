@@ -7,10 +7,10 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from dhis2.models import Dhis2_Reports_Report_Task_Log
+from dhis2.models import Dhis2_Reports_Report_Task_Log,Dhis2_Reports_Submissions_Log
 
 TASK_LOG_RECORDS_PER_PAGE = 10
-
+TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE = 10
 
 def index(request):
   task_logs = __get_tasks_view_data()
@@ -25,19 +25,35 @@ def index(request):
   except EmptyPage:
     task_logs_paginator = paginator.page(paginator.num_pages)
   
-  return render(request, 'h033b_reporter_index.html', {'tasks_logs':task_logs_paginator})
+  return render(request, 'h033b_reporter_index.html', {'tasks_logs_paginator':task_logs_paginator})
 
 def __get_tasks_view_data():
   tasks = Dhis2_Reports_Report_Task_Log.objects.all()
   data = []
   for task in tasks : 
-    task_view_data = {}
-    task_view_data['time_started']          = task.time_started         
-    task_view_data['running_time']          = (task.time_finished - task.time_started).seconds/60      
-    task_view_data['number_of_submissions'] = task.number_of_submissions
-    task_view_data['result']                = task.status               
-    task_view_data['description']           = task.description    
-  data.append(task_view_data)
+    task_view_data = task
+    running_time_in_minutes = (task.time_finished - task.time_started).seconds/60 
+    task_view_data.running_time = str(running_time_in_minutes)+' minutes'     
+    data.append(task_view_data)
   
   return data  
+
+def task_details(request,task_id):
+  task = Dhis2_Reports_Report_Task_Log.objects.get(id=task_id)
+  submissions_tasks = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task)
+  paginator = Paginator(submissions_tasks, TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE)
+  page = request.GET.get('page')
+  page = int(page) if page else 1
+  
+  try:
+    task_submissions_paginator = paginator.page(page)
+  except PageNotAnInteger:
+    task_submissions_paginator = paginator.page(1)
+  except EmptyPage:
+    task_submissions_paginator = paginator.page(paginator.num_pages)
+  
+  return render(request, 'task_details.html', {'task_submissions_paginator':task_submissions_paginator})
+  
+
+     
      

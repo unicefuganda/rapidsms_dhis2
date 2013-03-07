@@ -4,5 +4,6 @@ from django.contrib.auth.decorators import login_required
 
 urlpatterns = patterns('dhis2.views',
     url(r'^$', login_required(index),name='dhis2_reporter_index_page'),
+    url(r'^(\d+)/$', login_required(task_details),name='task_details'),
 )
 
