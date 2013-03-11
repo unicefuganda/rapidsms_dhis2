@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
    "http://www.w3.org/TR/html4/strict.dtd">
-
+{% load status_css_tag %}
 <html lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -14,13 +14,38 @@
     <div class="navbar-inner">
       <div class="container">
         <ul class="nav">
+           <a href="{% url logout_dhis2 %}">logout {{user.username}}</a>
         </ul>
       </div>
     </div>
   </div>
   <br><br><br><br>
   <div class="container">
-      <h3>DHIS2 Reports Submissions</h3>
+      <h3>Submissions for report id "{{ task_log.id }}"</h3>
+      <div >
+      <table class="table">
+        <tr>
+          <td>
+            Started 
+          </td>          
+          <td>
+            {{ task_log.time_started }}
+          </td>            
+          
+        </tr>
+        <tr class=" {% get_task_css task_log.status %}">
+          <td>
+            Result   
+          </td>           
+          <td >
+            {{ task_log.status }}
+          </td>            
+          
+        </tr>
+        
+      </table>
+      </div>
+      
      <table class="table table-hover table-bordered">
         <thead>
           <tr>
@@ -41,7 +66,7 @@
         <tbody>
           
           {% for task_submission in task_submissions_paginator.object_list %}
-            <tr>
+            <tr class=" {% get_submission_css task_submission.result %}">
               <td>
                 {{ task_submission.submission_id }}
               </td>

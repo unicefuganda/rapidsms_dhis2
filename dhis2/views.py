@@ -52,7 +52,13 @@ def task_details(request,task_id):
   except EmptyPage:
     task_submissions_paginator = paginator.page(paginator.num_pages)
   
-  return render(request, 'task_details.html', {'task_submissions_paginator':task_submissions_paginator})
+  teplate_data = {
+    'task_log'  : task,
+    'task_submissions_paginator':task_submissions_paginator,
+  
+  }
+  
+  return render(request, 'task_details.html', teplate_data)
   
 
      

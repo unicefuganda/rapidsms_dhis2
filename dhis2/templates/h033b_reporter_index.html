@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
    "http://www.w3.org/TR/html4/strict.dtd">
-
+{% load status_css_tag %}
 <html lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -11,9 +11,11 @@
 </head>
 <body>
   <div class="navbar navbar-inverse navbar-fixed-top">
+    
     <div class="navbar-inner">
       <div class="container">
         <ul class="nav">
+          <a href="{% url logout_dhis2 %}">logout {{user.username}}</a>
         </ul>
       </div>
     </div>
@@ -46,7 +48,7 @@
         </thead>
         <tbody>
           {% for task_log in tasks_logs_paginator.object_list %}
-            <tr>
+            <tr class=" {% get_task_css task_log.status %}" >
               <td>
                 <a class="task_id" href='{{ task_log.id }}'> {{ task_log.id }}</a>
               </td>
@@ -61,6 +63,9 @@
               </td>
               <td>
                 {{ task_log.description }}
+                {% if True %}
+                Hello man ..
+                {% endif%}
               </td>
               <td>
                 {{ task_log.number_of_submissions }}
@@ -70,6 +75,7 @@
         </tbody>
       </table>
       {% if tasks_logs_paginator.object_list > 0 %}
+
       <div class="pagination">
           <ul>
           {% if tasks_logs_paginator.has_previous %}
