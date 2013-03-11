@@ -330,9 +330,15 @@ class Test_H033B_Reporter(TestCase):
      u'tpd': 35,
      u'tps': 44}
     
+    cdate = datetime.datetime(2013,1,1,1,1,1)
     facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
-      attributes_and_values=attributes_and_values,facility = facility)     
+      attributes_and_values=attributes_and_values,facility = facility)   
+      
+    xsub_extra = XFormSubmissionExtras.objects.filter(submission=submission)[0]
+    xsub_extra.cdate = cdate
+    xsub_extra.save()
+          
     Submissions_Test_Helper.create_mappings_for_submission(submission,SOME_VALID_DHIS_ELEMENT_ID_AND_COMBO)
     Submissions_Test_Helper.dhis2_returns_error(submission.id)
     
