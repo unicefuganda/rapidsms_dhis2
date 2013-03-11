@@ -116,7 +116,7 @@ class H033B_Reporter(object):
     if len(second_str) <2 : 
       second_str = str(0)+ second_str
     
-    return '%s-%s-%sT%s:%s:%sZ'%(year_str,month_str,day_str,hour_str,minute_str,second_str)
+    return ISO_8601_UTC%(year_str,month_str,day_str,hour_str,minute_str,second_str)
     
 
   def log_submission_started(self) : 
@@ -207,8 +207,7 @@ class H033B_Reporter(object):
     else :
       log_result  = Dhis2_Reports_Report_Task_Log.SUCCESS
       sucess =True
-
-  
+    
     Dhis2_Reports_Submissions_Log.objects.create(
         task_id = self.current_task,
         submission_id = submission.id,
@@ -262,6 +261,14 @@ class H033B_Reporter(object):
     connection_failed = False
     status = Dhis2_Reports_Report_Task_Log.SUCCESS
     description = ''
+    
+    print '*'*100
+    print 'from date %s--to date %s --'%(str(last_monday),str(date))
+    print 'Submission for the week : ',len(submissions_for_last_week)
+    print '*'*100
+    print '*'*100
+    print '*'*100
+    
     try : 
       for submission in submissions_for_last_week:
         try :

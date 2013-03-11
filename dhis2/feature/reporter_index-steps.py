@@ -62,11 +62,11 @@ def __generate_random_task_status():
 @step('I must see all submission tasks on the index page')
 def show_submission_tasks(step):
   number_of_log_pages = max(ceil(len(Dhis2_Reports_Report_Task_Log.objects.all())/(TASK_LOG_RECORDS_PER_PAGE*1.0)),1)
-  sleep(40)
+  sleep(15)
   assert world.browser.is_text_present("ID")
   assert world.browser.is_text_present("Time Started")
   assert world.browser.is_text_present("Result")
-  assert world.browser.is_text_present("Descrition")
+  assert world.browser.is_text_present("Description")
   assert world.browser.is_text_present("Number of submissions")
   assert world.browser.is_text_present("<Page 1 of %d>"%number_of_log_pages)
   world.browser.is_element_present_by_css("a[class=next]", wait_time=3)
@@ -74,7 +74,7 @@ def show_submission_tasks(step):
   assert world.browser.is_text_present("ID")
   assert world.browser.is_text_present("Time Started")
   assert world.browser.is_text_present("Result")
-  assert world.browser.is_text_present("Descrition")
+  assert world.browser.is_text_present("Description")
   assert world.browser.is_text_present("Number of submissions")
   assert world.browser.is_text_present("<Page 2 of %d>"%number_of_log_pages)
 
@@ -107,7 +107,7 @@ def test_task_details_page(step):
   task = Dhis2_Reports_Report_Task_Log.objects.get(id=world.task_id)
   submissions_tasks= Dhis2_Reports_Submissions_Log.objects.filter(task_id=task)
   number_of_submission_pages = max(ceil (len(submissions_tasks)/(TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE*1.0)),1)
-  
+  sleep(15)
   assert world.browser.is_text_present("Submissions ID")
   assert world.browser.is_text_present("Report XML")
   assert world.browser.is_text_present("Result")
@@ -143,18 +143,10 @@ def __create_task_submission_for_task_id(task_id,submissions_count):
     world.test_objects.append(log_record)
     
 def __create_random_submission_log_fields():
-  reported_xml = '<?xml version="1.0" encoding="UTF-8"?>\
-  <importSummary \
-      xmlns="http://dhis2.org/schema/dxf/2.0">\
-      <status>SUCCESS</status>\
-      <description>Import process completed successfully</description>\
-      <dataValueCount imported="1" updated="1" ignored="1"/>\
-      <conflicts>\
-          <conflict object="OrganisationUnit" value="Must be provided to complete data set"/>\
-          <conflict object="OrganisationUnit"/>\
-          <conflict object="OrganisationUnit"/>\
-      </conflicts>\
-  </importSummary>'
+  request_xml = '<dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" dataSet="V1kJRs8CtW4" completeDate="2013-01-21T23:59:59Z" \
+  	period="2013W3" orgUnitIdScheme="uuid"  orgUnit="e8085011-b276-41ea-b5c0-a60bb4be61ef"  >\
+      <dataValue dataElement="OMxmmYvvLai" categoryOptionCombo= "gGhClrV5odI" value="62" />\
+  </dataValueSet>'
   
   results=[
     Dhis2_Reports_Submissions_Log.SUCCESS ,
@@ -170,6 +162,6 @@ def __create_random_submission_log_fields():
     Dhis2_Reports_Submissions_Log.ERROR  :'Error.....some submission are crappy dude !!!'
   }
   result = results[random.randrange(len(results))]
-  return reported_xml , result, descrption[result]
+  return request_xml , result, descrption[result]
    
 
