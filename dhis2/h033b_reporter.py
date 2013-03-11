@@ -11,6 +11,7 @@ from healthmodels.models.HealthFacility import HealthFacilityBase
 from xml.dom.minidom import parseString
 from eav.models import Attribute
 
+ISO_8601_UTC_FORMAT               = u'%s-%s-%sT%s:%s:%sZ'
 DEFAULT_ORG_UNIT_ID_SCHEME        = u'uuid'
 HMIS033B_REPORT_XML_TEMPLATE      = "h033b_reporter.xml"
 HMIS_033B_PERIOD_ID               = u'%dW%d'
@@ -20,6 +21,7 @@ ERROR_MESSAGE_ALL_VALUES_IGNORED  = u'All values rejected by remote server'
 ERROR_MESSAGE_SOME_VALUES_IGNORED = u'Some values rejected by remote server'
 ERROR_MESSAGE_CONNECTION_FAILED   = u'Error communicating with the remote server'
 ERROR_MESSAGE_UNEXPECTED_ERROR    = u'Unexpected error while submitting reports to DHIS2'
+
 class H033B_Reporter(object):
   URL     = "http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataValueSets"
   HEADERS = {
@@ -116,7 +118,7 @@ class H033B_Reporter(object):
     if len(second_str) <2 : 
       second_str = str(0)+ second_str
     
-    return ISO_8601_UTC%(year_str,month_str,day_str,hour_str,minute_str,second_str)
+    return ISO_8601_UTC_FORMAT%(year_str,month_str,day_str,hour_str,minute_str,second_str)
     
 
   def log_submission_started(self) : 
