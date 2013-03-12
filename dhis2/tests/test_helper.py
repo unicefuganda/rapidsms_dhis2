@@ -26,9 +26,7 @@ SOME_VALID_DHIS_ELEMENT_ID_AND_COMBO =  {
   u'JxUexqKeXtZ' : u'gGhClrV5odI',
 }
 
-
-class Submissions_Test_Helper(object):
-  
+class Submissions_Test_Helper(object):  
     
   @classmethod  
   def create_submission_object(self,xform_id,attributes_and_values,facility):
@@ -46,7 +44,6 @@ class Submissions_Test_Helper(object):
     facility.save(cascade_update=False)
     return facility
     
-  
   @classmethod
   def create_attribute_mappings_for_submission(self,submission,valid_dhis2_ids_list=SOME_VALID_DHIS_ELEMENT_ID_AND_COMBO):
     sub_values = XFormSubmissionValue.objects.filter(submission=submission)
@@ -59,5 +56,4 @@ class Submissions_Test_Helper(object):
       
       Dhis2_Mtrac_Indicators_Mapping.objects.create(eav_attribute = sub_value.attribute,dhis2_uuid =dhis2_uid ,dhis2_combo_id=dhis2_combo_id)
       index_dhis2_ids_list = (index_dhis2_ids_list+1)%len(valid_dhis2_ids_list)
-      
       

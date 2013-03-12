@@ -148,8 +148,18 @@ class H033B_Reporter(object):
     submissions = XFormSubmission.objects.filter(created__range=[from_date, to_date] )  
     xtras = XFormSubmissionExtras.objects.filter(submission__in=submissions).exclude(facility=None)
     valid_submission_ids = list(set(xtras.values_list('submission', flat=True)))
+    
+    reported_submissions = Dhis2_Reports_Submissions_Log.objects.filter(
+      submission_id__in=valid_submission_ids,
+      result=Dhis2_Reports_Submissions_Log.SUCCESS)
+      
+    reported_submissions_ids = list(set(reported_submissions.values_list('submission_id',flat=True)))
+    
+    for submission_id in reported_submissions_ids : 
+      valid_submission_ids.remove(submission_id)
+      
     filtered_Submissions = submissions.filter(id__in=valid_submission_ids)
-
+    
     return self.__preprocess_submissions(filtered_Submissions)
 
   def __set_submissions_facility(self,submissions):

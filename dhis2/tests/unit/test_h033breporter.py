@@ -335,6 +335,37 @@ class Test_H033B_Reporter(TestCase):
 
     self.assertEquals(len(submissions_in_period) , 0)
          
+
+  
+  def test_get_submissions_in_date_range_for_reported_submissions(self):
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {}
+    h033b_reporter = H033B_Reporter()
+
+    from_date = datetime(2011, 12, 18, 00, 00, 00)
+    to_date = datetime(2011, 12, 19, 23, 59, 59)
+
+    facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1',dhis2_uuid=u'test_uuid1')   
+
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+       attributes_and_values=attributes_and_values,facility = facility)
+       
+    submission.created = from_date + timedelta(seconds = 1)
+    submission.save()
+    h033b_reporter.log_submission_started()
+    report_submissions_log = Dhis2_Reports_Submissions_Log.objects.create(
+      task_id = h033b_reporter.current_task,
+      submission_id = submission.id,
+      reported_xml = 'crap', 
+      result = Dhis2_Reports_Report_Task_Log.SUCCESS,
+      description ='No Description'
+    )
+    
+    submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
+
+    self.assertEquals(len(submissions_in_period) , 0)
+
+
          
   def test_remove_duplicate_reports(self):
     xform_id = VITAMIN_A_XFORM_ID
@@ -441,7 +472,7 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(log.task_id,h033b_reporter.current_task)
     self.assertEquals(log.result,Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA)
     self.assertIsNotNone(log.description)
-  
+      
 
   def test_dhis2_returns_error(self):
     self.h033b_reporter = H033B_Reporter()
