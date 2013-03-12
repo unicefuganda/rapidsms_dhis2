@@ -1,104 +1,75 @@
-#!/usr/bin/env python
-from django.template import Context, Template
-from django.template.loader import get_template
+import settings
 import urllib2, base64
-from mtrack.models import XFormSubmissionExtras
-from rapidsms_xforms.models import XFormSubmissionValue, XForm, XFormSubmission
-from dhis2.models import Dhis2_Mtrac_Indicators_Mapping , Dhis2_Reports_Report_Task_Log ,Dhis2_Reports_Submissions_Log
-from datetime import timedelta
-import datetime
-from healthmodels.models.HealthFacility import HealthFacilityBase
+from django.template import Context
 from xml.dom.minidom import parseString
-from eav.models import Attribute
+from django.template.loader import get_template as load_xml_template
+from rapidsms_xforms.models import XFormSubmissionValue ,XFormSubmission
+from mtrack.models import XFormSubmissionExtras
+from datetime import timedelta,datetime
+from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log ,Dhis2_Reports_Submissions_Log
 
-ISO_8601_UTC_FORMAT               = u'%s-%s-%sT%s:%s:%sZ'
-DEFAULT_ORG_UNIT_ID_SCHEME        = u'uuid'
 HMIS033B_REPORT_XML_TEMPLATE      = "h033b_reporter.xml"
+DATA_VALUE_SETS_URL               = u'/api/dataValueSets'
+DEFAULT_ORG_UNIT_ID_SCHEME        = u'uuid'
+ISO_8601_UTC_FORMAT               = u'%s-%s-%sT%s:%s:%sZ'
 HMIS_033B_PERIOD_ID               = u'%dW%d'
-ERROR_MESSAGE_NO_SUBMISSION_EXTRA = u'No XFormSubmissionExtras data exists for the submission '
 ERROR_MESSAGE_NO_HMS_INDICATOR    = u'No valid HMS033b indicators reported for the submission'
 ERROR_MESSAGE_ALL_VALUES_IGNORED  = u'All values rejected by remote server'
 ERROR_MESSAGE_SOME_VALUES_IGNORED = u'Some values rejected by remote server'
 ERROR_MESSAGE_CONNECTION_FAILED   = u'Error communicating with the remote server'
 ERROR_MESSAGE_UNEXPECTED_ERROR    = u'Unexpected error while submitting reports to DHIS2'
 
-class H033B_Reporter(object):
-  URL     = "http://ec2-54-242-108-118.compute-1.amazonaws.com/api/dataValueSets"
-  HEADERS = {
-      'Content-type': 'application/xml',
-      'Authorization': 'Basic ' + base64.b64encode("api:P@ssw0rd")
-  }
 
+class H033B_Reporter(object):
+  
+  def __init__(self): 
+    self.url       = settings.DHIS2_BASE_URL + DATA_VALUE_SETS_URL
+    self.user_name = settings.DHIS2_REPORTER_USERNAME
+    self.password  = settings.DHIS2_REPORTER_PASSWORD
+    self.headers = {
+        'Content-type': 'application/xml',
+        'Authorization': 'Basic ' + base64.b64encode("%s:%s"%(self.user_name,self.password))
+    }
+  
   def send(self, data):
-    request = urllib2.Request(self.URL, data = data, headers = self.HEADERS)
+    request = urllib2.Request(self.url, data = data, headers = self.headers)
+    # Make POST call instead of get
     request.get_method = lambda: "POST"
     return urllib2.urlopen(request)
 
-  def submit(self, data):
+  def submit_report(self, data):
     xml_request = self.generate_xml_report(data)
     response = self.send(xml_request)
     return self.parse_submission_response(response.read(),xml_request)
+  
+  def parse_submission_response(self,response_xml,request_xml):    
+    dom      = parseString(response_xml)
+    result   = dom.getElementsByTagName('dataValueCount')[0]
+    imported = int(result.getAttribute('imported'))
+    updated  = int(result.getAttribute('updated'))
+    ignored  = int(result.getAttribute('ignored'))
+    error    = None
 
+    conflicts = dom.getElementsByTagName('conflict')
+    if conflicts : 
+      error   = ''
+      for conflict in conflicts : 
+        error+='%s  : %s\n'%(conflict.getAttribute('object') ,conflict.getAttribute('value'))
+
+    result                = {}
+    result['imported']    = imported
+    result['updated']     = updated
+    result['ignored']     = ignored
+    result['error']       = error
+    result['request_xml'] = request_xml
+
+    return result
+    
   def generate_xml_report(self,data):
-    template = get_template(HMIS033B_REPORT_XML_TEMPLATE)
+    template = load_xml_template(HMIS033B_REPORT_XML_TEMPLATE)
     data = template.render(Context(data))
     return data
-
-  def get_reports_data_for_submission(self,submission_extras_list):
-    if submission_extras_list : 
-      submission_extras = submission_extras_list[0]
-      data = {}
-      data['orgUnit']         = submission_extras.facility.uuid
-      data['completeDate']    = self.get_utc_time_iso8601(submission_extras.cdate)
-      data['period']          = self.get_period_id_for_submission(submission_extras.cdate)
-      return data
-      
-    return None
-  
-  def set_data_values_from_submission_value(self,data,submission_values):
-    data['dataValues']    = []
-    for submission_value in submission_values : 
-      dataValue = self.get_data_values_for_submission(submission_value)
-      if dataValue :
-        data['dataValues'].append(dataValue)
-
-  def get_data_values_for_submission(self, submission_value,orgUnitIdScheme=DEFAULT_ORG_UNIT_ID_SCHEME):
-    data_value      = {}
-    eav_attribute = submission_value.attribute
     
-    dhis2_mapping   = Dhis2_Mtrac_Indicators_Mapping.objects.filter(eav_attribute=eav_attribute)
-
-    if dhis2_mapping:
-      element_id                        = dhis2_mapping[0].dhis2_uuid
-      combo_id                          = dhis2_mapping[0].dhis2_combo_id
-      data_value['dataElement']         = element_id
-      data_value['value']               = submission_value.value
-      data_value['categoryOptionCombo'] = combo_id
-      data_value['orgUnitIdScheme']     = orgUnitIdScheme
-
-    return data_value
-
-  def get_submissions_in_date_range(self,from_date,to_date):
-    submissions = XFormSubmission.objects.filter(created__range=[from_date, to_date],has_errors=False)
-    return self.remove_duplicate_and_invalid_reports ( submissions )
-    
-  @classmethod  
-  def get_week_period_id_for_sunday(self, date):
-    year    = date.year
-    weekday = int(date.strftime("%W")) + 1
-    return HMIS_033B_PERIOD_ID%(year,weekday) 
-    
-  @classmethod
-  def get_last_sunday(self, date):
-    offset_from_last_sunday = date.weekday()+1 
-    last_sunday = date  - timedelta(days= offset_from_last_sunday)
-    return last_sunday  
-    
-  @classmethod
-  def get_period_id_for_submission(self,date):
-    return self.get_week_period_id_for_sunday(self.get_last_sunday(date))   
-    
-  @classmethod
   def get_utc_time_iso8601(self,time_arg):
     year_str   = str(time_arg.year)
     month_str  = str(time_arg.month)
@@ -117,144 +88,153 @@ class H033B_Reporter(object):
       minute_str = str(0)+ minute_str
     if len(second_str) <2 : 
       second_str = str(0)+ second_str
-    
+      
     return ISO_8601_UTC_FORMAT%(year_str,month_str,day_str,hour_str,minute_str,second_str)
-    
-
-  def log_submission_started(self) : 
-    self.current_task =  Dhis2_Reports_Report_Task_Log.objects.create()
-    
-  def log_submission_finished(self,submission_count, status, description='') :
-    log_record                       = self.current_task
-    log_record.time_finished         = datetime.datetime.now()
-    log_record.number_of_submissions = submission_count
-    log_record.status                = status
-    log_record.description           = description
-    log_record.save()
-
-    
-  def parse_submission_response(self,response_xml,request_xml):    
-    dom      = parseString(response_xml)
-    result   = dom.getElementsByTagName('dataValueCount')[0]
-    imported = int(result.getAttribute('imported'))
-    updated  = int(result.getAttribute('updated'))
-    ignored  = int(result.getAttribute('ignored'))
-    error    = None
-    
-    conflicts = dom.getElementsByTagName('conflict')
-    if conflicts : 
-      error   = ''
-      for conflict in conflicts : 
-        error+='%s  : %s\n'%(conflict.getAttribute('object') ,conflict.getAttribute('value'))
-      
-    result                = {}
-    result['imported']    = imported
-    result['updated']     = updated
-    result['ignored']     = ignored
-    result['error']       = error
-    result['request_xml'] = request_xml
-    
-    return result
-    
   
-  def get_data_submission(self,submission):                                                                       
-    data = None
-    failure_description = None
-    try : 
-      sub_extra    = XFormSubmissionExtras.objects.filter(submission=submission)
-      data = self.get_reports_data_for_submission(sub_extra)      
-      if not data :
-        raise LookupError(ERROR_MESSAGE_NO_SUBMISSION_EXTRA)  
-           
-      submission_values = XFormSubmissionValue.objects.filter(submission=submission)  
-      self.set_data_values_from_submission_value(data,submission_values)
-      
-      if not data['dataValues'] : 
-        raise LookupError(ERROR_MESSAGE_NO_HMS_INDICATOR)
-      
-    except LookupError, e:
-      failure_description = str(e)
-    except Exception, e:
-      exception = type(e).__name__ +":"+ str(e)
-      failure_description = 'Unknown Erorr ! : %s'%(exception) 
+  @classmethod  
+  def get_week_period_id_for_sunday(self, date):
+    year    = date.year
+    weekday = int(date.strftime("%W")) + 1
+    return HMIS_033B_PERIOD_ID%(year,weekday)
     
-    if failure_description : 
-      report_submissions_log = Dhis2_Reports_Submissions_Log.objects.create(
-          task_id       = self.current_task,
-          submission_id = submission.id, 
-          result        = Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA,
-          description   = failure_description 
-          )
+  @classmethod
+  def get_period_id_for_submission(self,date):
+    return self.get_week_period_id_for_sunday(self.get_last_sunday(date))   
+    
+  @classmethod
+  def get_last_sunday(self, date):
+    offset_from_last_sunday = date.weekday()+1 
+    last_sunday = date  - timedelta(days= offset_from_last_sunday)
+    return last_sunday
+  
+  def get_reports_data_for_submission(self,submission,orgUnitIdScheme=DEFAULT_ORG_UNIT_ID_SCHEME):
+    data = {}
+    data['orgUnit']           = submission.facility.uuid
+    data['completeDate']      = self.get_utc_time_iso8601(submission.created)
+    data['period']            = self.get_period_id_for_submission(submission.created)
+    data['orgUnitIdScheme']   = orgUnitIdScheme
+    
+    self.set_data_values_from_submission_value(data,submission)
+    
+    if not data['dataValues'] : 
+      raise LookupError(ERROR_MESSAGE_NO_HMS_INDICATOR)
     
     return data
     
-  def submit_submission(self,submission):
-    data =self.get_data_submission(submission)
+  def set_data_values_from_submission_value(self,data,submission):
+    submission_values  = XFormSubmissionValue.objects.filter(submission=submission)
+    data['dataValues']    = []
+        
+    for submission_value in submission_values : 
+      dataValue = self.get_attibute_values_for_submission(submission_value)
+      if dataValue :
+        data['dataValues'].append(dataValue)
+        
+  def get_attibute_values_for_submission(self, submission_value):
+    data_value      = {}
+    attribute = submission_value.attribute
+    dhis2_mapping   = Dhis2_Mtrac_Indicators_Mapping.objects.filter(eav_attribute=attribute)
     
-    result = self.submit(data)
-       
-    accepted_attributes_values = result['updated'] + result['imported']
-    log_message=''
-    sucess = False
+    if dhis2_mapping:
+      element_id                        = dhis2_mapping[0].dhis2_uuid
+      combo_id                          = dhis2_mapping[0].dhis2_combo_id
+      data_value['dataElement']         = element_id
+      data_value['value']               = submission_value.value
+      data_value['categoryOptionCombo'] = combo_id
+      
+    return data_value
     
-    if result['error'] :      
-      log_result  = Dhis2_Reports_Submissions_Log.ERROR
-      log_message = result['error']
-    elif not accepted_attributes_values : 
-      log_message = ERROR_MESSAGE_ALL_VALUES_IGNORED
-      log_result  = Dhis2_Reports_Submissions_Log.ERROR
-    elif result['ignored'] : 
-      log_message = ERROR_MESSAGE_SOME_VALUES_IGNORED
-      log_result  = Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED
-    else :
-      log_result  = Dhis2_Reports_Report_Task_Log.SUCCESS
-      sucess =True
+  def get_submissions_in_date_range(self,from_date,to_date):
+    submissions = XFormSubmission.objects.filter(created__range=[from_date, to_date] )  
+    xtras = XFormSubmissionExtras.objects.filter(submission__in=submissions).exclude(facility=None)
+    valid_submission_ids = list(set(xtras.values_list('submission', flat=True)))
+    filtered_Submissions = submissions.filter(id__in=valid_submission_ids)
+
+    return self.__preprocess_submissions(filtered_Submissions)
+
+  def __set_submissions_facility(self,submissions):
+    for submission in submissions : 
+      subextra = XFormSubmissionExtras.objects.get(submission=submission)
+      submission.facility = subextra.facility
+      
+  def __preprocess_submissions(self,submissions):
+    # Sort by xform,created,facility id
+    submissions = submissions.order_by('xform','created') 
+    submissions_list = list(submissions)
+    self.__set_submissions_facility(submissions_list)
     
-    Dhis2_Reports_Submissions_Log.objects.create(
-        task_id = self.current_task,
-        submission_id = submission.id,
-        reported_xml = result['request_xml'], 
-        result = log_result,
-        description =log_message
-        )
-    return log_result == Dhis2_Reports_Report_Task_Log.SUCCESS
-   
-  def remove_duplicate_and_invalid_reports(self, submission_query_set):
-    submissions_list = submission_query_set.order_by('xform','created')[:]
-    submissions_list =  self.__remove_submisisons_with_missing_extras(submissions_list)
+    sorter_by_facility = lambda submission : submission.facility.id
+    submissions_list  =sorted(submissions_list,key=sorter_by_facility)
     
-    submissions_list  =sorted(submissions_list,key=self.__get_facilty_id)
     cleaned_list = []
     count =0
     submissions_count = len(submissions_list)
-
+    
     for count in range(submissions_count): 
       if count == submissions_count-1 : 
         cleaned_list.append(submissions_list[count])
       elif not self.__are_submissions_duplicate(submissions_list[count] ,submissions_list[count+1] ):
         cleaned_list.append(submissions_list[count]) 
-    
-    return cleaned_list
-   
-  def __are_submissions_duplicate(self,submission1,submission2):
-    if  submission1.xform.id == submission2.xform.id : 
-      return self.__get_facilty_id(submission1) == self.__get_facilty_id(submission2)
-    return False
-  
-  def __get_facilty_id(self,submission ):
-    return XFormSubmissionExtras.objects.filter(submission=submission)[0].facility.id
-  
-  def __remove_submisisons_with_missing_extras(self,submissions):
-    cleaned_submissions = []
-    
-    for submission in submissions : 
-      xtras = XFormSubmissionExtras.objects.filter(submission=submission)
-      if xtras and xtras[0].facility: 
-        cleaned_submissions.append(submission)  
-    return cleaned_submissions
         
+    return cleaned_list
+  
+  
+  def __are_submissions_duplicate(self,submission1,submission2):
+    return submission1.xform.id == submission2.xform.id and submission1.facility.id == submission2.facility.id
     
-  def initiate_weekly_submissions(self,date=datetime.datetime.now()):
+
+  def log_submission_started(self) : 
+    self.current_task =  Dhis2_Reports_Report_Task_Log.objects.create()
+
+  def log_submission_finished(self,submission_count, status, description='') :
+    log_record                       = self.current_task
+    log_record.time_finished         = datetime.now()
+    log_record.number_of_submissions = submission_count
+    log_record.status                = status
+    log_record.description           = description
+    log_record.save()
+
+  def submit_report_and_log_result(self,submission):
+    try : 
+      data =self.get_reports_data_for_submission(submission)
+      result = self.submit_report(data)
+      accepted_attributes_values = result['updated'] + result['imported']
+      log_message=''
+      sucess = False
+
+      if result['error'] :      
+        log_result  = Dhis2_Reports_Submissions_Log.ERROR
+        log_message = result['error']
+      elif not accepted_attributes_values : 
+        log_message = ERROR_MESSAGE_ALL_VALUES_IGNORED
+        log_result  = Dhis2_Reports_Submissions_Log.ERROR
+      elif result['ignored'] : 
+        log_message = ERROR_MESSAGE_SOME_VALUES_IGNORED
+        log_result  = Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED
+      else :
+        log_result  = Dhis2_Reports_Submissions_Log.SUCCESS
+        sucess =True
+      
+      requestXML = result['request_xml']
+      
+    except LookupError ,e :
+      error_message = type(e).__name__ +":"+ str(e)
+      log_message = error_message
+      log_result = Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA
+      requestXML=None
+        
+    Dhis2_Reports_Submissions_Log.objects.create(
+      task_id = self.current_task,
+      submission_id = submission.id,
+      reported_xml = requestXML, 
+      result = log_result,
+      description =log_message
+    )
+        
+    return log_result == Dhis2_Reports_Report_Task_Log.SUCCESS
+    
+  
+  def initiate_weekly_submissions(self,date=datetime.now()):
     last_monday = self.get_last_sunday(date) + timedelta(days=1)
     submissions_for_last_week = self.get_submissions_in_date_range(last_monday, date)
 
@@ -263,18 +243,10 @@ class H033B_Reporter(object):
     connection_failed = False
     status = Dhis2_Reports_Report_Task_Log.SUCCESS
     description = ''
-    
-    print '*'*100
-    print 'from date %s--to date %s --'%(str(last_monday),str(date))
-    print 'Submission for the week : ',len(submissions_for_last_week)
-    print '*'*100
-    print '*'*100
-    print '*'*100
-    
     try : 
       for submission in submissions_for_last_week:
         try :
-          if self.submit_submission(submission) :            
+          if self.submit_report_and_log_result(submission) :            
             successful_submissions +=1          
         except urllib2.URLError , e: 
           exception = type(e).__name__ +":"+ str(e)
@@ -293,4 +265,3 @@ class H033B_Reporter(object):
         submission_count=successful_submissions,
         status= status,
         description=description)
-

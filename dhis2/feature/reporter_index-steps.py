@@ -15,6 +15,7 @@ COUNT_OF_TEST_TASK_SUBMISSION_LOGS = 5
 COUNT_OF_TEST_TASK_LOGS = 15
 TEST_USER_NAME = 'smoke'
 TEST_USER_PASSWORD = 'password'
+SLEEP_TIME_BEFORE_PAGE_LOAD_IN_SECONDS = 5
 
 @before.each_scenario
 def set_browser(scenario):
@@ -62,7 +63,7 @@ def __generate_random_task_status():
 @step('I must see all submission tasks on the index page')
 def show_submission_tasks(step):
   number_of_log_pages = max(ceil(len(Dhis2_Reports_Report_Task_Log.objects.all())/(TASK_LOG_RECORDS_PER_PAGE*1.0)),1)
-  sleep(15)
+  sleep(SLEEP_TIME_BEFORE_PAGE_LOAD_IN_SECONDS)
   assert world.browser.is_text_present("ID")
   assert world.browser.is_text_present("Time Started")
   assert world.browser.is_text_present("Result")
@@ -107,7 +108,7 @@ def test_task_details_page(step):
   task = Dhis2_Reports_Report_Task_Log.objects.get(id=world.task_id)
   submissions_tasks= Dhis2_Reports_Submissions_Log.objects.filter(task_id=task)
   number_of_submission_pages = max(ceil (len(submissions_tasks)/(TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE*1.0)),1)
-  sleep(15)
+  sleep(SLEEP_TIME_BEFORE_PAGE_LOAD_IN_SECONDS)
   assert world.browser.is_text_present("Submissions ID")
   assert world.browser.is_text_present("Report XML")
   assert world.browser.is_text_present("Result")
