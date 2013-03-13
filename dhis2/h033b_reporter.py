@@ -205,12 +205,13 @@ class H033B_Reporter(object):
     log_record.save()
 
   def submit_report_and_log_result(self,submission):
+    success = False
+    
     try : 
       data =self.get_reports_data_for_submission(submission)
       result = self.submit_report(data)
       accepted_attributes_values = result['updated'] + result['imported']
       log_message=''
-      sucess = False
 
       if result['error'] :      
         log_result  = Dhis2_Reports_Submissions_Log.ERROR
@@ -223,7 +224,7 @@ class H033B_Reporter(object):
         log_result  = Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED
       else :
         log_result  = Dhis2_Reports_Submissions_Log.SUCCESS
-        sucess =True
+        success =True
       
       requestXML = result['request_xml']
       
@@ -232,11 +233,12 @@ class H033B_Reporter(object):
       log_message = error_message
       log_result = Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA
       requestXML=None
-        
+    
+    # Do not log the request XML if success
     Dhis2_Reports_Submissions_Log.objects.create(
       task_id = self.current_task,
       submission_id = submission.id,
-      reported_xml = requestXML, 
+      reported_xml = requestXML if not success else None, 
       result = log_result,
       description =log_message
     )

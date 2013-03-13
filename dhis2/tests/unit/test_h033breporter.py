@@ -561,18 +561,6 @@ class Test_H033B_Reporter(TestCase):
     log_record_for_task = h033b_reporter.current_task
     log_record_for_submissions =  Dhis2_Reports_Submissions_Log.objects.all()
     
-    for log_record_for_submission in log_record_for_submissions: 
-      if not log_record_for_submission.result =='SUCCESS':
-        print log_record_for_submission.result
-        print log_record_for_submission.description
-        print log_record_for_submission.reported_xml
-      
-      
-    print log_record_for_task.status
-    print log_record_for_task.description
-    
-      
-
     self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()),1)
     self.assertEquals(len(Dhis2_Reports_Submissions_Log.objects.all()),3)
     self.assertEquals(log_record_for_task.number_of_submissions , submissions_count)
