@@ -53,19 +53,19 @@
                 <a class="task_id" href='{{ task_log.id }}'> {{ task_log.id }}</a>
               </td>
               <td>
-                {{ task_log.time_started }}
+                {{ task_log.time_started|default_if_none:'' }}
               </td>
               <td>
-                {{ task_log.running_time }}
+                {{ task_log.running_time|default_if_none:'' }}
               </td>
               <td>
-                {{ task_log.status }}
+                {{ task_log.status|default_if_none:'' }}
               </td>
               <td>
-                {{ task_log.description }}
+                {{ task_log.description|default_if_none:''}}
               </td>
               <td>
-                {{ task_log.number_of_submissions }}
+                {{ task_log.number_of_submissions|default_if_none:'' }}
               </td>
             </tr>
           {% endfor %}

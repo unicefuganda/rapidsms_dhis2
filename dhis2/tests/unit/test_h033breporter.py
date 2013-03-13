@@ -10,8 +10,10 @@ from rapidsms_xforms.models import XFormField ,XFormSubmission
 from mtrack.models import XFormSubmissionExtras 
 from eav.models import Attribute
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log,Dhis2_Reports_Submissions_Log
+from mock import *
 
-A_VALID_DHIS2_UUID = u'6VeE8JrylXn'
+
+A_VALID_DHIS2_UUID = u'2df89d95-35b0-4047-8006-ff92c9194b3d'
 TEST_DHIS2_BASE_URL = 'http://ec2-54-242-108-118.compute-1.amazonaws.com'
 TEST_DHIS2_USER = 'api'
 TEST_DHIS2_PASSWORD = 'Passw0rd'
@@ -504,6 +506,132 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(log.result,Dhis2_Reports_Submissions_Log.ERROR)
     self.assertIsNotNone(log.description  )  
 
+  def test_doesnt_log_xml_for_success_submissions(self):
+    h033b_reporter = H033B_Reporter()
+    submission = self.create_submission()
+    h033b_reporter.log_submission_started()
+    
+    mock_send = lambda data : h033b_reporter.parse_submission_response(SUCCESS_XML_RESPONSE,'request xml')
+    h033b_reporter.submit_report = mock_send
+    
+    result = h033b_reporter.submit_report_and_log_result(submission)
+
+    log = Dhis2_Reports_Submissions_Log.objects.get(task_id=h033b_reporter.current_task)
+
+
+    self.assertIsNone(log.reported_xml)
+    self.assertEquals(log.submission_id,submission.id)
+    self.assertEquals(log.result,Dhis2_Reports_Submissions_Log.SUCCESS)
+
+
+        
+  def test_http_response_contains_error_is_logged(self):
+    h033b_reporter = H033B_Reporter()
+    submission = self.create_submission()
+    h033b_reporter.log_submission_started()
+    DUMMY_INTEGER  = 11111111
+    result = {'error': 'some http response error', 
+              'updated': DUMMY_INTEGER,
+               'imported': DUMMY_INTEGER,
+               'request_xml':'some xml to be logged'}
+    
+    mock_submit = lambda data : result
+    h033b_reporter.submit_report = mock_submit
+    
+    h033b_reporter.submit_report_and_log_result(submission)
+    log  = Dhis2_Reports_Submissions_Log.objects.get(submission_id = submission.id)
+    
+    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.ERROR )
+    self.assertEquals(log.description, result['error'])
+    self.assertEquals(log.reported_xml, result['request_xml'])
+    
+  def test_http_response_rejects_all_indicators_is_logged(self):
+    h033b_reporter = H033B_Reporter()
+    submission = self.create_submission()
+    h033b_reporter.log_submission_started()
+    NUMBER_OF_INDICATOR_ACCEPTED  = 0
+    result = {'error': None,
+              'updated': NUMBER_OF_INDICATOR_ACCEPTED,
+               'imported': NUMBER_OF_INDICATOR_ACCEPTED,
+               'request_xml':None}
+
+    mock_submit = lambda data : result
+    h033b_reporter.submit_report = mock_submit
+
+    h033b_reporter.submit_report_and_log_result(submission)
+    log  = Dhis2_Reports_Submissions_Log.objects.get(submission_id = submission.id)
+
+    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.ERROR )
+    self.assertEquals(log.description, ERROR_MESSAGE_ALL_VALUES_IGNORED)
+    self.assertEquals(log.reported_xml, result['request_xml'])
+
+  def test_http_response_accepts_no_indicators_is_logged(self):
+    h033b_reporter = H033B_Reporter()
+    submission = self.create_submission()
+    h033b_reporter.log_submission_started()
+    SOME_POSITIVE_NUMBER  = 1
+    INDICATORS_IGNORED  = 1
+    
+    result = {'error': None,
+              'updated': SOME_POSITIVE_NUMBER,
+               'imported': SOME_POSITIVE_NUMBER,
+               'ignored': INDICATORS_IGNORED,
+               'request_xml':None}
+
+    mock_submit = lambda data : result
+    h033b_reporter.submit_report = mock_submit
+
+    h033b_reporter.submit_report_and_log_result(submission)
+    log  = Dhis2_Reports_Submissions_Log.objects.get(submission_id = submission.id)
+
+    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED )
+    self.assertEquals(log.description,ERROR_MESSAGE_SOME_VALUES_IGNORED )
+    self.assertEquals(log.reported_xml, result['request_xml'])
+  
+  def test_http_response_rejects_some_indicators_is_logged(self):
+    h033b_reporter = H033B_Reporter()
+    submission = self.create_submission()
+    h033b_reporter.log_submission_started()
+    SOME_POSITIVE_NUMBER  = 1
+    INDICATORS_IGNORED  = 1
+
+    result = {'error': None,
+              'updated': SOME_POSITIVE_NUMBER,
+               'imported': SOME_POSITIVE_NUMBER,
+               'ignored': INDICATORS_IGNORED,
+               'request_xml':None}
+
+    mock_submit = lambda data : result
+    h033b_reporter.submit_report = mock_submit
+
+    h033b_reporter.submit_report_and_log_result(submission)
+    log  = Dhis2_Reports_Submissions_Log.objects.get(submission_id = submission.id)
+
+    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED )
+    self.assertEquals(log.description,ERROR_MESSAGE_SOME_VALUES_IGNORED )
+    self.assertEquals(log.reported_xml, result['request_xml'])
+    
+    
+  
+  def test_http_unrecognized_format_response_is_logged(self):
+    h033b_reporter = H033B_Reporter()
+    submission = self.create_submission()
+    h033b_reporter.log_submission_started()
+    SOME_POSITIVE_NUMBER  = 1
+    INDICATORS_IGNORED  = 1
+
+    unrecognized_response = 'CRAPPPP'
+
+    mock_submit = lambda data : h033b_reporter.parse_submission_response(unrecognized_response,'request xml')
+    h033b_reporter.submit_report = mock_submit
+
+    h033b_reporter.submit_report_and_log_result(submission)
+    log  = Dhis2_Reports_Submissions_Log.objects.get(submission_id = submission.id)
+
+    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.ERROR )
+    self.assertTrue(ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2 in log.description, )
+    self.assertEquals(log.reported_xml, 'request xml')  
+    
 
   def test_weekly_submissions(self,submissions_count=3,delete_old_submissions=True):
     h033b_reporter = H033B_Reporter()
@@ -560,7 +688,7 @@ class Test_H033B_Reporter(TestCase):
 
     log_record_for_task = h033b_reporter.current_task
     log_record_for_submissions =  Dhis2_Reports_Submissions_Log.objects.all()
-    
+
     self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()),1)
     self.assertEquals(len(Dhis2_Reports_Submissions_Log.objects.all()),3)
     self.assertEquals(log_record_for_task.number_of_submissions , submissions_count)
@@ -569,3 +697,17 @@ class Test_H033B_Reporter(TestCase):
     for log_record_for_submission in log_record_for_submissions : 
       self.assertEquals(log_record_for_submission.result,Dhis2_Reports_Report_Task_Log.SUCCESS)
 
+
+  def create_submission(self, xform_id=ACTS_XFORM_ID,   attributes_and_values = {u'epd': 53,u'tps': 44},created = datetime(2013,1,1,1,1,1), create_attribute_mappings = True):
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+      attributes_and_values=attributes_and_values,facility = facility)   
+
+    submission.created = created
+    submission.facility = facility
+    submission.save()
+    
+    if create_attribute_mappings:
+      Submissions_Test_Helper.create_attribute_mappings_for_submission(submission)
+  
+    return submission

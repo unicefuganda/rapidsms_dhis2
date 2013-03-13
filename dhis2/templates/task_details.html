@@ -29,7 +29,7 @@
             Started 
           </td>          
           <td>
-            {{ task_log.time_started }}
+            {{ task_log.time_started|default_if_none:''}}
           </td>            
           
         </tr>
@@ -38,7 +38,7 @@
             Result   
           </td>           
           <td >
-            {{ task_log.status }}
+            {{ task_log.status|default_if_none:'' }}
           </td>            
           
         </tr>
@@ -68,16 +68,16 @@
           {% for task_submission in task_submissions_paginator.object_list %}
             <tr class=" {% get_submission_css task_submission.result %}">
               <td>
-                {{ task_submission.submission_id }}
+                {{ task_submission.submission_id|default_if_none:'' }}
               </td>
               <td>
-                {{ task_submission.reported_xml }}
+                {{ task_submission.reported_xml|default_if_none:'' }}
               </td>
               <td>
-                {{ task_submission.result }}
+                {{ task_submission.result|default_if_none:'' }}
               </td>
               <td>
-                {{ task_submission.description }}
+                {{ task_submission.description|default_if_none:'' }}
               </td>
 
             </tr>

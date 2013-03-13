@@ -7,6 +7,7 @@ from rapidsms_xforms.models import XFormSubmissionValue ,XFormSubmission
 from mtrack.models import XFormSubmissionExtras
 from datetime import timedelta,datetime
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log ,Dhis2_Reports_Submissions_Log
+from xml.parsers.expat import ExpatError
 
 HMIS033B_REPORT_XML_TEMPLATE      = "h033b_reporter.xml"
 DATA_VALUE_SETS_URL               = u'/api/dataValueSets'
@@ -18,6 +19,8 @@ ERROR_MESSAGE_ALL_VALUES_IGNORED  = u'All values rejected by remote server'
 ERROR_MESSAGE_SOME_VALUES_IGNORED = u'Some values rejected by remote server'
 ERROR_MESSAGE_CONNECTION_FAILED   = u'Error communicating with the remote server'
 ERROR_MESSAGE_UNEXPECTED_ERROR    = u'Unexpected error while submitting reports to DHIS2'
+ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2   = u'Unexpected response from DHIS2'
+
 
 
 class H033B_Reporter(object):
@@ -42,26 +45,31 @@ class H033B_Reporter(object):
     response = self.send(xml_request)
     return self.parse_submission_response(response.read(),xml_request)
   
-  def parse_submission_response(self,response_xml,request_xml):    
-    dom      = parseString(response_xml)
-    result   = dom.getElementsByTagName('dataValueCount')[0]
-    imported = int(result.getAttribute('imported'))
-    updated  = int(result.getAttribute('updated'))
-    ignored  = int(result.getAttribute('ignored'))
-    error    = None
+  def parse_submission_response(self,response_xml,request_xml):   
 
-    conflicts = dom.getElementsByTagName('conflict')
-    if conflicts : 
-      error   = ''
-      for conflict in conflicts : 
-        error+='%s  : %s\n'%(conflict.getAttribute('object') ,conflict.getAttribute('value'))
+    try: 
+      dom      = parseString(response_xml)
+      result   = dom.getElementsByTagName('dataValueCount')[0]
+      imported = int(result.getAttribute('imported'))
+      updated  = int(result.getAttribute('updated'))
+      ignored  = int(result.getAttribute('ignored'))
+      error    = None
 
-    result                = {}
-    result['imported']    = imported
-    result['updated']     = updated
-    result['ignored']     = ignored
-    result['error']       = error
-    result['request_xml'] = request_xml
+      conflicts = dom.getElementsByTagName('conflict')
+      if conflicts : 
+        error   = ''
+        for conflict in conflicts : 
+          error+='%s  : %s\n'%(conflict.getAttribute('object') ,conflict.getAttribute('value'))
+
+      result                = {}
+      result['imported']    = imported
+      result['updated']     = updated
+      result['ignored']     = ignored
+      result['error']       = error
+      result['request_xml'] = request_xml
+    except ExpatError ,e :
+      e.request_xml = request_xml
+      raise e
 
     return result
     
@@ -210,7 +218,7 @@ class H033B_Reporter(object):
     try : 
       data =self.get_reports_data_for_submission(submission)
       result = self.submit_report(data)
-      accepted_attributes_values = result['updated'] + result['imported']
+      accepted_attributes_values = int(result['updated']) + int(result['imported'])
       log_message=''
 
       if result['error'] :      
@@ -226,8 +234,12 @@ class H033B_Reporter(object):
         log_result  = Dhis2_Reports_Submissions_Log.SUCCESS
         success =True
       
-      requestXML = result['request_xml']
-      
+      requestXML = result['request_xml']      
+    except ExpatError,e : 
+      error_message = type(e).__name__ +":"+ str(e)
+      log_message = "%s\n%s"%(ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2,error_message)
+      log_result = Dhis2_Reports_Submissions_Log.ERROR
+      requestXML = e.request_xml 
     except LookupError ,e :
       error_message = type(e).__name__ +":"+ str(e)
       log_message = error_message

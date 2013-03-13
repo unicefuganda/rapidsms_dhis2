@@ -8,12 +8,15 @@ from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from dhis2.models import Dhis2_Reports_Report_Task_Log,Dhis2_Reports_Submissions_Log
+import datetime
 
 TASK_LOG_RECORDS_PER_PAGE = 10
 TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE = 10
 
 def index(request):
   task_logs = __get_tasks_view_data()
+  sorter_by_start_time = lambda data : data.time_started
+  task_logs = sorted(task_logs,key=sorter_by_start_time, reverse=True)
   paginator = Paginator(task_logs, TASK_LOG_RECORDS_PER_PAGE)
   page = request.GET.get('page')
   page = int(page) if page else 1
@@ -32,6 +35,7 @@ def __get_tasks_view_data():
   data = []
   for task in tasks : 
     task_view_data = task
+    task.time_finished = task.time_finished if task.time_finished else datetime.datetime.now() 
     running_time_in_minutes = (task.time_finished - task.time_started).seconds/60 
     task_view_data.running_time = str(running_time_in_minutes)+' minutes'     
     data.append(task_view_data)
@@ -40,7 +44,7 @@ def __get_tasks_view_data():
 
 def task_details(request,task_id):
   task = Dhis2_Reports_Report_Task_Log.objects.get(id=task_id)
-  submissions_tasks = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task)
+  submissions_tasks = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task).exclude(result=Dhis2_Reports_Submissions_Log.SUCCESS)
   paginator = Paginator(submissions_tasks, TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE)
   page = request.GET.get('page')
   page = int(page) if page else 1
