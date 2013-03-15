@@ -295,6 +295,7 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(submissions_in_period[0].id , submission1.id)
     self.assertEquals(submissions_in_period[1].id , submission2.id)
     
+  
     
     
   def test_get_submissions_in_date_range_for_no_submission_extra(self):
@@ -366,8 +367,87 @@ class Test_H033B_Reporter(TestCase):
     submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
 
     self.assertEquals(len(submissions_in_period) , 0)
+    
+  def test_get_submissions_in_date_range_returns_no_submission_while_latest_submission_is_already_reported_to_dhis2(self):
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {}
+    h033b_reporter = H033B_Reporter()
 
+    from_date = datetime(2011, 12, 18, 00, 00, 00)
+    to_date = datetime(2011, 12, 19, 23, 59, 59)
 
+    XFormSubmission.objects.all().delete()
+
+    facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1',dhis2_uuid=u'test_uuid1')   
+
+    old_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+        attributes_and_values=attributes_and_values,facility = facility)
+
+    latest_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+            attributes_and_values=attributes_and_values,facility = facility)
+
+    old_submission.created = from_date + timedelta(seconds = 1)
+    latest_submission.created = to_date - timedelta(seconds =1)
+    old_submission.save()
+    latest_submission.save()
+
+    h033b_reporter.log_submission_started()
+    
+    report_submissions_log = Dhis2_Reports_Submissions_Log.objects.create(
+      task_id = h033b_reporter.current_task,
+      submission_id = latest_submission.id,
+      reported_xml = 'crap', 
+      result = Dhis2_Reports_Report_Task_Log.SUCCESS,
+      description ='No Description'
+    )
+    
+    submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
+
+    self.assertEquals(len(submissions_in_period) , 0)
+
+  def test_get_submissions_in_date_range_returns_submissions_created_after_last_submission_report(self):
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {}
+    h033b_reporter = H033B_Reporter()
+
+    from_date = datetime(2011, 12, 18, 00, 00, 00)
+    to_date = datetime(2011, 12, 19, 23, 59, 59)
+
+    XFormSubmission.objects.all().delete()
+
+    facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1',dhis2_uuid=u'test_uuid1')   
+
+    old_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+        attributes_and_values=attributes_and_values,facility = facility)
+
+    reported_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+            attributes_and_values=attributes_and_values,facility = facility)
+
+    old_submission.created = from_date + timedelta(seconds = 1)
+    reported_submission.created = from_date + timedelta(seconds = 5)
+    old_submission.save()
+    reported_submission.save()
+
+    h033b_reporter.log_submission_started()
+
+    report_submissions_log = Dhis2_Reports_Submissions_Log.objects.create(
+      task_id = h033b_reporter.current_task,
+      submission_id = reported_submission.id,
+      reported_xml = 'crap', 
+      result = Dhis2_Reports_Report_Task_Log.SUCCESS,
+      description ='No Description'
+    )
+    
+    new_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+            attributes_and_values=attributes_and_values,facility = facility)
+    new_submission.created = to_date - timedelta(seconds =1)        
+    new_submission.save()
+    
+
+    submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
+
+    self.assertEquals(len(submissions_in_period) , 1)  
+    self.assertEquals(submissions_in_period[0].id, new_submission.id)  
          
   def test_remove_duplicate_reports(self):
     xform_id = VITAMIN_A_XFORM_ID

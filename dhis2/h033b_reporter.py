@@ -9,6 +9,7 @@ from datetime import timedelta,datetime
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log ,Dhis2_Reports_Submissions_Log
 from xml.parsers.expat import ExpatError
 
+
 HMIS033B_REPORT_XML_TEMPLATE      = "h033b_reporter.xml"
 DATA_VALUE_SETS_URL               = u'/api/dataValueSets'
 DEFAULT_ORG_UNIT_ID_SCHEME        = u'uuid'
@@ -38,7 +39,7 @@ class H033B_Reporter(object):
     request = urllib2.Request(self.url, data = data, headers = self.headers)
     # Make POST call instead of get
     request.get_method = lambda: "POST"
-    return urllib2.urlopen(request)
+    return urllib2.urlopen(request) 
 
   def submit_report(self, data):
     xml_request = self.generate_xml_report(data)
@@ -153,36 +154,29 @@ class H033B_Reporter(object):
     return data_value
     
   def get_submissions_in_date_range(self,from_date,to_date):
-    submissions = XFormSubmission.objects.filter(created__range=[from_date, to_date] )  
-    xtras = XFormSubmissionExtras.objects.filter(submission__in=submissions).exclude(facility=None)
-    valid_submission_ids = list(set(xtras.values_list('submission', flat=True)))
+    submissions = XFormSubmission.objects.filter(created__range=[from_date, to_date] )
+    ids_of_submissions_with_facilities = self.__get_submission_ids_for_submissions_with_valid_facilities(submissions)
+    submissions = submissions.filter(id__in=ids_of_submissions_with_facilities)
+    submissions = self.__filter_lastest_submission_with_same_xform_from_the_same_facility(submissions)
+    valid_submission_ids = self.__get_submission_ids_for_submissions_not_reported_to_dhis2_already(submissions)
+
+    filtered_Submissions = [ submission  for submission in submissions if submission.id in valid_submission_ids]
     
-    reported_submissions = Dhis2_Reports_Submissions_Log.objects.filter(
-      submission_id__in=valid_submission_ids,
-      result=Dhis2_Reports_Submissions_Log.SUCCESS)
-      
-    reported_submissions_ids = list(set(reported_submissions.values_list('submission_id',flat=True)))
-    
-    for submission_id in reported_submissions_ids : 
-      valid_submission_ids.remove(submission_id)
-      
-    filtered_Submissions = submissions.filter(id__in=valid_submission_ids)
-    
-    return self.__preprocess_submissions(filtered_Submissions)
+    return filtered_Submissions
 
   def __set_submissions_facility(self,submissions):
     for submission in submissions : 
       subextra = XFormSubmissionExtras.objects.get(submission=submission)
       submission.facility = subextra.facility
-      
-  def __preprocess_submissions(self,submissions):
+        
+  def __filter_lastest_submission_with_same_xform_from_the_same_facility(self,submissions):
     # Sort by xform,created,facility id
     submissions = submissions.order_by('xform','created') 
     submissions_list = list(submissions)
     self.__set_submissions_facility(submissions_list)
     
     sorter_by_facility = lambda submission : submission.facility.id
-    submissions_list  =sorted(submissions_list,key=sorter_by_facility)
+    submissions_list  = sorted(submissions_list,key=sorter_by_facility)
     
     cleaned_list = []
     count =0
@@ -191,10 +185,30 @@ class H033B_Reporter(object):
     for count in range(submissions_count): 
       if count == submissions_count-1 : 
         cleaned_list.append(submissions_list[count])
-      elif not self.__are_submissions_duplicate(submissions_list[count] ,submissions_list[count+1] ):
+      elif not self.__are_submissions_duplicate(submissions_list[count] ,  submissions_list[count+1] ):
         cleaned_list.append(submissions_list[count]) 
         
     return cleaned_list
+  
+  def __get_submission_ids_for_submissions_with_valid_facilities(self, submissions):
+    xtras = XFormSubmissionExtras.objects.filter(submission__in=submissions).exclude(facility=None)
+    valid_submission_ids = list(set(xtras.values_list('submission', flat=True)))
+    
+    return valid_submission_ids
+    
+  def __get_submission_ids_for_submissions_not_reported_to_dhis2_already(self, submissions):
+    valid_submission_ids = list(set([ submission.id  for submission in submissions]))
+    
+    reported_submissions = Dhis2_Reports_Submissions_Log.objects.filter(
+      submission_id__in=valid_submission_ids,
+      result=Dhis2_Reports_Submissions_Log.SUCCESS)
+      
+    reported_submissions_ids = list(set(reported_submissions.values_list('submission_id',flat=True)))
+    
+    for submission_id in reported_submissions_ids : 
+      valid_submission_ids.remove(submission_id)  
+      
+    return valid_submission_ids  
   
   
   def __are_submissions_duplicate(self,submission1,submission2):
