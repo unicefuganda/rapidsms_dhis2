@@ -107,18 +107,18 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(dataValueSet.getAttribute('period'),TEST_SUBMISSION_DATA['period'])
     self.assertEquals(dataValueSet.getAttribute('orgUnitIdScheme'),TEST_SUBMISSION_DATA['orgUnitIdScheme'])
     self.assertEquals(dataValueSet.getAttribute('orgUnit'),TEST_SUBMISSION_DATA['orgUnit']) 
+    
     for element_data_value in element_data_values :
-      
       data_element = element_data_value.getAttribute('dataElement')
       category_option_combo = element_data_value.getAttribute('categoryOptionCombo')
       value = element_data_value.getAttribute('value')
-      data_value = self.__find_element_id_data_values(data_element,TEST_SUBMISSION_DATA['dataValues'])
+      data_value = self._find_element_id_data_values(data_element,TEST_SUBMISSION_DATA['dataValues'])
       
       self.assertEquals(data_element,data_value['dataElement'])
       self.assertEquals(category_option_combo,data_value['categoryOptionCombo'])
       self.assertEquals(int(value),data_value['value'])
       
-  def __find_element_id_data_values(self,data_element,data_values):
+  def _find_element_id_data_values(self,data_element,data_values):
     for data_value in data_values : 
       if data_value['dataElement'] == data_element  :
         return data_value
@@ -215,18 +215,13 @@ class Test_H033B_Reporter(TestCase):
     submission_data = self.h033b_reporter.get_reports_data_for_submission(submission)
     sorter = lambda dataValue : dataValue['dataElement']
     submission_data['dataValues']  = sorted(submission_data['dataValues'],key=sorter)
+
+    xform_fields_commands = sorted (attributes_and_values.keys())
     
-    self.assertEquals(submission_data['dataValues'][0]['dataElement'] , 'NoJfAIcxjSY')
-    self.assertEquals(submission_data['dataValues'][0]['value'] ,53 )
-    self.assertEquals(submission_data['dataValues'][0]['categoryOptionCombo'] ,u'gGhClrV5odI' )
-                                            
-    self.assertEquals(submission_data['dataValues'][1]['dataElement'] , 'OMxmmYvvLai')
-    self.assertEquals(submission_data['dataValues'][1]['value'] ,62 )
-    self.assertEquals(submission_data['dataValues'][1]['categoryOptionCombo'] ,u'BrX1bohix6a' )
-                                                
-    self.assertEquals(submission_data['dataValues'][2]['dataElement'] , 'w3mO7SZdbb8')
-    self.assertEquals(submission_data['dataValues'][2]['value'] ,71 )
-    self.assertEquals(submission_data['dataValues'][2]['categoryOptionCombo'] ,u'drJyZS90kYV' )
+    for i in range(len(submission_data['dataValues'])):
+      self.assertEquals(submission_data['dataValues'][i]['dataElement'], dhis2_uuis_and_combo_ids[i][0])
+      self.assertEquals(submission_data['dataValues'][i]['value'], attributes_and_values[xform_fields_commands[i]] )
+      self.assertEquals(submission_data['dataValues'][i]['categoryOptionCombo'], dhis2_uuis_and_combo_ids[i][1] )
     
     self.assertEquals(submission_data['orgUnit'], u'uuid_xxx')
     self.assertEquals(submission_data['completeDate'], u'2012-01-07T00:00:00Z')
@@ -322,7 +317,8 @@ class Test_H033B_Reporter(TestCase):
   def _create_submission(self, facility,
     created = datetime(2012, 1, 7, 0, 0, 0), 
     xform_id = ACTS_XFORM_ID,
-    attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}
+    attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71},
+    create_attribute_mappings= False
     ):
     
     submission = Submissions_Test_Helper.create_submission_object(
@@ -335,6 +331,9 @@ class Test_H033B_Reporter(TestCase):
     submission.save()   
 
     submission.facility = facility
+    
+    if create_attribute_mappings:
+      Submissions_Test_Helper.create_attribute_mappings_for_submission(submission)
 
     return submission
   
@@ -676,7 +675,8 @@ class Test_H033B_Reporter(TestCase):
 
   def test_doesnt_log_xml_for_success_submissions(self):
     h033b_reporter = H033B_Reporter()
-    submission = self.create_submission()
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = self._create_submission(facility= facility, create_attribute_mappings = True)
     h033b_reporter.log_submission_started()
     
     mock_send = lambda data : h033b_reporter.parse_submission_response(SUCCESS_XML_RESPONSE,'request xml')
@@ -695,7 +695,8 @@ class Test_H033B_Reporter(TestCase):
         
   def test_http_response_contains_error_is_logged(self):
     h033b_reporter = H033B_Reporter()
-    submission = self.create_submission()
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = self._create_submission(facility= facility, create_attribute_mappings = True)
     h033b_reporter.log_submission_started()
     DUMMY_INTEGER  = 11111111
     result = {'error': 'some http response error', 
@@ -715,7 +716,8 @@ class Test_H033B_Reporter(TestCase):
     
   def test_http_response_rejects_all_indicators_is_logged(self):
     h033b_reporter = H033B_Reporter()
-    submission = self.create_submission()
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = self._create_submission(facility= facility, create_attribute_mappings = True)
     h033b_reporter.log_submission_started()
     NUMBER_OF_INDICATOR_ACCEPTED  = 0
     result = {'error': None,
@@ -758,7 +760,8 @@ class Test_H033B_Reporter(TestCase):
   
   def test_http_response_rejects_some_indicators_is_logged(self):
     h033b_reporter = H033B_Reporter()
-    submission = self.create_submission()
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = self._create_submission(facility= facility, create_attribute_mappings = True)
     h033b_reporter.log_submission_started()
     SOME_POSITIVE_NUMBER  = 1
     INDICATORS_IGNORED  = 1
@@ -783,7 +786,8 @@ class Test_H033B_Reporter(TestCase):
   
   def test_http_unrecognized_format_response_is_logged(self):
     h033b_reporter = H033B_Reporter()
-    submission = self.create_submission()
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = self._create_submission(facility= facility, create_attribute_mappings = True)
     h033b_reporter.log_submission_started()
     SOME_POSITIVE_NUMBER  = 1
     INDICATORS_IGNORED  = 1
@@ -864,17 +868,3 @@ class Test_H033B_Reporter(TestCase):
 
     for log_record_for_submission in log_record_for_submissions : 
       self.assertEquals(log_record_for_submission.result,Dhis2_Reports_Report_Task_Log.SUCCESS)
-
-  def create_submission(self, xform_id=ACTS_XFORM_ID,   attributes_and_values = {u'epd': 53,u'tps': 44},created = datetime(2013,1,1,1,1,1), create_attribute_mappings = True):
-    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
-    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
-      attributes_and_values=attributes_and_values,facility = facility)   
-
-    submission.created = created
-    submission.facility = facility
-    submission.save()
-    
-    if create_attribute_mappings:
-      Submissions_Test_Helper.create_attribute_mappings_for_submission(submission)
-  
-    return submission

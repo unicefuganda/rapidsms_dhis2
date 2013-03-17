@@ -18,6 +18,6 @@
         provided to complete data set"/><conflict object="OrganisationUnit"/><conflict
         object="OrganisationUnit"/></conflicts></importSummary>'}
     headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Sun,
-        17 Mar 2013 09:46:21 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=F1A96FB0D71034D15529CE3C283E24DD;
+        17 Mar 2013 18:36:44 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=259B1E7EA29452350422305818120908;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}
