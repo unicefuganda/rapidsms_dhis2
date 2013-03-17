@@ -22,8 +22,6 @@ ERROR_MESSAGE_CONNECTION_FAILED   = u'Error communicating with the remote server
 ERROR_MESSAGE_UNEXPECTED_ERROR    = u'Unexpected error while submitting reports to DHIS2'
 ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2   = u'Unexpected response from DHIS2'
 
-
-
 class H033B_Reporter(object):
   
   def __init__(self): 
@@ -155,25 +153,25 @@ class H033B_Reporter(object):
     
   def get_submissions_in_date_range(self,from_date,to_date):
     submissions = XFormSubmission.objects.filter(created__range=[from_date, to_date] ).exclude(has_errors=True)
-    ids_of_submissions_with_facilities = self.__get_submission_ids_for_submissions_with_valid_facilities(submissions)
+    ids_of_submissions_with_facilities = self._get_submission_ids_for_submissions_with_valid_facilities(submissions)
     submissions = submissions.filter(id__in=ids_of_submissions_with_facilities)
-    submissions = self.__filter_lastest_submission_with_same_xform_from_the_same_facility(submissions)
-    valid_submission_ids = self.__get_submission_ids_for_submissions_not_reported_to_dhis2_already(submissions)
+    submissions = self._filter_lastest_submission_with_same_xform_from_the_same_facility(submissions)
+    valid_submission_ids = self._get_submission_ids_for_submissions_not_reported_to_dhis2_already(submissions)
 
     filtered_Submissions = [ submission  for submission in submissions if submission.id in valid_submission_ids]
     
     return filtered_Submissions
 
-  def __set_submissions_facility(self,submissions):
+  def _set_submissions_facility(self,submissions):
     for submission in submissions : 
       subextra = XFormSubmissionExtras.objects.get(submission=submission)
       submission.facility = subextra.facility
         
-  def __filter_lastest_submission_with_same_xform_from_the_same_facility(self,submissions):
+  def _filter_lastest_submission_with_same_xform_from_the_same_facility(self,submissions):
     # Sort by xform,created,facility id
     submissions = submissions.order_by('xform','created') 
     submissions_list = list(submissions)
-    self.__set_submissions_facility(submissions_list)
+    self._set_submissions_facility(submissions_list)
     
     sorter_by_facility = lambda submission : submission.facility.id
     submissions_list  = sorted(submissions_list,key=sorter_by_facility)
@@ -185,18 +183,18 @@ class H033B_Reporter(object):
     for count in range(submissions_count): 
       if count == submissions_count-1 : 
         cleaned_list.append(submissions_list[count])
-      elif not self.__are_submissions_duplicate(submissions_list[count] ,  submissions_list[count+1] ):
+      elif not self._are_submissions_duplicate(submissions_list[count] ,  submissions_list[count+1] ):
         cleaned_list.append(submissions_list[count]) 
         
     return cleaned_list
   
-  def __get_submission_ids_for_submissions_with_valid_facilities(self, submissions):
+  def _get_submission_ids_for_submissions_with_valid_facilities(self, submissions):
     xtras = XFormSubmissionExtras.objects.filter(submission__in=submissions).exclude(facility=None)
     valid_submission_ids = list(set(xtras.values_list('submission', flat=True)))
     
     return valid_submission_ids
     
-  def __get_submission_ids_for_submissions_not_reported_to_dhis2_already(self, submissions):
+  def _get_submission_ids_for_submissions_not_reported_to_dhis2_already(self, submissions):
     valid_submission_ids = list(set([ submission.id  for submission in submissions]))
     
     reported_submissions = Dhis2_Reports_Submissions_Log.objects.filter(
@@ -211,7 +209,7 @@ class H033B_Reporter(object):
     return valid_submission_ids  
   
   
-  def __are_submissions_duplicate(self,submission1,submission2):
+  def _are_submissions_duplicate(self,submission1,submission2):
     return submission1.xform.id == submission2.xform.id and submission1.facility.id == submission2.facility.id
     
 

@@ -737,7 +737,8 @@ class Test_H033B_Reporter(TestCase):
 
   def test_http_response_accepts_no_indicators_is_logged(self):
     h033b_reporter = H033B_Reporter()
-    submission = self.create_submission()
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = self._create_submission(facility= facility, create_attribute_mappings = True)
     h033b_reporter.log_submission_started()
     SOME_POSITIVE_NUMBER  = 1
     INDICATORS_IGNORED  = 1
