@@ -6,14 +6,14 @@ from xml.dom.minidom import parseString
 from dhis2.h033b_reporter import *
 from django.test import TestCase
 from dhis2.tests.test_helper import Submissions_Test_Helper
-from rapidsms_xforms.models import XFormField ,XFormSubmission
+from rapidsms_xforms.models import XForm, XFormField , XFormSubmission,  XFormSubmissionValue
 from mtrack.models import XFormSubmissionExtras 
 from eav.models import Attribute
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log,Dhis2_Reports_Submissions_Log
 from mock import *
 
 
-A_VALID_DHIS2_UUID = u'2df89d95-35b0-4047-8006-ff92c9194b3d'
+A_VALID_DHIS2_UUID = u'3b8a12cd-b844-4d87-ab9b-86308af7139a'
 TEST_DHIS2_BASE_URL = 'http://ec2-54-242-108-118.compute-1.amazonaws.com'
 TEST_DHIS2_USER = 'api'
 TEST_DHIS2_PASSWORD = 'Passw0rd'
@@ -22,7 +22,7 @@ VITAMIN_A_XFORM_ID = 63
 
 FIXTURES = os.path.abspath(dhis2.__path__[0]) + u"/tests/fixtures/cassettes/"
 
-TEST_SUBMISSION_DATA = { 'orgUnit': u"e8085011-b276-41ea-b5c0-a60bb4be61ef",
+TEST_SUBMISSION_DATA = { 'orgUnit': u"3b8a12cd-b844-4d87-ab9b-86308af7139a",
                 'completeDate': u"2012-11-11T00:00:00Z",
                 'period': u'2012W45',
                 "orgUnitIdScheme":u"uuid",
@@ -65,9 +65,9 @@ SUCCESS_XML_RESPONSE = '\
 </importSummary>'
 
 SOME_VALID_FACILITY_UUIDS = [
-  u'2df89d95-35b0-4047-8006-ff92c9194b3d',
-  u'9eea0f73-0417-4d3f-b1c2-4b3dfaf940f1',
-  u'1bfe76f0-1617-4e31-86e0-78512da2f6a2'
+  u'3b8a12cd-b844-4d87-ab9b-86308af7139a',
+  u'45d81a6f-0060-4c6e-ad28-f7a3d8932904',
+  u'2315d1ea-35da-4fdd-99ca-06feab246784'
 ]
 
 class Test_H033B_Reporter(TestCase):
@@ -196,9 +196,7 @@ class Test_H033B_Reporter(TestCase):
 
   def test_get_reports_data_for_submission(self):
     xform_id = ACTS_XFORM_ID
-    attributes_and_values = {u'epd': 53,
-     u'eps': 62,
-     u'fpd': 71}
+    attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}
     
     dhis2_uuis_and_combo_ids= [
      (u'NoJfAIcxjSY' , u'gGhClrV5odI'),
@@ -206,36 +204,14 @@ class Test_H033B_Reporter(TestCase):
      (u'w3mO7SZdbb8' , u'drJyZS90kYV'),
       ]
      
-    xform_fields_commands = sorted (attributes_and_values.keys())
+    self._create_dhis2_indicator_mapping( xform_id = ACTS_XFORM_ID, 
+        attributes_and_values = attributes_and_values,
+        dhis2_uuis_and_combo_ids= dhis2_uuis_and_combo_ids)
+
     
-    for index in range(len(xform_fields_commands)) : 
-      dhis2_uid = dhis2_uuis_and_combo_ids[index][0]
-      dhis2_combo_id = dhis2_uuis_and_combo_ids[index][1]
-      attribute = XFormField.objects.get(command=xform_fields_commands[index]).attribute_ptr
-      
-      Dhis2_Mtrac_Indicators_Mapping.objects.create( 
-        eav_attribute = attribute,
-        dhis2_uuid =dhis2_uid ,
-        dhis2_combo_id=dhis2_combo_id
-      )
-     
-    facility= Submissions_Test_Helper.create_facility(
-      facility_name=u'xyz',
-      dhis2_uuid=u'uuid_xxx'
-    )
-    
-    submission = Submissions_Test_Helper.create_submission_object(
-      xform_id=xform_id,
-      attributes_and_values=attributes_and_values,
-      facility = facility
-    )
-    
-    created = datetime(2012, 1, 7, 0, 0, 0)   
-    submission.created = created
-    submission.save()   
-    
-    submission.facility = facility
-    
+    facility = Submissions_Test_Helper.create_facility(facility_name=u'xyz',dhis2_uuid=u'uuid_xxx')    
+    submission = self._create_submission(facility = facility, xform_id=xform_id, attributes_and_values=attributes_and_values)  
+ 
     submission_data = self.h033b_reporter.get_reports_data_for_submission(submission)
     sorter = lambda dataValue : dataValue['dataElement']
     submission_data['dataValues']  = sorted(submission_data['dataValues'],key=sorter)
@@ -256,6 +232,114 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(submission_data['completeDate'], u'2012-01-07T00:00:00Z')
     self.assertEquals(submission_data['period'], u'2012W1')
     self.assertEquals(submission_data['orgUnitIdScheme'], u'uuid')
+    
+  def test_missing_corresponding_dhis2_ids_and_or_comboids_generates_no_reports_data_for_submission(self):
+    xform_id = ACTS_XFORM_ID
+    missing_dhis2_uuis_and_combo_ids= [(u'OMxmmYvvLai' , u'BrX1bohix6a')]
+    corresponding_attributes_and_values = { u'eps': 62}
+    correct_attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}
+
+    self._create_dhis2_indicator_mapping( xform_id = ACTS_XFORM_ID, 
+        dhis2_uuis_and_combo_ids= missing_dhis2_uuis_and_combo_ids,
+        attributes_and_values = corresponding_attributes_and_values)
+    
+    facility = Submissions_Test_Helper.create_facility(facility_name=u'xyz',dhis2_uuid=u'uuid_xxx')    
+    submission = self._create_submission(facility = facility, xform_id=xform_id,
+                  attributes_and_values= correct_attributes_and_values)  
+
+    submission_data = self.h033b_reporter.get_reports_data_for_submission(submission)
+
+    self.assertEquals(len(submission_data['dataValues']) , 1)
+
+    self.assertEquals(submission_data['dataValues'][0]['dataElement'] , 'OMxmmYvvLai')
+    self.assertEquals(submission_data['dataValues'][0]['value'] ,62 )
+    self.assertEquals(submission_data['dataValues'][0]['categoryOptionCombo'] ,u'BrX1bohix6a' )
+
+  @patch('rapidsms_xforms.models.XFormSubmissionValue.objects.filter')
+  def test_missing_indicator_values_are_NOT_reported_in_data_for_submission(self, mock_xform_filter):
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}
+
+    dhis2_uuis_and_combo_ids= [
+     (u'NoJfAIcxjSY' , u'gGhClrV5odI'),
+     (u'OMxmmYvvLai' , u'BrX1bohix6a'),
+     (u'w3mO7SZdbb8' , u'drJyZS90kYV'),
+      ]
+
+    self._create_dhis2_indicator_mapping( xform_id = ACTS_XFORM_ID, 
+        attributes_and_values = attributes_and_values,
+        dhis2_uuis_and_combo_ids= dhis2_uuis_and_combo_ids)
+
+
+    facility = Submissions_Test_Helper.create_facility(facility_name=u'xyz',dhis2_uuid=u'uuid_xxx')    
+    submission = self._create_submission(facility = facility, xform_id=xform_id, attributes_and_values=attributes_and_values)  
+    
+    
+    # mocking needed because _create_submission (only used in test not dhis2) automatically clean None submission.value 
+    xform = XForm.objects.get(id=xform_id)
+
+    submission_value_epd = MagicMock()
+    submission_value_epd.value = None
+    submission_value_epd.attribute = XFormField.objects.get(xform=xform, command='epd')
+    
+    submission_value_eps = MagicMock()
+    submission_value_eps.value = None
+    submission_value_eps.attribute = XFormField.objects.get(xform=xform, command='eps')
+    
+    submission_value_fpd = MagicMock()
+    submission_value_fpd.value = 71
+    submission_value_fpd.attribute = XFormField.objects.get(xform=xform, command='fpd')
+    
+    mock_xform_filter.return_value = [submission_value_epd, submission_value_eps, submission_value_fpd]
+
+    submission_data = self.h033b_reporter.get_reports_data_for_submission(submission)
+    
+    self.assertEquals(len(submission_data['dataValues']) , 1)
+    
+    self.assertEquals(submission_data['dataValues'][0]['dataElement'] , 'w3mO7SZdbb8')
+    self.assertEquals(submission_data['dataValues'][0]['value'] ,71 )
+    self.assertEquals(submission_data['dataValues'][0]['categoryOptionCombo'] ,u'drJyZS90kYV' )
+  
+  def _create_dhis2_indicator_mapping(self,   xform_id = ACTS_XFORM_ID, 
+    attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}, 
+    dhis2_uuis_and_combo_ids= [
+     (u'NoJfAIcxjSY' , u'gGhClrV5odI'),
+     (u'OMxmmYvvLai' , u'BrX1bohix6a'),
+     (u'w3mO7SZdbb8' , u'drJyZS90kYV'),
+      ] ):
+
+    xform_fields_commands = sorted (attributes_and_values.keys())
+
+    for index in range(len(xform_fields_commands)) : 
+      dhis2_uid = dhis2_uuis_and_combo_ids[index][0]
+      dhis2_combo_id = dhis2_uuis_and_combo_ids[index][1]
+      attribute = XFormField.objects.get(command=xform_fields_commands[index]).attribute_ptr
+
+      Dhis2_Mtrac_Indicators_Mapping.objects.create( 
+        eav_attribute = attribute,
+        dhis2_uuid =dhis2_uid ,
+        dhis2_combo_id=dhis2_combo_id
+      )
+
+  def _create_submission(self, facility,
+    created = datetime(2012, 1, 7, 0, 0, 0), 
+    xform_id = ACTS_XFORM_ID,
+    attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}
+    ):
+    
+    submission = Submissions_Test_Helper.create_submission_object(
+      xform_id=xform_id,
+      attributes_and_values=attributes_and_values,
+      facility = facility
+    )
+
+    submission.created = created
+    submission.save()   
+
+    submission.facility = facility
+
+    return submission
+
   
   def test_get_submissions_in_date_range(self):
     xform_id = ACTS_XFORM_ID
@@ -323,7 +407,7 @@ class Test_H033B_Reporter(TestCase):
     from_date = datetime(2011, 12, 18, 00, 00, 00)
     to_date = datetime(2011, 12, 19, 23, 59, 59)
 
-    facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1',dhis2_uuid=u'test_uuid1')   
+    facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1', dhis2_uuid=u'test_uuid1')   
 
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
        attributes_and_values=attributes_and_values,facility = facility)
@@ -776,7 +860,6 @@ class Test_H033B_Reporter(TestCase):
 
     for log_record_for_submission in log_record_for_submissions : 
       self.assertEquals(log_record_for_submission.result,Dhis2_Reports_Report_Task_Log.SUCCESS)
-
 
   def create_submission(self, xform_id=ACTS_XFORM_ID,   attributes_and_values = {u'epd': 53,u'tps': 44},created = datetime(2013,1,1,1,1,1), create_attribute_mappings = True):
     facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)

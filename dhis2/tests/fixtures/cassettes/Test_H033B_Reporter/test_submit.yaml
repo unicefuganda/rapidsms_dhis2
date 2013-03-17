@@ -2,50 +2,20 @@
     body: !!python/object/new:django.utils.safestring.SafeUnicode [!!python/unicode "<dataValueSet\
         \ xmlns=\"http://dhis2.org/schema/dxf/2.0\" dataSet=\"V1kJRs8CtW4\" completeDate=\"\
         2012-11-11T00:00:00Z\" period=\"2012W45\"\n  orgUnitIdScheme=\"uuid\" orgUnit=\"\
-        e8085011-b276-41ea-b5c0-a60bb4be61ef\">\n  \n    <dataValue dataElement=\"\
+        3b8a12cd-b844-4d87-ab9b-86308af7139a\">\n  \n    <dataValue dataElement=\"\
         U7cokRIptxu\" categoryOptionCombo= \"gGhClrV5odI\" value=\"100\" />\n  \n\
         \    <dataValue dataElement=\"mdIPCPfqXaJ\" categoryOptionCombo= \"gGhClrV5odI\"\
         \ value=\"99\" />\n  \n</dataValueSet>"]
     headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Length: '407',
-      Content-Type: application/xml, Host: ec2-54-242-108-118.compute-1.amazonaws.com,
-      User-Agent: Python-urllib/2.7}
-    method: POST
-    url: /api/dataValueSets
-  response:
-    body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
-        process completed successfully</description><dataValueCount imported="0" updated="2"
-        ignored="0"/><dataSetComplete>2012-11-11</dataSetComplete></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Wed,
-        06 Mar 2013 11:30:31 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=9A253238F99E390FDA0C42F5B438C2DF;
-        Path=/; HttpOnly, transfer-encoding: chunked}
-    status: {code: 200, message: OK}
-- request:
-    body: !!python/object/new:django.utils.safestring.SafeUnicode [!!python/unicode "<dataValueSet\
-        \ xmlns=\"http://dhis2.org/schema/dxf/2.0\" dataSet=\"V1kJRs8CtW4\" completeDate=\"\
-        2012-11-11T00:00:00Z\" period=\"2012W45\"\n  orgUnitIdScheme=\"uuid\" orgUnit=\"\
-        e8085011-b276-41ea-b5c0-a60bb4be61ef\">\n  \n    <dataValue dataElement=\"\
-        U7cokRIptxu\" categoryOptionCombo= \"gGhClrV5odI\" value=\"100\" />\n  \n\
-        \    <dataValue dataElement=\"mdIPCPfqXaJ\" categoryOptionCombo= \"gGhClrV5odI\"\
-        \ value=\"99\" />\n  \n</dataValueSet>"]
-    headers: {Authorization: Basic YXBpOlBhc3N3MHJk, Connection: close, Content-Length: '407',
       Content-Type: application/xml, Host: !!python/unicode 'ec2-54-242-108-118.compute-1.amazonaws.com',
       User-Agent: Python-urllib/2.7}
     method: POST
     url: !!python/unicode '/api/dataValueSets'
   response:
-    body: {string: '<html><head><title>Apache Tomcat/7.0.26 - Error report</title><style><!--H1
-        {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:22px;}
-        H2 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:16px;}
-        H3 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:14px;}
-        BODY {font-family:Tahoma,Arial,sans-serif;color:black;background-color:white;}
-        B {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;}
-        P {font-family:Tahoma,Arial,sans-serif;background:white;color:black;font-size:12px;}A
-        {color : black;}A.name {color : black;}HR {color : #525D76;}--></style> </head><body><h1>HTTP
-        Status 401 - Bad credentials</h1><HR size="1" noshade="noshade"><p><b>type</b>
-        Status report</p><p><b>message</b> <u>Bad credentials</u></p><p><b>description</b>
-        <u>This request requires HTTP authentication (Bad credentials).</u></p><HR
-        size="1" noshade="noshade"><h3>Apache Tomcat/7.0.26</h3></body></html>'}
-    headers: {connection: close, content-length: '999', content-type: text/html;charset=utf-8,
-      date: 'Tue, 12 Mar 2013 12:20:22 GMT', server: nginx/1.1.19, www-authenticate: Basic
-        realm="DHIS2"}
-    status: {code: 401, message: Unauthorized}
+    body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
+        process completed successfully</description><dataValueCount imported="0" updated="2"
+        ignored="0"/><dataSetComplete>2012-11-11</dataSetComplete></importSummary>'}
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Sun,
+        17 Mar 2013 09:56:00 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=7D3336367A070EA4605E04B95477668F;
+        Path=/; HttpOnly, transfer-encoding: chunked}
+    status: {code: 200, message: OK}

@@ -135,16 +135,16 @@ class H033B_Reporter(object):
     data['dataValues']    = []
         
     for submission_value in submission_values : 
-      dataValue = self.get_attibute_values_for_submission(submission_value)
+      dataValue = self.get_attribute_values_for_submission(submission_value)
       if dataValue :
         data['dataValues'].append(dataValue)
         
-  def get_attibute_values_for_submission(self, submission_value):
+  def get_attribute_values_for_submission(self, submission_value):
     data_value      = {}
     attribute = submission_value.attribute
     dhis2_mapping   = Dhis2_Mtrac_Indicators_Mapping.objects.filter(eav_attribute=attribute)
-    
-    if dhis2_mapping:
+
+    if dhis2_mapping and submission_value.value :
       element_id                        = dhis2_mapping[0].dhis2_uuid
       combo_id                          = dhis2_mapping[0].dhis2_combo_id
       data_value['dataElement']         = element_id
@@ -154,7 +154,7 @@ class H033B_Reporter(object):
     return data_value
     
   def get_submissions_in_date_range(self,from_date,to_date):
-    submissions = XFormSubmission.objects.filter(created__range=[from_date, to_date] )
+    submissions = XFormSubmission.objects.filter(created__range=[from_date, to_date] ).exclude(has_errors=True)
     ids_of_submissions_with_facilities = self.__get_submission_ids_for_submissions_with_valid_facilities(submissions)
     submissions = submissions.filter(id__in=ids_of_submissions_with_facilities)
     submissions = self.__filter_lastest_submission_with_same_xform_from_the_same_facility(submissions)
