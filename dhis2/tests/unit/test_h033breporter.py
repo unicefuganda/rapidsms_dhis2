@@ -379,7 +379,23 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(submissions_in_period[0].id , submission1.id)
     self.assertEquals(submissions_in_period[1].id , submission2.id)
     
-  
+  def test_get_submissions_in_date_range_for_submissions_has_errors_True(self):
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {}
+
+    from_date = datetime(2011, 12, 18, 00, 00, 00)
+    to_date = datetime(2011, 12, 19, 23, 59, 59)
+
+    facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1',dhis2_uuid=u'test_uuid1')   
+
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+       attributes_and_values=attributes_and_values,facility = facility)
+    submission.created = from_date + timedelta(seconds = 1)
+    submission.has_errors = True
+    submission.save()
+
+    submissions_in_period  = self.h033b_reporter.get_submissions_in_date_range(from_date,to_date)
+    self.assertEquals(len(submissions_in_period) , 0)
     
     
   def test_get_submissions_in_date_range_for_no_submission_extra(self):
@@ -586,7 +602,7 @@ class Test_H033B_Reporter(TestCase):
     
     submissions_list  = self.h033b_reporter.get_submissions_in_date_range(from_date,to_date)
 
-    self.assertEquals(len(submissions_list),4  )
+    self.assertEquals(len(submissions_list), 4)
     self.assertTrue(latest_submission1 in submissions_list)
     self.assertTrue(latest_submission2 in submissions_list)
     self.assertTrue(latest_submission3 in submissions_list)

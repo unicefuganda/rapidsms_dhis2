@@ -16,6 +16,6 @@
         process completed successfully</description><dataValueCount imported="0" updated="2"
         ignored="0"/><dataSetComplete>2013-01-21</dataSetComplete></importSummary>'}
     headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Sun,
-        17 Mar 2013 09:59:31 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=B3E3DB2EBECDACC62CE97E460E9AB218;
+        17 Mar 2013 15:56:21 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=F2BCD18FEA33A5BD3249A1440DE13C37;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}
