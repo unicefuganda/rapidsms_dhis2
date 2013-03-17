@@ -367,17 +367,11 @@ class Test_H033B_Reporter(TestCase):
     submission2.save()
     
     submissions_in_period  = self.h033b_reporter.get_submissions_in_date_range(from_date,to_date)
-    sort_by_id = lambda submission : submission.id
-    
-    submissions_in_period = sorted(list(submissions_in_period),key=sort_by_id)
     
     self.assertEquals(len(submissions_in_period) , 2)
     
-    if submission1.id > submission2.id :
-      submission2,submission1  =  submission1,submission2
-    
-    self.assertEquals(submissions_in_period[0].id , submission1.id)
-    self.assertEquals(submissions_in_period[1].id , submission2.id)
+    self.assertTrue(submission1 in submissions_in_period)
+    self.assertTrue(submission2 in submissions_in_period )
     
   def test_get_submissions_in_date_range_for_submissions_has_errors_True(self):
     xform_id = ACTS_XFORM_ID

@@ -143,7 +143,7 @@ class H033B_Reporter(object):
     data_value      = {}
     attribute = submission_value.attribute
     dhis2_mapping   = Dhis2_Mtrac_Indicators_Mapping.objects.filter(eav_attribute=attribute)
-
+    
     if dhis2_mapping and submission_value.value :
       element_id                        = dhis2_mapping[0].dhis2_uuid
       combo_id                          = dhis2_mapping[0].dhis2_combo_id
@@ -228,7 +228,7 @@ class H033B_Reporter(object):
 
   def submit_report_and_log_result(self,submission):
     success = False
-    
+
     try : 
       data =self.get_reports_data_for_submission(submission)
       result = self.submit_report(data)
@@ -268,7 +268,7 @@ class H033B_Reporter(object):
       result = log_result,
       description =log_message
     )
-        
+      
     return log_result == Dhis2_Reports_Report_Task_Log.SUCCESS
     
   
