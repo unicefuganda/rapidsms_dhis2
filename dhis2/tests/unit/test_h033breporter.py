@@ -12,11 +12,11 @@ from eav.models import Attribute
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log,Dhis2_Reports_Submissions_Log
 from mock import *
 
+TEST_DHIS2_BASE_URL = settings.DHIS2_BASE_URL
+TEST_DHIS2_USER = settings.DHIS2_REPORTER_USERNAME
+TEST_DHIS2_PASSWORD = settings.DHIS2_REPORTER_PASSWORD
 
 A_VALID_DHIS2_UUID = u'3b8a12cd-b844-4d87-ab9b-86308af7139a'
-TEST_DHIS2_BASE_URL = 'http://ec2-54-242-108-118.compute-1.amazonaws.com'
-TEST_DHIS2_USER = 'api'
-TEST_DHIS2_PASSWORD = 'Passw0rd'
 ACTS_XFORM_ID = 55
 VITAMIN_A_XFORM_ID = 63
 
@@ -270,10 +270,8 @@ class Test_H033B_Reporter(TestCase):
         attributes_and_values = attributes_and_values,
         dhis2_uuis_and_combo_ids= dhis2_uuis_and_combo_ids)
 
-
     facility = Submissions_Test_Helper.create_facility(facility_name=u'xyz',dhis2_uuid=u'uuid_xxx')    
     submission = self._create_submission(facility = facility, xform_id=xform_id, attributes_and_values=attributes_and_values)  
-    
     
     # mocking needed because _create_submission (only used in test not dhis2) automatically clean None submission.value 
     xform = XForm.objects.get(id=xform_id)
@@ -339,13 +337,11 @@ class Test_H033B_Reporter(TestCase):
     submission.facility = facility
 
     return submission
-
   
   def test_get_submissions_in_date_range(self):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {}
 
-    
     from_date = datetime(2011, 12, 18, 00, 00, 00)
     to_date = datetime(2011, 12, 19, 23, 59, 59)
     
@@ -389,8 +385,8 @@ class Test_H033B_Reporter(TestCase):
     submission.save()
 
     submissions_in_period  = self.h033b_reporter.get_submissions_in_date_range(from_date,to_date)
+
     self.assertEquals(len(submissions_in_period) , 0)
-    
     
   def test_get_submissions_in_date_range_for_no_submission_extra(self):
     xform_id = ACTS_XFORM_ID
@@ -431,9 +427,7 @@ class Test_H033B_Reporter(TestCase):
     submissions_in_period  = self.h033b_reporter.get_submissions_in_date_range(from_date,to_date)
 
     self.assertEquals(len(submissions_in_period) , 0)
-         
-
-  
+    
   def test_get_submissions_in_date_range_for_reported_submissions(self):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {}
@@ -537,11 +531,10 @@ class Test_H033B_Reporter(TestCase):
     new_submission.created = to_date - timedelta(seconds =1)        
     new_submission.save()
     
-
     submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
 
     self.assertEquals(len(submissions_in_period) , 1)  
-    self.assertEquals(submissions_in_period[0].id, new_submission.id)  
+    self.assertEquals(submissions_in_period[0], new_submission)  
          
   def test_remove_duplicate_reports(self):
     xform_id = VITAMIN_A_XFORM_ID
@@ -616,14 +609,15 @@ class Test_H033B_Reporter(TestCase):
   def test_log_submission_finished(self):
     Dhis2_Reports_Report_Task_Log.objects.all().delete()
     self.h033b_reporter.log_submission_started()
+    ARBITRARY_SUBMISSION_COUNT = 100
     
     self.h033b_reporter.log_submission_finished(
-      submission_count=100,
+      submission_count=ARBITRARY_SUBMISSION_COUNT,
       status= Dhis2_Reports_Report_Task_Log.SUCCESS,
       description='Submitted succesfully to dhis2')
 
     log_record_fetched = Dhis2_Reports_Report_Task_Log.objects.all()[0]
-    self.assertEquals(log_record_fetched.number_of_submissions , 100)
+    self.assertEquals(log_record_fetched.number_of_submissions , ARBITRARY_SUBMISSION_COUNT)
     self.assertEquals(log_record_fetched.description , 'Submitted succesfully to dhis2')
     self.assertEquals(log_record_fetched.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
     
