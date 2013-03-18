@@ -47,7 +47,11 @@ KNOWN_MATCHES = {
     u'(Other ACT in Stock)'    : u'Other balance on hand',
     u'(Quinine Used)'          : u'Quinine dispensed',
     u'(Quinine in Stock?)'     : u'Quinine on hand',
+}
 
+MATCHES_REQUIRING_SLUG={
+# Malaria cases(disease) -- we need cases_ma and not doc_ma -- who both have the same name
+u'Malaria Cases - WEP'     : u'cases_ma'
 }
 
 class Dhis2_Fetch_Health_Indicators(object):
@@ -84,6 +88,10 @@ class Dhis2_Fetch_Health_Indicators(object):
         return self.compare_strings(self.clean_indicator_names_from_dhis2(dhis2_name), mtrack_name)
 
     def find_matching_indicator_from_mtrack(self, dhis2_indicator_name):
+        
+        if dhis2_indicator_name in MATCHES_REQUIRING_SLUG:
+          return Attribute.objects.get(slug=MATCHES_REQUIRING_SLUG[dhis2_indicator_name])
+      
         min_match_level = self.match_threshold
         all_mtrack_indicators = Attribute.objects.all()
         matching_indicator = None
