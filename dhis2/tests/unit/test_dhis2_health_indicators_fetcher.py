@@ -58,6 +58,18 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
 
     def test_find_matches_and_update_mapping_table(self):
         Dhis2_Mtrac_Indicators_Mapping.objects.all().delete()
+        arbitrary_disease = {"name":u"Typhoid Fever Cases - WEP", "id": u"IkI01xB7RIi", "href":DHIS2_API_URL + "dataElements/IkI01xB7RIi", "combo_id":u"92DkrSOchnL" }
+        self.fetcher.find_matches_and_update_mapping_table(arbitrary_disease)
+        record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_uuid='IkI01xB7RIi')
+        self.assertIsNotNone(record)
+        self.assertEquals(len(record), 1)
+        record = record[0]
+        self.assertEquals( record.dhis2_uuid, arbitrary_disease['id'])
+        self.assertEquals( record.dhis2_combo_id, arbitrary_disease['combo_id'])
+        self.assertEquals( record.eav_attribute, Attribute.objects.get(slug='cases_tf'))
+        
+    def test_malaria_case_is_mapped_to_cases_ma_slug_and_NOT_doc_ma(self):
+        Dhis2_Mtrac_Indicators_Mapping.objects.all().delete()
         disease = {"name":u"Malaria Cases - WEP", "id": u"fclvwNhzu7d", "href":DHIS2_API_URL + "dataElements/fclvwNhzu7d", "combo_id":u"92DkrSOchnL" }
         self.fetcher.find_matches_and_update_mapping_table(disease)
         record = Dhis2_Mtrac_Indicators_Mapping.objects.filter(dhis2_uuid='fclvwNhzu7d')
@@ -67,6 +79,8 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
         self.assertEquals( record.dhis2_uuid, disease['id'])
         self.assertEquals( record.dhis2_combo_id, disease['combo_id'])
         self.assertEquals( record.eav_attribute, Attribute.objects.get(slug='cases_ma'))
+        self.assertNotEquals(record.eav_attribute, Attribute.objects.get(slug='doc_ma'))
+        
 
     def test_get_indicator_combo_option_id_default(self):
         category_combo_url = DHIS2_API_URL + 'categoryCombos/92DkrSOchnL'

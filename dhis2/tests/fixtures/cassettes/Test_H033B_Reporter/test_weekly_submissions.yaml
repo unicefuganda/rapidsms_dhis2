@@ -2,6 +2,48 @@
     body: !!python/object/new:django.utils.safestring.SafeUnicode [!!python/unicode "<dataValueSet\
         \ xmlns=\"http://dhis2.org/schema/dxf/2.0\" dataSet=\"V1kJRs8CtW4\" completeDate=\"\
         2013-01-21T23:59:59Z\" period=\"2013W3\"\n  orgUnitIdScheme=\"uuid\" orgUnit=\"\
+        3b8a12cd-b844-4d87-ab9b-86308af7139a\">\n  \n    <dataValue dataElement=\"\
+        NoJfAIcxjSY\" categoryOptionCombo= \"gGhClrV5odI\" value=\"53\" />\n  \n \
+        \   <dataValue dataElement=\"OMxmmYvvLai\" categoryOptionCombo= \"gGhClrV5odI\"\
+        \ value=\"62\" />\n  \n</dataValueSet>"]
+    headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Length: '405',
+      Content-Type: application/xml, Host: !!python/unicode 'ec2-54-242-108-118.compute-1.amazonaws.com',
+      User-Agent: Python-urllib/2.7}
+    method: POST
+    url: !!python/unicode '/api/dataValueSets'
+  response:
+    body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
+        process completed successfully</description><dataValueCount imported="0" updated="2"
+        ignored="0"/><dataSetComplete>2013-01-21</dataSetComplete></importSummary>'}
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Mon,
+        18 Mar 2013 11:04:41 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=C1828BA7AF1B1462D4E07D8CF131B8AE;
+        Path=/; HttpOnly, transfer-encoding: chunked}
+    status: {code: 200, message: OK}
+- request:
+    body: !!python/object/new:django.utils.safestring.SafeUnicode [!!python/unicode "<dataValueSet\
+        \ xmlns=\"http://dhis2.org/schema/dxf/2.0\" dataSet=\"V1kJRs8CtW4\" completeDate=\"\
+        2013-01-21T23:59:59Z\" period=\"2013W3\"\n  orgUnitIdScheme=\"uuid\" orgUnit=\"\
+        45d81a6f-0060-4c6e-ad28-f7a3d8932904\">\n  \n    <dataValue dataElement=\"\
+        NoJfAIcxjSY\" categoryOptionCombo= \"gGhClrV5odI\" value=\"53\" />\n  \n \
+        \   <dataValue dataElement=\"OMxmmYvvLai\" categoryOptionCombo= \"gGhClrV5odI\"\
+        \ value=\"62\" />\n  \n</dataValueSet>"]
+    headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Length: '405',
+      Content-Type: application/xml, Host: !!python/unicode 'ec2-54-242-108-118.compute-1.amazonaws.com',
+      User-Agent: Python-urllib/2.7}
+    method: POST
+    url: !!python/unicode '/api/dataValueSets'
+  response:
+    body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
+        process completed successfully</description><dataValueCount imported="0" updated="2"
+        ignored="0"/><dataSetComplete>2013-01-21</dataSetComplete></importSummary>'}
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Mon,
+        18 Mar 2013 11:04:44 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=BF437FB084D4849F331BE506DDC41510;
+        Path=/; HttpOnly, transfer-encoding: chunked}
+    status: {code: 200, message: OK}
+- request:
+    body: !!python/object/new:django.utils.safestring.SafeUnicode [!!python/unicode "<dataValueSet\
+        \ xmlns=\"http://dhis2.org/schema/dxf/2.0\" dataSet=\"V1kJRs8CtW4\" completeDate=\"\
+        2013-01-21T23:59:59Z\" period=\"2013W3\"\n  orgUnitIdScheme=\"uuid\" orgUnit=\"\
         2315d1ea-35da-4fdd-99ca-06feab246784\">\n  \n    <dataValue dataElement=\"\
         NoJfAIcxjSY\" categoryOptionCombo= \"gGhClrV5odI\" value=\"53\" />\n  \n \
         \   <dataValue dataElement=\"OMxmmYvvLai\" categoryOptionCombo= \"gGhClrV5odI\"\
@@ -16,6 +58,6 @@
         process completed successfully</description><dataValueCount imported="0" updated="2"
         ignored="0"/><dataSetComplete>2013-01-21</dataSetComplete></importSummary>'}
     headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Mon,
-        18 Mar 2013 10:42:30 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=E1D99EFA79F8F40A1D918B2707C6588A;
+        18 Mar 2013 11:04:47 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=AD8D3AEC70CD76A41582FFB9565788D4;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}
