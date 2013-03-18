@@ -1,3 +1,4 @@
+import settings
 from django.test import TestCase
 import sys, os, vcr, dhis2
 from dhis2.dhis2_match import *
@@ -6,13 +7,9 @@ import json
 from mock import *
 from eav.models import Attribute
 
-FRED_CONFIG = {"url": "http://ec2-54-242-108-118.compute-1.amazonaws.com/api/", "username": "api", "password": "P@ssw0rd"}
 FIXTURES = os.path.abspath(dhis2.__path__[0]) + "/tests/fixtures/cassettes/"
 
-URLS = {
-    'test_dataset_url'  : FRED_CONFIG['url'] + 'dataSets/V1kJRs8CtW4',
-    'test_dataset_id'   : 'V1kJRs8CtW4'
-}
+DHIS2_HMIS033b_INDICATOR_URL= settings.DHIS2_HMIS033b_INDICATOR_URL
 
 JSON_EXTENSION = '.json'
 
@@ -23,8 +20,8 @@ class Test_Dhis2_Fetch_Health_Indicators(TestCase):
 
     def test_get_hmis033b_dataset(self):
        with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
-            obj = self.fetcher.fetch(JSON_EXTENSION, URLS['test_dataset_url'])
-            self.assertIsNotNone(obj)
+           obj = self.fetcher.fetch(JSON_EXTENSION, DHIS2_HMIS033b_INDICATOR_URL)
+           self.assertIsNotNone(obj)
 
     def test_clean_indicator_names_from_dhis2(self):
         self.assertEqual(self.fetcher.clean_indicator_names_from_dhis2('Bubukwanga - WEP    '), 'Bubukwanga')
