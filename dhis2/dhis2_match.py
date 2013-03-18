@@ -7,12 +7,13 @@ import psycopg2.extras
 import Levenshtein
 from eav.models import Attribute
 from models import Dhis2_Mtrac_Indicators_Mapping
+from settings import *
 # http://dhis/api/dataElements/.json
 
 DHIS2_CONNECTION_CONFIG = {
     'urls': {
-        'diseases': 'http://dhis/api/dataSets/V1kJRs8CtW4',
-        'categoryComboUrlBase' : 'http://dhis/api/categoryCombos/'
+        'diseases': DHIS2_BASE_URL+'/api/dataSets/V1kJRs8CtW4',
+        'categoryComboUrlBase' : DHIS2_BASE_URL+'/api/categoryCombos/'
     },
     "combo_ids" : {
         'diseases': '92DkrSOchnL',
@@ -20,8 +21,8 @@ DHIS2_CONNECTION_CONFIG = {
         'treat':'uh4pYNd1CSv',
         'test': 'IohHeDqzJk1'
         },
-    'user': 'api',
-    'password': 'P@ssw0rd',
+    'user': DHIS2_REPORTER_USERNAME,
+    'password': DHIS2_REPORTER_PASSWORD,
     'content-type': 'json'
 }
 

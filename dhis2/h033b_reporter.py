@@ -272,7 +272,8 @@ class H033B_Reporter(object):
   
   def initiate_weekly_submissions(self,date=datetime.now()):
     last_monday = self.get_last_sunday(date) + timedelta(days=1)
-    submissions_for_last_week = self.get_submissions_in_date_range(last_monday, date)
+    last_monday_at_midnight = datetime(last_monday.year, last_monday.month, last_monday.day, 0, 0,0)
+    submissions_for_last_week = self.get_submissions_in_date_range(last_monday_at_midnight, date)
 
     self.log_submission_started()
     successful_submissions  =  0
