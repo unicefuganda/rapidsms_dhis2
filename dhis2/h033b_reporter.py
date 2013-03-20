@@ -8,7 +8,9 @@ from mtrack.models import XFormSubmissionExtras
 from datetime import timedelta,datetime
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log ,Dhis2_Reports_Submissions_Log
 from xml.parsers.expat import ExpatError
+from celery import Celery
 
+celery = Celery()
 
 HMIS033B_REPORT_XML_TEMPLATE      = "h033b_reporter.xml"
 DATA_VALUE_SETS_URL               = u'/api/dataValueSets'
@@ -268,6 +270,29 @@ class H033B_Reporter(object):
     )
       
     return log_result == Dhis2_Reports_Report_Task_Log.SUCCESS
+  
+  @celery.task  
+  def send_parallel_submissions_task(self, submission):
+    submission_outcome = False
+    try :
+      status = Dhis2_Reports_Report_Task_Log.SUCCESS
+      description = ''
+      submission_outcome = self.submit_report_and_log_result(submission)
+      
+    except urllib2.URLError , e: 
+      exception = type(e).__name__ +":"+ str(e)
+      connection_failed = True
+      status = Dhis2_Reports_Report_Task_Log.FAILED
+      description = ERROR_MESSAGE_CONNECTION_FAILED + ' Exception : '+exception
+      
+    except Exception ,e : 
+      exception = type(e).__name__ +":"+ str(e)
+      connection_failed = True
+      status = Dhis2_Reports_Report_Task_Log.FAILED
+      description = ERROR_MESSAGE_UNEXPECTED_ERROR + ' Exception : '+exception
+      
+    return submission_outcome, status, description  
+        
     
   
   def initiate_weekly_submissions(self,date=datetime.now()):
@@ -278,25 +303,19 @@ class H033B_Reporter(object):
     self.log_submission_started()
     successful_submissions  =  0
     connection_failed = False
+    
     status = Dhis2_Reports_Report_Task_Log.SUCCESS
     description = ''
+    
     try : 
       for submission in submissions_for_last_week:
-        try :
-          if self.submit_report_and_log_result(submission) :            
-            successful_submissions +=1          
-        except urllib2.URLError , e: 
-          exception = type(e).__name__ +":"+ str(e)
-          connection_failed = True
-          status = Dhis2_Reports_Report_Task_Log.FAILED
-          description = ERROR_MESSAGE_CONNECTION_FAILED + ' Exception : '+exception
+        submission_outcome, status, description  = self.send_parallel_submissions_task.delay(self, submission)
+        successful_submissions +=submission_outcome
+        if ERROR_MESSAGE_CONNECTION_FAILED in description:
           break
-        except Exception ,e : 
-          exception = type(e).__name__ +":"+ str(e)
-          connection_failed = True
-          status = Dhis2_Reports_Report_Task_Log.FAILED
-          description = ERROR_MESSAGE_UNEXPECTED_ERROR + ' Exception : '+exception
-          raise e
+        if ERROR_MESSAGE_UNEXPECTED_ERROR in description:
+          type_of_exception =  description.split(':')[1]
+          raise eval(type_of_exception)
     finally : 
       self.log_submission_finished(
         submission_count=successful_submissions,
