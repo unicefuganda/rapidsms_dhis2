@@ -86,11 +86,14 @@ class Dhis2_Reports_Submissions_Log(models.Model):
   INVALID_SUBMISSION_DATA  = "INVALID_SUBMISSION_DATA"
   SOME_ATTRIBUTES_IGNORED = "SOME_ATTRIBUTES_IGNORED"
   ERROR                   = 'ERROR'
+  FAILED                  = 'FAILED'
   task_id               = models.ForeignKey(Dhis2_Reports_Report_Task_Log)
   submission_id         = models.IntegerField()
   reported_xml          = models.TextField(null=True)
   result                = models.CharField(max_length=50)
   description           = models.TextField(null=True)
+  dhis2_result          = models.CharField(max_length=50, null = True)
+  dhis2_description     = models.TextField(null=True)
 
   class Meta:
     db_table = u'dhis2_attribute_submissions_log'

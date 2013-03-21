@@ -127,8 +127,9 @@ class Test_H033B_Reporter(TestCase):
     raise AssertionError( assertion_failure_message )
     
   def test_submit(self):
+    h033b_reporter = H033B_Reporter()
     with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
-      result = self.h033b_reporter.submit_report(TEST_SUBMISSION_DATA)
+      result = h033b_reporter.submit_report(TEST_SUBMISSION_DATA)
     accepted_attributes_values = result['updated'] + result['imported']
     self.assertEquals(accepted_attributes_values,2)
     self.assertIsNone(result['error'])
@@ -622,28 +623,26 @@ class Test_H033B_Reporter(TestCase):
     
   def test_no_valid_hms_indicator_exists(self):
     xform_id = ACTS_XFORM_ID
-    attributes_and_values = {u'epd': 53,
+    attributes_and_values_no_033b = {u'epd': 53,
      u'tps': 44}
      
     h033b_reporter = H033B_Reporter()
     h033b_reporter.log_submission_started()
     facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
-      attributes_and_values=attributes_and_values,facility = facility)   
+      attributes_and_values=attributes_and_values_no_033b,facility = facility)   
 
     submission.facility = facility
     submission.save()
     
-    h033b_reporter.submit_report_and_log_result(submission)
-    log = Dhis2_Reports_Submissions_Log.objects.get(submission_id=submission.id)
+    result, reported_xml, description = h033b_reporter.submit_report_and_log_result(submission)
     
-    self.assertIsNone(log.reported_xml)
-    self.assertEquals(log.task_id,h033b_reporter.current_task)
-    self.assertEquals(log.result,Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA)
-    self.assertIsNotNone(log.description)
+    self.assertIsNone(reported_xml)
+    self.assertEquals(result, Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA)
+    self.assertIsNotNone(description, 'LookupError: '+ ERROR_MESSAGE_NO_HMS_INDICATOR)
       
 
-  def test_dhis2_returns_error(self):
+  def test_dhis2_returns_error_for_missing_orgUnit_mapping(self):
     self.h033b_reporter = H033B_Reporter()
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {u'epd': 53,
@@ -662,42 +661,29 @@ class Test_H033B_Reporter(TestCase):
     self.h033b_reporter.log_submission_started()
   
     with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
-      result = self.h033b_reporter.submit_report_and_log_result(submission)
-
-    log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
+      result, reported_xml, description = self.h033b_reporter.submit_report_and_log_result(submission)
     
-    
-    self.assertIsNotNone(log.reported_xml)
-    self.assertEquals(log.task_id,self.h033b_reporter.current_task)
-    self.assertEquals(log.submission_id,submission.id)
-    self.assertEquals(log.result,Dhis2_Reports_Submissions_Log.ERROR)
-    self.assertIsNotNone(log.description  )  
+    self.assertIsNotNone(reported_xml)
+    self.assertEquals(result,Dhis2_Reports_Submissions_Log.ERROR)
+    self.assertTrue('OrganisationUnit  : Must be provided to complete data set' in description)  
 
-  def test_doesnt_log_xml_for_success_submissions(self):
+  def test_doesnt_log_xml_and_no_description_for_success_submissions(self):
     h033b_reporter = H033B_Reporter()
-    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
-    submission = self._create_submission(facility= facility, create_attribute_mappings = True)
-    h033b_reporter.log_submission_started()
     
+    h033b_reporter.get_reports_data_for_submission = lambda submission : 'mocked because not needed and also slows down the test significantly' 
     mock_send = lambda data : h033b_reporter.parse_submission_response(SUCCESS_XML_RESPONSE,'request xml')
     h033b_reporter.submit_report = mock_send
     
-    result = h033b_reporter.submit_report_and_log_result(submission)
+    result, reported_xml, description =  h033b_reporter.submit_report_and_log_result('fake submission')
 
-    log = Dhis2_Reports_Submissions_Log.objects.get(task_id=h033b_reporter.current_task)
+    self.assertIsNone(reported_xml)
+    self.assertEquals(result,Dhis2_Reports_Submissions_Log.SUCCESS)
+    self.assertEquals(description, '')
 
-
-    self.assertIsNone(log.reported_xml)
-    self.assertEquals(log.submission_id,submission.id)
-    self.assertEquals(log.result,Dhis2_Reports_Submissions_Log.SUCCESS)
-
-
-        
   def test_http_response_contains_error_is_logged(self):
     h033b_reporter = H033B_Reporter()
-    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
-    submission = self._create_submission(facility= facility, create_attribute_mappings = True)
-    h033b_reporter.log_submission_started()
+    
+    h033b_reporter.get_reports_data_for_submission = lambda submission : 'mocked because not needed and also slows down the test significantly' 
     DUMMY_INTEGER  = 11111111
     result = {'error': 'some http response error', 
               'updated': DUMMY_INTEGER,
@@ -707,18 +693,17 @@ class Test_H033B_Reporter(TestCase):
     mock_submit = lambda data : result
     h033b_reporter.submit_report = mock_submit
     
-    h033b_reporter.submit_report_and_log_result(submission)
-    log  = Dhis2_Reports_Submissions_Log.objects.get(submission_id = submission.id)
+    submission_result, reported_xml, description = h033b_reporter.submit_report_and_log_result('fake submission')
     
-    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.ERROR )
-    self.assertEquals(log.description, result['error'])
-    self.assertEquals(log.reported_xml, result['request_xml'])
+    self.assertEquals(submission_result, Dhis2_Reports_Submissions_Log.ERROR )
+    self.assertEquals(description, result['error'])
+    self.assertEquals(reported_xml, result['request_xml'])
     
   def test_http_response_rejects_all_indicators_is_logged(self):
     h033b_reporter = H033B_Reporter()
-    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
-    submission = self._create_submission(facility= facility, create_attribute_mappings = True)
-    h033b_reporter.log_submission_started()
+    
+    h033b_reporter.get_reports_data_for_submission = lambda submission : 'mocked because not needed and also slows down the test significantly' 
+    
     NUMBER_OF_INDICATOR_ACCEPTED  = 0
     result = {'error': None,
               'updated': NUMBER_OF_INDICATOR_ACCEPTED,
@@ -728,18 +713,16 @@ class Test_H033B_Reporter(TestCase):
     mock_submit = lambda data : result
     h033b_reporter.submit_report = mock_submit
 
-    h033b_reporter.submit_report_and_log_result(submission)
-    log  = Dhis2_Reports_Submissions_Log.objects.get(submission_id = submission.id)
-
-    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.ERROR )
-    self.assertEquals(log.description, ERROR_MESSAGE_ALL_VALUES_IGNORED)
-    self.assertEquals(log.reported_xml, result['request_xml'])
+    submission_result, reported_xml, description = h033b_reporter.submit_report_and_log_result('fake submission')
+    
+    self.assertEquals(submission_result, Dhis2_Reports_Submissions_Log.ERROR )
+    self.assertEquals(description, ERROR_MESSAGE_ALL_VALUES_IGNORED)
+    self.assertEquals(reported_xml, result['request_xml'])
 
   def test_http_response_accepts_no_indicators_is_logged(self):
     h033b_reporter = H033B_Reporter()
-    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
-    submission = self._create_submission(facility= facility, create_attribute_mappings = True)
-    h033b_reporter.log_submission_started()
+    
+    h033b_reporter.get_reports_data_for_submission = lambda submission : 'mocked because not needed and also slows down the test significantly' 
     SOME_POSITIVE_NUMBER  = 1
     INDICATORS_IGNORED  = 1
     
@@ -752,18 +735,16 @@ class Test_H033B_Reporter(TestCase):
     mock_submit = lambda data : result
     h033b_reporter.submit_report = mock_submit
 
-    h033b_reporter.submit_report_and_log_result(submission)
-    log  = Dhis2_Reports_Submissions_Log.objects.get(submission_id = submission.id)
+    submission_result, reported_xml, description = h033b_reporter.submit_report_and_log_result('fake submission')
 
-    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED )
-    self.assertEquals(log.description,ERROR_MESSAGE_SOME_VALUES_IGNORED )
-    self.assertEquals(log.reported_xml, result['request_xml'])
+    self.assertEquals(submission_result, Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED )
+    self.assertEquals(description,ERROR_MESSAGE_SOME_VALUES_IGNORED )
+    self.assertEquals(reported_xml, result['request_xml'])
   
   def test_http_response_rejects_some_indicators_is_logged(self):
     h033b_reporter = H033B_Reporter()
-    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
-    submission = self._create_submission(facility= facility, create_attribute_mappings = True)
-    h033b_reporter.log_submission_started()
+    
+    h033b_reporter.get_reports_data_for_submission = lambda submission : 'mocked because not needed and also slows down the test significantly' 
     SOME_POSITIVE_NUMBER  = 1
     INDICATORS_IGNORED  = 1
 
@@ -776,20 +757,16 @@ class Test_H033B_Reporter(TestCase):
     mock_submit = lambda data : result
     h033b_reporter.submit_report = mock_submit
 
-    h033b_reporter.submit_report_and_log_result(submission)
-    log  = Dhis2_Reports_Submissions_Log.objects.get(submission_id = submission.id)
+    submission_result, reported_xml, description =h033b_reporter.submit_report_and_log_result('fake submission')
 
-    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED )
-    self.assertEquals(log.description,ERROR_MESSAGE_SOME_VALUES_IGNORED )
-    self.assertEquals(log.reported_xml, result['request_xml'])
+    self.assertEquals(submission_result, Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED )
+    self.assertEquals(description,ERROR_MESSAGE_SOME_VALUES_IGNORED )
+    self.assertEquals(reported_xml, result['request_xml'])
     
-    
-  
   def test_http_unrecognized_format_response_is_logged(self):
     h033b_reporter = H033B_Reporter()
-    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
-    submission = self._create_submission(facility= facility, create_attribute_mappings = True)
-    h033b_reporter.log_submission_started()
+
+    h033b_reporter.get_reports_data_for_submission = lambda submission : 'mocked because not needed and also slows down the test significantly' 
     SOME_POSITIVE_NUMBER  = 1
     INDICATORS_IGNORED  = 1
 
@@ -798,15 +775,38 @@ class Test_H033B_Reporter(TestCase):
     mock_submit = lambda data : h033b_reporter.parse_submission_response(unrecognized_response,'request xml')
     h033b_reporter.submit_report = mock_submit
 
-    h033b_reporter.submit_report_and_log_result(submission)
-    log  = Dhis2_Reports_Submissions_Log.objects.get(submission_id = submission.id)
+    submission_result, reported_xml, description =h033b_reporter.submit_report_and_log_result('fake submission')
 
-    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.ERROR )
-    self.assertTrue(ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2 in log.description, )
-    self.assertEquals(log.reported_xml, 'request xml')  
+    self.assertEquals(submission_result, Dhis2_Reports_Submissions_Log.ERROR )
+    self.assertTrue(ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2 in description)
+    self.assertEquals(reported_xml, 'request xml')  
+  
+  @patch('dhis2.h033b_reporter.H033B_Reporter.submit_report_and_log_result')  
+  def test_dhis2_result_success_is_logged_upon_successful_submission(self, mock_submit):
+    self.h033b_reporter = H033B_Reporter()
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {u'epd': 53,
+         u'tps': 44}
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+          attributes_and_values=attributes_and_values,facility = facility)
     
+    mock_submit.return_value = ['some_result', 'some_reported_xml', 'some_description']
 
-  def test_weekly_submissions(self,submissions_count=3,delete_old_submissions=True):
+    self.h033b_reporter.log_submission_started()
+    self.h033b_reporter.send_parallel_submissions_task(self.h033b_reporter, submission)
+    
+    log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
+
+    self.assertEquals(log.task_id,self.h033b_reporter.current_task)
+    self.assertEquals(log.submission_id,submission.id)
+    self.assertEquals(log.dhis2_result, Dhis2_Reports_Submissions_Log.SUCCESS)
+    self.assertEquals(log.dhis2_description, '')    
+    self.assertEquals(log.reported_xml, 'some_reported_xml')
+    self.assertEquals(log.result,'some_result')
+    self.assertEquals(log.description, 'some_description')
+    
+  def xtest_weekly_submissions(self,submissions_count=3,delete_old_submissions=True):
     h033b_reporter = H033B_Reporter()
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {

@@ -15,7 +15,7 @@
     body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
         process completed successfully</description><dataValueCount imported="0" updated="2"
         ignored="0"/><dataSetComplete>2012-11-11</dataSetComplete></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Sun,
-        17 Mar 2013 18:38:34 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=BAF3F0597EAD0D90E506ECB276C967B9;
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Thu,
+        21 Mar 2013 07:18:31 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=5F41AC6BBD2CF2171B324D1E2BFF0978;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}

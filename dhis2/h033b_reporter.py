@@ -47,7 +47,6 @@ class H033B_Reporter(object):
     return self.parse_submission_response(response.read(),xml_request)
   
   def parse_submission_response(self,response_xml,request_xml):   
-
     try: 
       dom      = parseString(response_xml)
       result   = dom.getElementsByTagName('dataValueCount')[0]
@@ -250,74 +249,78 @@ class H033B_Reporter(object):
       
       requestXML = result['request_xml']      
     except ExpatError,e : 
-      error_message = type(e).__name__ +":"+ str(e)
+      error_message = type(e).__name__ +": "+ str(e)
       log_message = "%s\n%s"%(ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2,error_message)
       log_result = Dhis2_Reports_Submissions_Log.ERROR
       requestXML = e.request_xml 
     except LookupError ,e :
-      error_message = type(e).__name__ +":"+ str(e)
+      error_message = type(e).__name__ +": "+ str(e)
       log_message = error_message
       log_result = Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA
       requestXML=None
     
-    # Do not log the request XML if success
-    Dhis2_Reports_Submissions_Log.objects.create(
-      task_id = self.current_task,
-      submission_id = submission.id,
-      reported_xml = requestXML if not success else None, 
-      result = log_result,
-      description =log_message
-    )
-      
-    return log_result == Dhis2_Reports_Report_Task_Log.SUCCESS
+    reported_xml = requestXML if not success else None 
+    result = log_result
+    description =log_message
+  
+    return result, reported_xml, description
   
   @celery.task  
   def send_parallel_submissions_task(self, submission):
-    submission_outcome = False
-    try :
-      status = Dhis2_Reports_Report_Task_Log.SUCCESS
-      description = ''
-      submission_outcome = self.submit_report_and_log_result(submission)
-      
-    except urllib2.URLError , e: 
-      exception = type(e).__name__ +":"+ str(e)
-      connection_failed = True
-      status = Dhis2_Reports_Report_Task_Log.FAILED
-      description = ERROR_MESSAGE_CONNECTION_FAILED + ' Exception : '+exception
-      
-    except Exception ,e : 
-      exception = type(e).__name__ +":"+ str(e)
-      connection_failed = True
-      status = Dhis2_Reports_Report_Task_Log.FAILED
-      description = ERROR_MESSAGE_UNEXPECTED_ERROR + ' Exception : '+exception
-      
-    return submission_outcome, status, description  
-        
+    reported_xml = ''
+    result = Dhis2_Reports_Submissions_Log.FAILED
+    description = 'Submission failed.'
     
+    try :
+      result, reported_xml, description= self.submit_report_and_log_result(submission) 
+      dhis2_result = Dhis2_Reports_Submissions_Log.SUCCESS
+      dhis2_description = ''
+    except urllib2.URLError , e:
+      exception = type(e).__name__ +":"+ str(e)
+      connection_failed = True
+      dhis2_result = Dhis2_Reports_Submissions_Log.FAILED
+      dhis2_description = ERROR_MESSAGE_CONNECTION_FAILED + ' Exception : '+exception
+    except Exception ,e :
+      exception = type(e).__name__ +":"+ str(e)
+      connection_failed = True
+      dhis2_result = Dhis2_Reports_Submissions_Log.FAILED
+      dhis2_description = ERROR_MESSAGE_UNEXPECTED_ERROR + ' Exception : '+exception
+
+      # log either success or network failure
+    Dhis2_Reports_Submissions_Log.objects.create(
+      task_id = self.current_task,
+      submission_id = submission.id,
+      reported_xml = reported_xml,
+      result = result,
+      description = description,
+      dhis2_result = dhis2_result, 
+      dhis2_description = dhis2_description, 
+    )    
   
   def initiate_weekly_submissions(self,date=datetime.now()):
     last_monday = self.get_last_sunday(date) + timedelta(days=1)
     last_monday_at_midnight = datetime(last_monday.year, last_monday.month, last_monday.day, 0, 0,0)
     submissions_for_last_week = self.get_submissions_in_date_range(last_monday_at_midnight, date)
-
-    self.log_submission_started()
-    successful_submissions  =  0
-    connection_failed = False
     
+    self.log_submission_started()
+    connection_failed = False
     status = Dhis2_Reports_Report_Task_Log.SUCCESS
     description = ''
     
-    try : 
-      for submission in submissions_for_last_week:
-        submission_outcome, status, description  = self.send_parallel_submissions_task.delay(self, submission)
-        successful_submissions +=submission_outcome
-        if ERROR_MESSAGE_CONNECTION_FAILED in description:
-          break
-        if ERROR_MESSAGE_UNEXPECTED_ERROR in description:
-          type_of_exception =  description.split(':')[1]
-          raise eval(type_of_exception)
-    finally : 
-      self.log_submission_finished(
+    for submission in submissions_for_last_week:
+        self.send_parallel_submissions_task.delay(self, submission) 
+    
+    failure = Dhis2_Reports_Submissions_Log.objects.filter(task_id = self.current_task, dhis2_result=Dhis2_Reports_Submissions_Log.FAILED)
+    
+    if failure:
+      status = Dhis2_Reports_Report_Task_Log.FAILED
+      description = 'Network failure'
+
+    successful_submissions = len(submissions_for_last_week)-len(failure)
+      
+    self.log_submission_finished(
         submission_count=successful_submissions,
         status= status,
         description=description)
+
+    

@@ -6,29 +6,6 @@
         \ categoryOptionCombo= \"gGhClrV5odI\" value=\"53\" />\n  \n    <dataValue\
         \ dataElement=\"NoJfAIcxjSY\" categoryOptionCombo= \"gGhClrV5odI\" value=\"\
         44\" />\n  \n</dataValueSet>"]
-    headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Length: '394',
-      Content-Type: application/xml, Host: !!python/unicode 'ec2-54-242-108-118.compute-1.amazonaws.com',
-      User-Agent: Python-urllib/2.7}
-    method: POST
-    url: !!python/unicode '/api/dataValueSets'
-  response:
-    body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
-        process completed successfully</description><dataValueCount imported="0" updated="0"
-        ignored="2"/><conflicts><conflict object="OrganisationUnit" value="Must be
-        provided to complete data set"/><conflict object="OrganisationUnit"/><conflict
-        object="OrganisationUnit"/></conflicts></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Sun,
-        17 Mar 2013 18:36:44 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=259B1E7EA29452350422305818120908;
-        Path=/; HttpOnly, transfer-encoding: chunked}
-    status: {code: 200, message: OK}
-- request:
-    body: !!python/object/new:django.utils.safestring.SafeUnicode [!!python/unicode "<dataValueSet\
-        \ xmlns=\"http://dhis2.org/schema/dxf/2.0\" dataSet=\"V1kJRs8CtW4\" completeDate=\"\
-        2013-01-01T01:01:01Z\" period=\"2012W53\"\n  orgUnitIdScheme=\"uuid\" orgUnit=\"\
-        CRAP_UUID_TO_CAUSE_ERROR\">\n  \n    <dataValue dataElement=\"tjTnFJ1QdVz\"\
-        \ categoryOptionCombo= \"gGhClrV5odI\" value=\"53\" />\n  \n    <dataValue\
-        \ dataElement=\"NoJfAIcxjSY\" categoryOptionCombo= \"gGhClrV5odI\" value=\"\
-        44\" />\n  \n</dataValueSet>"]
     headers: {Authorization: Basic bXRyYWNfZmFjaWxpdGllczo0d2hvbXRoZUJlbGx0b2xscw==,
       Connection: close, Content-Length: '394', Content-Type: application/xml, Host: !!python/unicode 'file.health.go.ug',
       User-Agent: Python-urllib/2.7}
@@ -41,6 +18,29 @@
         provided to complete data set"/><conflict object="OrganisationUnit"/><conflict
         object="OrganisationUnit"/></conflicts></importSummary>'}
     headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Thu,
-        21 Mar 2013 07:56:49 GMT', set-cookie: JSESSIONID=67A6FDF6242804EE9A3C6C7B9F0321A6;
+        21 Mar 2013 08:07:12 GMT', set-cookie: JSESSIONID=956AAD559C0C466B6985687EBB68EFB6;
         Path=/; Secure; HttpOnly, transfer-encoding: chunked}
+    status: {code: 200, message: OK}
+- request:
+    body: !!python/object/new:django.utils.safestring.SafeUnicode [!!python/unicode "<dataValueSet\
+        \ xmlns=\"http://dhis2.org/schema/dxf/2.0\" dataSet=\"V1kJRs8CtW4\" completeDate=\"\
+        2013-01-01T01:01:01Z\" period=\"2012W53\"\n  orgUnitIdScheme=\"uuid\" orgUnit=\"\
+        CRAP_UUID_TO_CAUSE_ERROR\">\n  \n    <dataValue dataElement=\"tjTnFJ1QdVz\"\
+        \ categoryOptionCombo= \"gGhClrV5odI\" value=\"53\" />\n  \n    <dataValue\
+        \ dataElement=\"NoJfAIcxjSY\" categoryOptionCombo= \"gGhClrV5odI\" value=\"\
+        44\" />\n  \n</dataValueSet>"]
+    headers: {Authorization: Basic YXBpOlBAc3N3MHJk, Connection: close, Content-Length: '394',
+      Content-Type: application/xml, Host: !!python/unicode 'ec2-54-242-108-118.compute-1.amazonaws.com',
+      User-Agent: Python-urllib/2.7}
+    method: POST
+    url: !!python/unicode '/api/dataValueSets'
+  response:
+    body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
+        process completed successfully</description><dataValueCount imported="0" updated="0"
+        ignored="2"/><conflicts><conflict object="OrganisationUnit" value="Must be
+        provided to complete data set"/><conflict object="OrganisationUnit"/><conflict
+        object="OrganisationUnit"/></conflicts></importSummary>'}
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Thu,
+        21 Mar 2013 07:18:53 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=3DFF58501223813FC38755A89F7DCC5F;
+        Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}
