@@ -795,7 +795,7 @@ class Test_H033B_Reporter(TestCase):
     mock_submit.return_value = ['some_result', 'some_reported_xml', 'some_description']
 
     self.h033b_reporter.log_submission_started()
-    self.h033b_reporter.send_parallel_submissions_task(self.h033b_reporter, submission)
+    self.h033b_reporter.send_parallel_submissions_task(submission)
     
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
 
@@ -820,7 +820,7 @@ class Test_H033B_Reporter(TestCase):
     mock_submit.side_effect = urllib2.URLError('fake network failure')
 
     self.h033b_reporter.log_submission_started()
-    self.h033b_reporter.send_parallel_submissions_task(self.h033b_reporter, submission)
+    self.h033b_reporter.send_parallel_submissions_task(submission)
 
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
 
@@ -846,21 +846,53 @@ class Test_H033B_Reporter(TestCase):
     mock_submit.side_effect = Exception('fake network failure')
 
     self.h033b_reporter.log_submission_started()
-    self.h033b_reporter.send_parallel_submissions_task(self.h033b_reporter, submission)
+    self.h033b_reporter.send_parallel_submissions_task(submission)
 
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
 
     self.assertEquals(log.task_id,self.h033b_reporter.current_task)
     self.assertEquals(log.submission_id,submission.id)
     self.assertEquals(log.dhis2_result, Dhis2_Reports_Submissions_Log.FAILED)
-    print log.dhis2_description
     self.assertTrue(ERROR_MESSAGE_UNEXPECTED_ERROR in log.dhis2_description)    
     self.assertEquals(log.reported_xml, '')
     self.assertEquals(log.result,Dhis2_Reports_Submissions_Log.FAILED)
     self.assertEquals(log.description, 'Submission failed.')  
     
+  
+  @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter')   
+  def test_failed_weekly_submissions(self, mock_failed_log):
+    h033b_reporter = H033B_Reporter()
+    FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission_1', 'fake_submission_2']
+    USELESS_DATE = datetime.now()
     
-  def xtest_weekly_submissions(self,submissions_count=3,delete_old_submissions=True):
+    h033b_reporter.get_submissions_in_date_range = lambda date1, date2 : FAKE_SUBMISSION_LIST_OF_LENGTH_TWO
+    h033b_reporter.send_parallel_submissions_task = lambda submission: 'mocked cuz not needed, also to speed things up'
+    from celery.task.sets import TaskSet
+    TaskSet = MagicMock(return_value='mocked')
+    
+    mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
+    h033b_reporter.log_submission_started = lambda:mocked_current_task
+    h033b_reporter.current_task = mocked_current_task
+    
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {u'epd': 53,
+         u'tps': 44}
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+          attributes_and_values=attributes_and_values,facility = facility)
+    
+    failed_log = Dhis2_Reports_Submissions_Log.objects.create(task_id = mocked_current_task, submission_id=submission.id, dhis2_result=Dhis2_Reports_Submissions_Log.FAILED)
+    
+    mock_failed_log.return_value = [failed_log]
+    
+    h033b_reporter.initiate_weekly_submissions(USELESS_DATE)
+
+    self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
+    self.assertEquals(mocked_current_task.number_of_submissions , len(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)-1)
+    self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.FAILED)
+    self.assertEquals(mocked_current_task.description, TASK_FAILURE_DECRIPTION)
+      
+  def test_successful_weekly_submissions(self,submissions_count=3,delete_old_submissions=True):
     h033b_reporter = H033B_Reporter()
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {
@@ -922,4 +954,4 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(log_record_for_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
 
     for log_record_for_submission in log_record_for_submissions : 
-      self.assertEquals(log_record_for_submission.result,Dhis2_Reports_Report_Task_Log.SUCCESS)
+      self.assertEquals(log_record_for_submission.result,Dhis2_Reports_Report_Task_Log.SUCCESS)      

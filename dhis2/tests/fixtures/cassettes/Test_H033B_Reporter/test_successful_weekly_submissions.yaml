@@ -15,8 +15,8 @@
     body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
         process completed successfully</description><dataValueCount imported="0" updated="2"
         ignored="0"/><dataSetComplete>2013-01-21</dataSetComplete></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Mon,
-        18 Mar 2013 11:04:41 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=C1828BA7AF1B1462D4E07D8CF131B8AE;
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Thu,
+        21 Mar 2013 14:03:44 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=4D7EAD382F445D94141921EB41FFFF80;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}
 - request:
@@ -36,8 +36,8 @@
     body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
         process completed successfully</description><dataValueCount imported="0" updated="2"
         ignored="0"/><dataSetComplete>2013-01-21</dataSetComplete></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Mon,
-        18 Mar 2013 11:04:44 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=BF437FB084D4849F331BE506DDC41510;
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Thu,
+        21 Mar 2013 14:03:48 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=B48864A98C876C8F584A0BB8C9FEBEA4;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}
 - request:
@@ -57,7 +57,7 @@
     body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
         process completed successfully</description><dataValueCount imported="0" updated="2"
         ignored="0"/><dataSetComplete>2013-01-21</dataSetComplete></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Mon,
-        18 Mar 2013 11:04:47 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=AD8D3AEC70CD76A41582FFB9565788D4;
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Thu,
+        21 Mar 2013 14:03:52 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=649EDF72C30E81A24CB0C30231A34EF6;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}

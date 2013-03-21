@@ -8,9 +8,10 @@ from mtrack.models import XFormSubmissionExtras
 from datetime import timedelta,datetime
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log ,Dhis2_Reports_Submissions_Log
 from xml.parsers.expat import ExpatError
-from celery import Celery
+# from celery import Celery
+# celery = Celery()
 
-celery = Celery()
+from celery.task.sets import TaskSet
 
 HMIS033B_REPORT_XML_TEMPLATE      = "h033b_reporter.xml"
 DATA_VALUE_SETS_URL               = u'/api/dataValueSets'
@@ -23,6 +24,7 @@ ERROR_MESSAGE_SOME_VALUES_IGNORED = u'Some values rejected by remote server'
 ERROR_MESSAGE_CONNECTION_FAILED   = u'Error communicating with the remote server'
 ERROR_MESSAGE_UNEXPECTED_ERROR    = u'Unexpected error while submitting reports to DHIS2'
 ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2   = u'Unexpected response from DHIS2'
+TASK_FAILURE_DECRIPTION = u'Network failure'
 
 class H033B_Reporter(object):
   
@@ -265,7 +267,7 @@ class H033B_Reporter(object):
   
     return result, reported_xml, description
   
-  @celery.task  
+  
   def send_parallel_submissions_task(self, submission):
     reported_xml = ''
     result = Dhis2_Reports_Submissions_Log.FAILED
@@ -307,17 +309,16 @@ class H033B_Reporter(object):
     status = Dhis2_Reports_Report_Task_Log.SUCCESS
     description = ''
     
-    for submission in submissions_for_last_week:
-        self.send_parallel_submissions_task.delay(self, submission) 
-    
+    TaskSet( self.send_parallel_submissions_task(submission) for submission in submissions_for_last_week)
+
     failure = Dhis2_Reports_Submissions_Log.objects.filter(task_id = self.current_task, dhis2_result=Dhis2_Reports_Submissions_Log.FAILED)
-    
+  
     if failure:
       status = Dhis2_Reports_Report_Task_Log.FAILED
-      description = 'Network failure'
+      description = TASK_FAILURE_DECRIPTION
 
     successful_submissions = len(submissions_for_last_week)-len(failure)
-      
+    
     self.log_submission_finished(
         submission_count=successful_submissions,
         status= status,
