@@ -270,9 +270,6 @@ class H033B_Reporter(object):
   
   def send_parallel_submissions_task(self, submission):
     reported_xml = ''
-    result = Dhis2_Reports_Submissions_Log.FAILED
-    description = 'Submission failed.'
-    
     try :
       result, reported_xml, description= self.submit_report_and_log_result(submission) 
       dhis2_result = Dhis2_Reports_Submissions_Log.SUCCESS
@@ -280,13 +277,13 @@ class H033B_Reporter(object):
     except urllib2.URLError , e:
       exception = type(e).__name__ +":"+ str(e)
       connection_failed = True
-      dhis2_result = Dhis2_Reports_Submissions_Log.FAILED
-      dhis2_description = ERROR_MESSAGE_CONNECTION_FAILED + ' Exception : '+exception
+      result = Dhis2_Reports_Submissions_Log.FAILED
+      description = ERROR_MESSAGE_CONNECTION_FAILED + ' Exception : '+exception
     except Exception ,e :
       exception = type(e).__name__ +":"+ str(e)
       connection_failed = True
-      dhis2_result = Dhis2_Reports_Submissions_Log.FAILED
-      dhis2_description = ERROR_MESSAGE_UNEXPECTED_ERROR + ' Exception : '+exception
+      result = Dhis2_Reports_Submissions_Log.FAILED
+      description = ERROR_MESSAGE_UNEXPECTED_ERROR + ' Exception : '+exception
 
       # log either success or network failure
     Dhis2_Reports_Submissions_Log.objects.create(
@@ -295,8 +292,6 @@ class H033B_Reporter(object):
       reported_xml = reported_xml,
       result = result,
       description = description,
-      dhis2_result = dhis2_result, 
-      dhis2_description = dhis2_description, 
     )    
   
   def initiate_weekly_submissions(self,date=datetime.now()):
@@ -311,7 +306,7 @@ class H033B_Reporter(object):
     
     TaskSet( self.send_parallel_submissions_task(submission) for submission in submissions_for_last_week)
 
-    failure = Dhis2_Reports_Submissions_Log.objects.filter(task_id = self.current_task, dhis2_result=Dhis2_Reports_Submissions_Log.FAILED)
+    failure = Dhis2_Reports_Submissions_Log.objects.filter(task_id = self.current_task, result=Dhis2_Reports_Submissions_Log.FAILED)
   
     if failure:
       status = Dhis2_Reports_Report_Task_Log.FAILED

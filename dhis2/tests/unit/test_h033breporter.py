@@ -801,8 +801,6 @@ class Test_H033B_Reporter(TestCase):
 
     self.assertEquals(log.task_id,self.h033b_reporter.current_task)
     self.assertEquals(log.submission_id,submission.id)
-    self.assertEquals(log.dhis2_result, Dhis2_Reports_Submissions_Log.SUCCESS)
-    self.assertEquals(log.dhis2_description, '')    
     self.assertEquals(log.reported_xml, 'some_reported_xml')
     self.assertEquals(log.result,'some_result')
     self.assertEquals(log.description, 'some_description')
@@ -826,12 +824,9 @@ class Test_H033B_Reporter(TestCase):
 
     self.assertEquals(log.task_id,self.h033b_reporter.current_task)
     self.assertEquals(log.submission_id,submission.id)
-    self.assertEquals(log.dhis2_result, Dhis2_Reports_Submissions_Log.FAILED)
-    print log.dhis2_description
-    self.assertTrue(ERROR_MESSAGE_CONNECTION_FAILED in log.dhis2_description)    
+    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.FAILED)
+    self.assertTrue(ERROR_MESSAGE_CONNECTION_FAILED in log.description)    
     self.assertEquals(log.reported_xml, '')
-    self.assertEquals(log.result,Dhis2_Reports_Submissions_Log.FAILED)
-    self.assertEquals(log.description, 'Submission failed.')  
     
   @patch('dhis2.h033b_reporter.H033B_Reporter.submit_report_and_log_result')  
   def test_dhis2_result_failed_is_logged_upon_any_other_failure(self, mock_submit):
@@ -852,12 +847,9 @@ class Test_H033B_Reporter(TestCase):
 
     self.assertEquals(log.task_id,self.h033b_reporter.current_task)
     self.assertEquals(log.submission_id,submission.id)
-    self.assertEquals(log.dhis2_result, Dhis2_Reports_Submissions_Log.FAILED)
-    self.assertTrue(ERROR_MESSAGE_UNEXPECTED_ERROR in log.dhis2_description)    
+    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.FAILED)
+    self.assertTrue(ERROR_MESSAGE_UNEXPECTED_ERROR in log.description)    
     self.assertEquals(log.reported_xml, '')
-    self.assertEquals(log.result,Dhis2_Reports_Submissions_Log.FAILED)
-    self.assertEquals(log.description, 'Submission failed.')  
-    
   
   @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter')   
   def test_failed_weekly_submissions(self, mock_failed_log):
@@ -881,7 +873,7 @@ class Test_H033B_Reporter(TestCase):
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
           attributes_and_values=attributes_and_values,facility = facility)
     
-    failed_log = Dhis2_Reports_Submissions_Log.objects.create(task_id = mocked_current_task, submission_id=submission.id, dhis2_result=Dhis2_Reports_Submissions_Log.FAILED)
+    failed_log = Dhis2_Reports_Submissions_Log.objects.create(task_id = mocked_current_task, submission_id=submission.id, result=Dhis2_Reports_Submissions_Log.FAILED)
     
     mock_failed_log.return_value = [failed_log]
     
