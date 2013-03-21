@@ -12,8 +12,3 @@ def weekly_report_submissions_task(date):
 @celery.task
 def post(self, request):
   return urllib2.urlopen(request)  
-#   
-# @celery.task
-# def send_parallel_submissions_task(submission):
-#   h033b_reporter = H033B_Reporter()
-#   return h033b_reporter.send_parallel_submissions(submission)
