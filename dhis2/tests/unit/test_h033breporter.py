@@ -808,7 +808,7 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(log.description, 'some_description')
     
   @patch('dhis2.h033b_reporter.H033B_Reporter.submit_report_and_log_result')  
-  def test_dhis2_result_success_is_logged_upon_successful_submission(self, mock_submit):
+  def test_dhis2_result_failed_is_logged_upon_network_failure(self, mock_submit):
     self.h033b_reporter = H033B_Reporter()
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {u'epd': 53,
@@ -832,6 +832,33 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(log.reported_xml, '')
     self.assertEquals(log.result,Dhis2_Reports_Submissions_Log.FAILED)
     self.assertEquals(log.description, 'Submission failed.')  
+    
+  @patch('dhis2.h033b_reporter.H033B_Reporter.submit_report_and_log_result')  
+  def test_dhis2_result_failed_is_logged_upon_any_other_failure(self, mock_submit):
+    self.h033b_reporter = H033B_Reporter()
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {u'epd': 53,
+         u'tps': 44}
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+          attributes_and_values=attributes_and_values,facility = facility)
+
+    mock_submit.side_effect = Exception('fake network failure')
+
+    self.h033b_reporter.log_submission_started()
+    self.h033b_reporter.send_parallel_submissions_task(self.h033b_reporter, submission)
+
+    log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
+
+    self.assertEquals(log.task_id,self.h033b_reporter.current_task)
+    self.assertEquals(log.submission_id,submission.id)
+    self.assertEquals(log.dhis2_result, Dhis2_Reports_Submissions_Log.FAILED)
+    print log.dhis2_description
+    self.assertTrue(ERROR_MESSAGE_UNEXPECTED_ERROR in log.dhis2_description)    
+    self.assertEquals(log.reported_xml, '')
+    self.assertEquals(log.result,Dhis2_Reports_Submissions_Log.FAILED)
+    self.assertEquals(log.description, 'Submission failed.')  
+    
     
   def xtest_weekly_submissions(self,submissions_count=3,delete_old_submissions=True):
     h033b_reporter = H033B_Reporter()
