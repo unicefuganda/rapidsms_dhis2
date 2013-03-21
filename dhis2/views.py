@@ -14,7 +14,7 @@ TASK_LOG_RECORDS_PER_PAGE = 10
 TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE = 10
 
 def index(request):
-  task_logs = __get_tasks_view_data()
+  task_logs = _get_tasks_view_data()
   sorter_by_start_time = lambda data : data.time_started
   task_logs = sorted(task_logs,key=sorter_by_start_time, reverse=True)
   paginator = Paginator(task_logs, TASK_LOG_RECORDS_PER_PAGE)
@@ -30,7 +30,7 @@ def index(request):
   
   return render(request, 'h033b_reporter_index.html', {'tasks_logs_paginator':task_logs_paginator})
 
-def __get_tasks_view_data():
+def _get_tasks_view_data():
   tasks = Dhis2_Reports_Report_Task_Log.objects.all()
   data = []
   for task in tasks : 
@@ -42,28 +42,65 @@ def __get_tasks_view_data():
   
   return data  
 
-def task_details(request,task_id):
+def task_failed(request,task_id):
+  return _generate_log_page(request=request, task_id=task_id, result = Dhis2_Reports_Submissions_Log.FAILED, view_html='errors.html')
+
+def task_errors(request,task_id):
+  return _generate_log_page(request=request, task_id=task_id, result = Dhis2_Reports_Submissions_Log.ERROR, view_html='errors.html')
+
+def task_ignored(request,task_id):
+  return _generate_log_page(request=request, task_id=task_id, result = Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED, view_html='errors.html')
+  
+def task_summary(request,task_id):
   task = Dhis2_Reports_Report_Task_Log.objects.get(id=task_id)
-  submissions_tasks = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task).exclude(result=Dhis2_Reports_Submissions_Log.SUCCESS)
+  results = [
+      Dhis2_Reports_Submissions_Log.SUCCESS,
+      Dhis2_Reports_Submissions_Log.FAILED,
+      Dhis2_Reports_Submissions_Log.ERROR,
+      Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA,
+      Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED,
+  ]
+
+  all_sub=[]
+
+  for result in results:
+    log_result = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task, result=result)
+    
+    if log_result:
+     a_result = log_result[0]
+     a_result.size = len(log_result) 
+     all_sub.append(a_result)
+    
+  print all_sub  
+    
+  teplate_data = {
+    'task_log'  : task,
+    'results'    : all_sub,
+  }
+
+  return render(request, 'submission_summary.html', teplate_data)
+    
+  
+def _generate_log_page(request, task_id, result, view_html):
+  task = Dhis2_Reports_Report_Task_Log.objects.get(id=task_id)
+  submissions_tasks = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task, result=result)
   paginator = Paginator(submissions_tasks, TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE)
   page = request.GET.get('page')
   page = int(page) if page else 1
-  
+
   try:
     task_submissions_paginator = paginator.page(page)
   except PageNotAnInteger:
     task_submissions_paginator = paginator.page(1)
   except EmptyPage:
     task_submissions_paginator = paginator.page(paginator.num_pages)
-  
+
   teplate_data = {
     'task_log'  : task,
     'task_submissions_paginator':task_submissions_paginator,
-  
   }
-  
-  return render(request, 'task_details.html', teplate_data)
-  
+
+  return render(request, view_html, teplate_data)
 
      
      

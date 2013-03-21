@@ -246,7 +246,7 @@ class H033B_Reporter(object):
         log_message = ERROR_MESSAGE_SOME_VALUES_IGNORED
         log_result  = Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED
       else :
-        log_result  = Dhis2_Reports_Submissions_Log.SUCCESS
+        log_result  = Dhis2_Reports_Submissions_Log.SUCCESS        
         success =True
       
       requestXML = result['request_xml']      
@@ -272,8 +272,6 @@ class H033B_Reporter(object):
     reported_xml = ''
     try :
       result, reported_xml, description= self.submit_report_and_log_result(submission) 
-      dhis2_result = Dhis2_Reports_Submissions_Log.SUCCESS
-      dhis2_description = ''
     except urllib2.URLError , e:
       exception = type(e).__name__ +":"+ str(e)
       connection_failed = True

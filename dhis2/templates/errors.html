@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+{% load status_css_tag %}
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>H033b Reporter Tasks</title>
+  <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.9.0/build/reset/reset-min.css">
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}dhis2/stylesheets/bootstrap.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}dhis2/stylesheets/style.css"/>
+</head>
+<body>
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+		{% include header.html %}
+      </div>
+    </div>
+  </div>
+  <br><br><br><br>
+  <div class="container">
+      <h3>Rejected submissions for report id "{{ task_log.id }}"</h3>
+      <div >
+      <table class="table">
+        <tr>
+          <td>
+            Started 
+          </td>          
+          <td>
+            {{ task_log.time_started|default_if_none:''}}
+          </td>            
+          
+        </tr>
+        <tr class=" {% get_task_css task_log.status %}">
+          <td>
+            Result   
+          </td>           
+          <td >
+            {{ task_log.status|default_if_none:'' }}
+          </td>            
+          
+        </tr>
+        
+      </table>
+      </div>
+      
+     <table class="table table-hover table-bordered">
+        <thead>
+          <tr>
+            <th>
+              Submissions ID
+            </th>
+            <th>
+              Report XML
+            </th>
+            <th>
+              Description
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          {% for task_submission in task_submissions_paginator.object_list %}
+            <tr class=" {% get_submission_css task_submission.result %}">
+              <td>
+                {{ task_submission.submission_id|default_if_none:'' }}
+              </td>
+              <td>
+                {{ task_submission.reported_xml|default_if_none:'' }}
+              </td>
+              <td>
+                {{ task_submission.description|default_if_none:'' }}
+              </td>
+
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if task_submissions_paginator.object_list > 0 %}
+      <div class="pagination">
+          <ul>
+          {% if task_submissions_paginator.has_previous %}
+              <li><a href="?page={{ task_submissions_paginator.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">&lsaquo;&lsaquo; Prev</a></li>
+          {% else %}
+              <li class="disabled prev"><a href="#">&lsaquo;&lsaquo; Prev</a></li>
+          {% endif %}
+           <li  class="disabled prev">
+             <a href="#">
+              {{ task_submissions_paginator }}
+             </a>
+           </li>
+          {% if task_submissions_paginator.has_next %}
+              <li><a href="?page={{ task_submissions_paginator.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">Next &rsaquo;&rsaquo;</a></li>
+          {% else %}
+              <li class="disabled next"><a href="#">Next &rsaquo;&rsaquo;</a></li>
+          {% endif %}
+          </ul>
+      </div>
+      {% endif %}
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+{% load status_css_tag %}
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>
+  {% block title %}H033b Reporter Tasks{% endblock %}	
+  </title>
+  <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.9.0/build/reset/reset-min.css">
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}dhis2/stylesheets/bootstrap.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}dhis2/stylesheets/style.css"/>
+</head>
+<body>
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+		<ul class="nav" style="float:right;">
+		   <a  href="{% url logout_dhis2 %}">logout {{user.username}}</a>
+		</ul>
+		<ul class="nav" >
+		   <a  href="/">Home</a> &nbsp; | &nbsp;
+		  <a  href="{% url dhis2_reporter_index_page %}">Dhis2Reporter</a>
+		</ul>
+      </div>
+    </div>
+  </div>
+  <br><br><br><br>
+
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+
+</body>
+</html>
