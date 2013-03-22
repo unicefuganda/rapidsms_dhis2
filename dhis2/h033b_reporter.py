@@ -292,17 +292,12 @@ class H033B_Reporter(object):
       description = description,
     )    
   
-  def initiate_weekly_submissions(self,date=datetime.now()):
-    last_monday = self.get_last_sunday(date) + timedelta(days=1)
-    last_monday_at_midnight = datetime(last_monday.year, last_monday.month, last_monday.day, 0, 0,0)
-    submissions_for_last_week = self.get_submissions_in_date_range(last_monday_at_midnight, date)
-    
+  def submit_now(self, submissions):  
     self.log_submission_started()
-    connection_failed = False
     status = Dhis2_Reports_Report_Task_Log.SUCCESS
     description = ''
     
-    TaskSet( self.send_parallel_submissions_task(submission) for submission in submissions_for_last_week)
+    TaskSet( self.send_parallel_submissions_task(submission) for submission in submissions)
 
     failure = Dhis2_Reports_Submissions_Log.objects.filter(task_id = self.current_task, result=Dhis2_Reports_Submissions_Log.FAILED)
   
@@ -310,11 +305,16 @@ class H033B_Reporter(object):
       status = Dhis2_Reports_Report_Task_Log.FAILED
       description = TASK_FAILURE_DECRIPTION
 
-    successful_submissions = len(submissions_for_last_week)-len(failure)
-    
     self.log_submission_finished(
-        submission_count=successful_submissions,
+        submission_count=len(submissions),
         status= status,
         description=description)
+
+  def initiate_weekly_submissions(self,date=datetime.now()):
+    last_monday = self.get_last_sunday(date) + timedelta(days=1)
+    last_monday_at_midnight = datetime(last_monday.year, last_monday.month, last_monday.day, 0, 0,0)
+    submissions_for_last_week = self.get_submissions_in_date_range(last_monday_at_midnight, date)
+
+    self.submit_now(submissions_for_last_week)
 
     

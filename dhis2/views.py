@@ -40,7 +40,7 @@ def index(request):
   return render(request, 'h033b_reporter_index.html', {'tasks_logs_paginator':task_logs_paginator})
 
 def task_failed(request,task_id):
-  return _generate_log_page(request=request, task_id=task_id, result = Dhis2_Reports_Submissions_Log.FAILED, view_html='log_details.html')
+  return _generate_log_page(request=request, task_id=task_id, result = Dhis2_Reports_Submissions_Log.FAILED, view_html='failed.html')
 
 def task_errors(request,task_id):
   return _generate_log_page(request=request, task_id=task_id, result = Dhis2_Reports_Submissions_Log.ERROR, view_html='log_details.html')

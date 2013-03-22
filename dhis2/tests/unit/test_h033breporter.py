@@ -852,12 +852,13 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(log.reported_xml, '')
   
   @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter')   
-  def test_failed_weekly_submissions(self, mock_failed_log):
+  def test_failed_submission(self, mock_failed_log):
+    Dhis2_Reports_Report_Task_Log.objects.all().delete
+    Dhis2_Reports_Submissions_Log.objects.all().delete
+    
     h033b_reporter = H033B_Reporter()
     FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission_1', 'fake_submission_2']
-    USELESS_DATE = datetime.now()
-    
-    h033b_reporter.get_submissions_in_date_range = lambda date1, date2 : FAKE_SUBMISSION_LIST_OF_LENGTH_TWO
+
     h033b_reporter.send_parallel_submissions_task = lambda submission: 'mocked cuz not needed, also to speed things up'
     from celery.task.sets import TaskSet
     TaskSet = MagicMock(return_value='mocked')
@@ -877,12 +878,37 @@ class Test_H033B_Reporter(TestCase):
     
     mock_failed_log.return_value = [failed_log]
     
-    h033b_reporter.initiate_weekly_submissions(USELESS_DATE)
+    h033b_reporter.submit_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
 
     self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
-    self.assertEquals(mocked_current_task.number_of_submissions , len(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)-1)
+    self.assertEquals(mocked_current_task.number_of_submissions , len(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO))
     self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.FAILED)
     self.assertEquals(mocked_current_task.description, TASK_FAILURE_DECRIPTION)
+    
+  @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter')   
+  def test_successful_submission(self, mock_successful_log):
+    Dhis2_Reports_Report_Task_Log.objects.all().delete
+    Dhis2_Reports_Submissions_Log.objects.all().delete
+    
+    h033b_reporter = H033B_Reporter()
+    FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission_1', 'fake_submission_2']
+
+    h033b_reporter.send_parallel_submissions_task = lambda submission: 'mocked cuz not needed, also to speed things up'
+    from celery.task.sets import TaskSet
+    TaskSet = MagicMock(return_value='mocked')
+
+    mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
+    h033b_reporter.log_submission_started = lambda:mocked_current_task
+    h033b_reporter.current_task = mocked_current_task
+
+    mock_successful_log.return_value = []
+
+    h033b_reporter.submit_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
+
+    self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
+    self.assertEquals(mocked_current_task.number_of_submissions , len(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO))
+    self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
+    self.assertEquals(mocked_current_task.description, '')    
       
   def test_successful_weekly_submissions(self,submissions_count=3,delete_old_submissions=True):
     h033b_reporter = H033B_Reporter()

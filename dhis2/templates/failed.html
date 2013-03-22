@@ -1,27 +1,10 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
-   "http://www.w3.org/TR/html4/strict.dtd">
-{% load status_css_tag %}
-<html lang="en">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <title>H033b Reporter Tasks</title>
-  <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.9.0/build/reset/reset-min.css">
-  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}dhis2/stylesheets/bootstrap.min.css"/>
-  <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}dhis2/stylesheets/style.css"/>
-</head>
-<body>
-  <div class="navbar navbar-inverse navbar-fixed-top">
-    <div class="navbar-inner">
-      <div class="container">
-        <ul class="nav">
-           <a href="{% url logout_dhis2 %}">logout {{user.username}}</a>
-        </ul>
-      </div>
-    </div>
-  </div>
-  <br><br><br><br>
+{% extends "base.html" %}
+
+{% block title %} H033b Reporter Tasks | Failed submissions for report id "{{ task_log.id }}" {% endblock %}
+
+{% block content %}
   <div class="container">
-      <h3>Submissions for report id "{{ task_log.id }}"</h3>
+      <h3>Failed submissions for report id "{{ task_log.id }}"</h3>
       <div >
       <table class="table">
         <tr>
@@ -33,7 +16,7 @@
           </td>            
           
         </tr>
-        <tr class=" {% get_task_css task_log.status %}">
+        <tr >
           <td>
             Result   
           </td>           
@@ -53,12 +36,6 @@
               Submissions ID
             </th>
             <th>
-              Report XML
-            </th>
-            <th>
-              Result
-            </th>
-            <th>
               Description
             </th>
           </tr>
@@ -66,15 +43,9 @@
         <tbody>
           
           {% for task_submission in task_submissions_paginator.object_list %}
-            <tr class=" {% get_submission_css task_submission.result %}">
+            <tr >
               <td>
                 {{ task_submission.submission_id|default_if_none:'' }}
-              </td>
-              <td>
-                {{ task_submission.reported_xml|default_if_none:'' }}
-              </td>
-              <td>
-                {{ task_submission.result|default_if_none:'' }}
               </td>
               <td>
                 {{ task_submission.description|default_if_none:'' }}
@@ -105,7 +76,4 @@
           </ul>
       </div>
       {% endif %}
-  </div>
-
-</body>
-</html>
+{% endblock %}

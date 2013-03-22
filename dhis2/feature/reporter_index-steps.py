@@ -67,7 +67,7 @@ def show_submission_tasks(step):
   assert world.browser.is_text_present("ID")
   assert world.browser.is_text_present("Time Started")
   assert world.browser.is_text_present("Result")
-  assert world.browser.is_text_present("Description")
+  assert world.browser.is_text_present("Summary")
   assert world.browser.is_text_present("Number of submissions")
   assert world.browser.is_text_present("<Page 1 of %d>"%number_of_log_pages)
   world.browser.is_element_present_by_css("a[class=next]", wait_time=3)
