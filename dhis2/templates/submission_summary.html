@@ -16,7 +16,8 @@
           </td>            
           
         </tr>
-        <tr >
+		{% load status_css_tag %}	
+        <tr class=" {% get_task_css task_log.status %}" >
           <td>
             Result   
           </td>           
@@ -46,7 +47,7 @@
         <tbody>
           
           {% for result in results %}
-            <tr >
+            <tr class=" {% get_submission_css result.result %}">
               <td>
                 {{ result.result|default_if_none:'' }}
               </td>

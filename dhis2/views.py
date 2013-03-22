@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse ,HttpResponseRedirect
+from django.contrib import messages
+from dhis2.h033b_reporter import *
 # import the template and template loader 
 from django.template import Context, loader
 from django.shortcuts import render_to_response
@@ -9,7 +11,7 @@ from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from dhis2.models import Dhis2_Reports_Report_Task_Log,Dhis2_Reports_Submissions_Log
 import datetime
-import mock
+
 
 TASK_LOG_RECORDS_PER_PAGE = 10
 TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE = 10
@@ -69,6 +71,20 @@ def task_summary(request,task_id):
 
   return render(request, 'submission_summary.html', teplate_data)
   
+def resubmit_failed(request, task_id):
+  if Dhis2_Reports_Report_Task_Log.objects.filter(status = Dhis2_Reports_Report_Task_Log.RUNNING):
+    messages.error(request, "Submission aborted: other indicators submission in progress! relaunch submission in a few minutes.")
+    return redirect(reverse('dhis2_reporter_index_page'))     
+  
+  h033b_reporter = H033B_Reporter()
+  task = Dhis2_Reports_Report_Task_Log.objects.get(id=task_id)
+  ids_of_failed_submissions = [submission_log.submission_id for submission_log in Dhis2_Reports_Submissions_Log.objects.filter(task_id=task, result=Dhis2_Reports_Submissions_Log.FAILED) ]
+  submissions = XFormSubmission.objects.filter(id__in= ids_of_failed_submissions)
+  
+  h033b_reporter.submit_now(submissions)
+  messages.success(request, "Submission has started! Refresh in few minutes.")
+  return redirect(reverse('dhis2_reporter_index_page'))     
+  
 
 def _get_tasks_view_data():
   tasks = Dhis2_Reports_Report_Task_Log.objects.all()
@@ -104,6 +120,8 @@ def _generate_log_page(request, task_id, result, view_html):
   paginator = Paginator(submissions_tasks, TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE)
   page = request.GET.get('page')
   page = int(page) if page else 1
+  
+  task.show_resubmit_button= Dhis2_Reports_Submissions_Log.objects.filter(task_id=task, result=Dhis2_Reports_Submissions_Log.FAILED)
 
   try:
     task_submissions_paginator = paginator.page(page)
@@ -119,5 +137,3 @@ def _generate_log_page(request, task_id, result, view_html):
 
   return render(request, view_html, teplate_data)
 
-     
-     

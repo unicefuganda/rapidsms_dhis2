@@ -29,9 +29,10 @@
         </thead>
         <tbody>
           {% for task_log in tasks_logs_paginator.object_list %}
-            <tr  >
+			{% load status_css_tag %}
+            <tr class=" {% get_task_css task_log.status %}">
               <td>
-                <a class="task_id" href='{{ task_log.id }}'> {{ task_log.id }}</a>
+                <a class="task_id" href='{% url task_summary task_log.id %}'> {{ task_log.id }}</a>
               </td>
               <td>
                 {{ task_log.time_started|default_if_none:'' }}

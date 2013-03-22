@@ -16,12 +16,16 @@
           </td>            
           
         </tr>
-        <tr >
+		{% load status_css_tag %}
+        <tr class=" {% get_task_css task_log.status %}">
           <td>
             Result   
           </td>           
           <td >
             {{ task_log.status|default_if_none:'' }}
+			{% if task_log.show_resubmit_button %}
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	<a href='{% url re_submit_failed task_log.id %}' class="btn btn-primary">Re-submit Now</a>
+			{% endif %}	
           </td>            
           
         </tr>
@@ -43,7 +47,7 @@
         <tbody>
           
           {% for task_submission in task_submissions_paginator.object_list %}
-            <tr >
+            <tr class=" {% get_submission_css task_submission.result %}">
               <td>
                 {{ task_submission.submission_id|default_if_none:'' }}
               </td>
