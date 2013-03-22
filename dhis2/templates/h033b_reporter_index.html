@@ -20,8 +20,8 @@
               Result
             </th>
             <th>
-              Description
-            </th>
+              Summary
+           </th>
             <th>
               Number of submissions
             </th>
@@ -29,7 +29,7 @@
         </thead>
         <tbody>
           {% for task_log in tasks_logs_paginator.object_list %}
-            <tr  class=" {% get_task_css task_log.status %}">
+            <tr  >
               <td>
                 <a class="task_id" href='{{ task_log.id }}'> {{ task_log.id }}</a>
               </td>
@@ -43,7 +43,18 @@
                 {{ task_log.status|default_if_none:'' }}
               </td>
               <td>
-                {{ task_log.description|default_if_none:''}}
+			
+				{% for  task_details in task_log.details %}
+				  <li>
+					{% if task_details.url %}
+		                <a href="{{ task_log.id }}/{{ task_details.url}}">{{ task_details.size}}</a>
+		               {% else %}
+		 					{{ task_details.size}}
+					   {% endif %} 
+					&nbsp; {{ task_details.description }}
+				  </li>
+                {% endfor%}
+			
               </td>
               <td>
                 {{ task_log.number_of_submissions|default_if_none:'' }}
