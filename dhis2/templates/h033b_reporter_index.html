@@ -35,7 +35,7 @@
                 <a class="task_id" href='{% url task_summary task_log.id %}'> {{ task_log.id }}</a>
               </td>
               <td>
-                {{ task_log.time_started|default_if_none:'' }}
+                {{ task_log.time_started|date:"M d, Y, h:i" }}
               </td>
               <td>
                 {{ task_log.running_time|default_if_none:'' }}

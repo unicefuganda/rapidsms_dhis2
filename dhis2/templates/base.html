@@ -14,12 +14,12 @@
   <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-inner">
       <div class="container">
-		<ul class="nav" style="float:right;">
-		   <a  href="{% url logout_dhis2 %}">logout {{user.username}}</a>
-		</ul>
 		<ul class="nav" >
 		   <a  href="/">Home</a> &nbsp; | &nbsp;
 		  <a  href="{% url dhis2_reporter_index_page %}">Dhis2Reporter</a>
+		</ul>
+		<ul class="nav" style="float:right;">
+		   <a  href="{% url logout_dhis2 %}">logout {{user.username}}</a>
 		</ul>
       </div>
     </div>
