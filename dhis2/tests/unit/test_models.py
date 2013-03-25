@@ -18,8 +18,6 @@ class Test_Dhis2_Models(TestCase) :
       reported_xml = 1, 
       result = Dhis2_Reports_Report_Task_Log.SUCCESS,
       description ='No Description', 
-      dhis2_result = Dhis2_Reports_Report_Task_Log.SUCCESS,
-      dhis2_description ='No Description',
       )
     self.failUnless(report_submissions_log.id)
 
