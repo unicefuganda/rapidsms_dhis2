@@ -12,6 +12,7 @@ from eav.models import Attribute
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log,Dhis2_Reports_Submissions_Log
 from mock import *
 import urllib2
+import socket
 
 TEST_DHIS2_BASE_URL = settings.DHIS2_BASE_URL
 TEST_DHIS2_USER = settings.DHIS2_REPORTER_USERNAME
@@ -806,7 +807,7 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(log.description, 'some_description')
     
   @patch('dhis2.h033b_reporter.H033B_Reporter.submit_report_and_log_result')  
-  def test_dhis2_result_failed_is_logged_upon_network_failure(self, mock_submit):
+  def test_dhis2_result_failed_is_logged_upon_urllib2_error(self, mock_submit):
     self.h033b_reporter = H033B_Reporter()
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {u'epd': 53,
@@ -827,6 +828,29 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.FAILED)
     self.assertTrue(ERROR_MESSAGE_CONNECTION_FAILED in log.description)    
     self.assertEquals(log.reported_xml, '')
+    
+  @patch('dhis2.h033b_reporter.H033B_Reporter.submit_report_and_log_result')  
+  def test_dhis2_result_failed_is_logged_upon_connection_time_out(self, mock_submit):
+    self.h033b_reporter = H033B_Reporter()
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {u'epd': 53,
+         u'tps': 44}
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+          attributes_and_values=attributes_and_values,facility = facility)
+
+    mock_submit.side_effect = socket.timeout('fake network failure')
+
+    self.h033b_reporter.log_submission_started()
+    self.h033b_reporter.send_parallel_submissions_task(submission)
+
+    log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
+
+    self.assertEquals(log.task_id,self.h033b_reporter.current_task)
+    self.assertEquals(log.submission_id,submission.id)
+    self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.FAILED)
+    self.assertTrue(ERROR_CONNECTION_TIMED_OUT in log.description)    
+    self.assertEquals(log.reported_xml, '')  
     
   @patch('dhis2.h033b_reporter.H033B_Reporter.submit_report_and_log_result')  
   def test_dhis2_result_failed_is_logged_upon_any_other_failure(self, mock_submit):

@@ -12,7 +12,7 @@
             Started 
           </td>          
           <td>
-            {{ task_log.time_started|default_if_none:''}}
+            {{ task_log.time_started|date:"M d, Y, h:i"}}
           </td>            
           
         </tr>
@@ -37,7 +37,7 @@
               Submissions ID
             </th>
             <th>
-              Report XML
+              Reported XML
             </th>
             <th>
               Description

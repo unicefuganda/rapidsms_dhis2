@@ -157,6 +157,7 @@ class Dhis2_Fetch_Health_Indicators(object):
       return self.fetch(JSON_EXTENSION, url)['dataElements']
 
     def fetch_and_update_all(self,url):
+        Dhis2_Mtrac_Indicators_Mapping.objects.all().delete()
         elements = self.fetch_elements_for_dataset(url)
         for element in elements:
             self.update_mappings_table(element['href'])

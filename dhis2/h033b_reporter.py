@@ -1,5 +1,6 @@
 import settings
 import urllib2, base64
+import socket
 from django.template import Context
 from xml.dom.minidom import parseString
 from django.template.loader import get_template as load_xml_template
@@ -22,6 +23,7 @@ ERROR_MESSAGE_NO_HMS_INDICATOR    = u'No valid HMS033b indicators reported for t
 ERROR_MESSAGE_ALL_VALUES_IGNORED  = u'All values rejected by remote server'
 ERROR_MESSAGE_SOME_VALUES_IGNORED = u'Some values rejected by remote server'
 ERROR_MESSAGE_CONNECTION_FAILED   = u'Error communicating with the remote server'
+ERROR_CONNECTION_TIMED_OUT        = u'Connection with remote server timed out'
 ERROR_MESSAGE_UNEXPECTED_ERROR    = u'Unexpected error while submitting reports to DHIS2'
 ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2   = u'Unexpected response from DHIS2'
 TASK_FAILURE_DECRIPTION = u'Network failure'
@@ -41,7 +43,7 @@ class H033B_Reporter(object):
     request = urllib2.Request(self.url, data = data, headers = self.headers)
     # Make POST call instead of get
     request.get_method = lambda: "POST"
-    return urllib2.urlopen(request) 
+    return urllib2.urlopen(request, timeout=settings.DHIS2_SUBMISSION_TIMEOUT) 
 
   def submit_report(self, data):
     xml_request = self.generate_xml_report(data)
@@ -274,12 +276,14 @@ class H033B_Reporter(object):
       result, reported_xml, description= self.submit_report_and_log_result(submission) 
     except urllib2.URLError , e:
       exception = type(e).__name__ +":"+ str(e)
-      connection_failed = True
       result = Dhis2_Reports_Submissions_Log.FAILED
       description = ERROR_MESSAGE_CONNECTION_FAILED + ' Exception : '+exception
+    except socket.timeout as e:
+      exception = type(e).__name__ +":"+ str(e)
+      result = Dhis2_Reports_Submissions_Log.FAILED
+      description = ERROR_CONNECTION_TIMED_OUT + ' Exception : '+exception
     except Exception ,e :
       exception = type(e).__name__ +":"+ str(e)
-      connection_failed = True
       result = Dhis2_Reports_Submissions_Log.FAILED
       description = ERROR_MESSAGE_UNEXPECTED_ERROR + ' Exception : '+exception
 

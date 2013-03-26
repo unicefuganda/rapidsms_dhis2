@@ -43,7 +43,7 @@ class Dhis2Mapping(models.Model):
         db_table = u'dhis2_mapping'
 
 class Dhis2_Mtrac_Indicators_Mapping(models.Model):
-  eav_attribute    = models.ForeignKey(Attribute)
+  eav_attribute    = models.ForeignKey(Attribute,  unique=True)
   dhis2_uuid  = models.CharField(max_length=50)
   dhis2_combo_id =models.CharField(max_length=50)
   
