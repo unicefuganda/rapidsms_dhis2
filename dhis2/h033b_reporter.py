@@ -13,6 +13,7 @@ from xml.parsers.expat import ExpatError
 # celery = Celery()
 
 from celery.task.sets import TaskSet
+from celery.task import Task, task
 
 HMIS033B_REPORT_XML_TEMPLATE      = "h033b_reporter.xml"
 DATA_VALUE_SETS_URL               = u'/api/dataValueSets'
@@ -269,7 +270,7 @@ class H033B_Reporter(object):
   
     return result, reported_xml, description
   
-  
+  @task
   def send_parallel_submissions_task(self, submission):
     reported_xml = ''
     try :
@@ -293,15 +294,15 @@ class H033B_Reporter(object):
       submission_id = submission.id,
       reported_xml = reported_xml,
       result = result,
-      description = description,
-    )    
-  
+      description = description)    
+   
   def submit_now(self, submissions):  
     self.log_submission_started()
     status = Dhis2_Reports_Report_Task_Log.SUCCESS
     description = ''
     
-    TaskSet( self.send_parallel_submissions_task(submission) for submission in submissions)
+    submission_task = TaskSet( self.send_parallel_submissions_task.s(self, submission) for submission in submissions)
+    do_it = submission_task.apply_async()
 
     failure = Dhis2_Reports_Submissions_Log.objects.filter(task_id = self.current_task, result=Dhis2_Reports_Submissions_Log.FAILED)
   

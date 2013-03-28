@@ -78,7 +78,8 @@ def resubmit_failed(request, task_id):
   
   h033b_reporter = H033B_Reporter()
   task = Dhis2_Reports_Report_Task_Log.objects.get(id=task_id)
-  ids_of_failed_submissions = [submission_log.submission_id for submission_log in Dhis2_Reports_Submissions_Log.objects.filter(task_id=task, result=Dhis2_Reports_Submissions_Log.FAILED) ]
+  submission_log = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task, result=Dhis2_Reports_Submissions_Log.FAILED)
+  ids_of_failed_submissions = list(set(submission_log.values_list('submission_id', flat = True)))
   submissions = XFormSubmission.objects.filter(id__in= ids_of_failed_submissions)
   
   h033b_reporter.submit_now(submissions)
