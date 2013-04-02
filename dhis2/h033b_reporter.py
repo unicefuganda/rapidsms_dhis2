@@ -25,7 +25,7 @@ ERROR_MESSAGE_ALL_VALUES_IGNORED  = u'All values rejected by remote server'
 ERROR_MESSAGE_SOME_VALUES_IGNORED = u'Some values rejected by remote server'
 ERROR_MESSAGE_CONNECTION_FAILED   = u'Error communicating with the remote server'
 ERROR_CONNECTION_TIMED_OUT        = u'Connection with remote server timed out'
-ERROR_MESSAGE_UNEXPECTED_ERROR    = u'Unexpected error while submitting reports to DHIS2'
+ERROR_MESSAGE_UNEXPECTED_ERROR    = u'Unexpected internal error while submitting reports to DHIS2'
 ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2   = u'Unexpected response from DHIS2'
 TASK_FAILURE_DECRIPTION = u'Network failure'
 
@@ -168,16 +168,17 @@ class H033B_Reporter(object):
     
     return filtered_Submissions
 
-  def _set_submissions_facility(self,submissions):
+  def set_submissions_facility(self,submissions):
     for submission in submissions : 
       subextra = XFormSubmissionExtras.objects.get(submission=submission)
       submission.facility = subextra.facility
+    return  submissions  
         
   def _filter_lastest_submission_with_same_xform_from_the_same_facility(self,submissions):
     # Sort by xform,created,facility id
     submissions = submissions.order_by('xform','created') 
     submissions_list = list(submissions)
-    self._set_submissions_facility(submissions_list)
+    submissions_list = self.set_submissions_facility(submissions_list)
     
     sorter_by_facility = lambda submission : submission.facility.id
     submissions_list  = sorted(submissions_list,key=sorter_by_facility)
@@ -299,10 +300,20 @@ class H033B_Reporter(object):
   def submit_now(self, submissions):  
     self.log_submission_started()
     status = Dhis2_Reports_Report_Task_Log.SUCCESS
+    submission_count = 0
     description = ''
     
     submission_task = TaskSet( self.send_parallel_submissions_task.s(self, submission) for submission in submissions)
-    do_it = submission_task.apply_async()
+    submission_job = submission_task.apply_async()
+    wait_until_its_done = submission_job.get()
+    print '*'*100
+    print len(wait_until_its_done)
+    submission_count= submission_job.completed_count()
+    print submission_count
+    
+    if submission_job.failed():
+      submission_job.retry(countdown = settings.CELERY_TIME_TO_WAIT_BEFORE_RETRYING_SUBMISSION, max_retries= settings.CELERY_NUMBER_OF_RETRIES_IN_CASE_OF_FAILURE)
+      
 
     failure = Dhis2_Reports_Submissions_Log.objects.filter(task_id = self.current_task, result=Dhis2_Reports_Submissions_Log.FAILED)
   
@@ -311,7 +322,7 @@ class H033B_Reporter(object):
       description = TASK_FAILURE_DECRIPTION
 
     self.log_submission_finished(
-        submission_count=len(submissions),
+        submission_count=submission_count,
         status= status,
         description=description)
 

@@ -12,7 +12,6 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from dhis2.models import Dhis2_Reports_Report_Task_Log,Dhis2_Reports_Submissions_Log
 import datetime
 
-
 TASK_LOG_RECORDS_PER_PAGE = 10
 TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE = 10
 
@@ -81,6 +80,7 @@ def resubmit_failed(request, task_id):
   submission_log = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task, result=Dhis2_Reports_Submissions_Log.FAILED)
   ids_of_failed_submissions = list(set(submission_log.values_list('submission_id', flat = True)))
   submissions = XFormSubmission.objects.filter(id__in= ids_of_failed_submissions)
+  submissions = h033b_reporter.set_submissions_facility(submissions)
   
   h033b_reporter.submit_now(submissions)
   messages.success(request, "Submission has started! Refresh in few minutes.")
