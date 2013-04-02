@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse ,HttpResponseRedirect
 from django.contrib import messages
-from dhis2.h033b_reporter import *
 # import the template and template loader 
 from django.template import Context, loader
 from django.shortcuts import render_to_response
@@ -9,7 +8,11 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+from dhis2.h033b_reporter import *
 from dhis2.models import Dhis2_Reports_Report_Task_Log,Dhis2_Reports_Submissions_Log
+from dhis2.reports_submission_tasks import *
+
 import datetime
 
 TASK_LOG_RECORDS_PER_PAGE = 10
@@ -82,7 +85,7 @@ def resubmit_failed(request, task_id):
   submissions = XFormSubmission.objects.filter(id__in= ids_of_failed_submissions)
   submissions = h033b_reporter.set_submissions_facility(submissions)
   
-  h033b_reporter.submit_now(submissions)
+  submit_reports_now_task.delay(submissions)
   messages.success(request, "Submission has started! Refresh in few minutes.")
   return redirect(reverse('dhis2_reporter_index_page'))     
   
