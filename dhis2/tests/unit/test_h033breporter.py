@@ -885,7 +885,7 @@ class Test_H033B_Reporter(TestCase):
     h033b_reporter.send_parallel_submissions_task.s = lambda object, submission: 'mocked cuz not needed, also to speed things up' 
     sub_job = MagicMock()
     sub_job.completed_count = lambda : SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED 
-    h033b_reporter.submit_and_retry_if_needed = lambda submissions: sub_job
+    h033b_reporter.submit_and_retry_if_celery_fails = lambda submissions: sub_job
     
     mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
     h033b_reporter.log_submission_started = lambda:mocked_current_task
@@ -921,7 +921,7 @@ class Test_H033B_Reporter(TestCase):
     h033b_reporter.send_parallel_submissions_task.s = lambda object, submission: 'mocked cuz not needed, also to speed things up'
     sub_job = MagicMock()
     sub_job.completed_count = lambda : SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED
-    h033b_reporter.submit_and_retry_if_needed = lambda submissions: sub_job
+    h033b_reporter.submit_and_retry_if_celery_fails = lambda submissions: sub_job
     
     mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
     h033b_reporter.log_submission_started = lambda:mocked_current_task
@@ -1005,3 +1005,58 @@ class Test_H033B_Reporter(TestCase):
       xtras.cdate = submission.created
       xtras.save()
       submission.save()    
+      
+  def test_submit_and_retry_if_celery_fails_when_celery_is_successful(self):
+     h033b_reporter = H033B_Reporter() 
+     
+     from celery.task import Task, task
+     @task
+     def mocked_parallel_submission(arg1, submsission):
+       return submsission
+            
+     h033b_reporter.send_parallel_submissions_task = mocked_parallel_submission 
+     
+     dummy_submissions_list=['submission_1', 'submission_2', 'submission_3']
+               
+     submission_job = h033b_reporter.submit_and_retry_if_celery_fails(dummy_submissions_list)
+     
+     self.assertEquals(submission_job.get(), dummy_submissions_list)
+     self.assertTrue(submission_job.successful())
+     
+  @patch('celery.result.TaskSetResult.failed')
+  def test_submit_and_retry_if_celery_fails_when_celery_fails(self, mocked_failed):
+    h033b_reporter = H033B_Reporter() 
+    
+    from celery.task import Task, task
+    @task
+    def mocked_parallel_submission(arg1, submsission):
+      return submsission
+      
+         
+    h033b_reporter.send_parallel_submissions_task = mocked_parallel_submission     
+    dummy_submissions_list=['submission_1', 'submission_2', 'submission_3']
+              
+    mocked_failed.return_value = False  
+    submission_job = h033b_reporter.submit_and_retry_if_celery_fails(dummy_submissions_list)
+    
+    self.assertEquals(submission_job.get(), dummy_submissions_list)
+    self.assertTrue(submission_job.successful())
+    
+    mocked_failed.return_value = True
+    submission_job = h033b_reporter.submit_and_retry_if_celery_fails(dummy_submissions_list)
+    
+    self.assertEquals(submission_job.get(), dummy_submissions_list)
+    self.assertTrue(submission_job.successful())
+    
+    
+    
+    
+  # def  submit_and_retry_if_celery_fails(self, submissions):    
+  #   submission_task = TaskSet( self.send_parallel_submissions_task.s(self, submission) for submission in submissions)
+  #   submission_job = submission_task.apply_async()
+  #   wait_until_its_done = submission_job.get()
+  # 
+  #   if submission_job.failed():
+  #     submission_job.retry(countdown = settings.CELERY_TIME_TO_WAIT_BEFORE_RETRYING_SUBMISSION, max_retries= settings.CELERY_NUMBER_OF_RETRIES_IN_CASE_OF_FAILURE)
+  # 
+  #   return submission_job

@@ -298,7 +298,7 @@ class H033B_Reporter(object):
       description = description)   
       
  
-  def  submit_and_retry_if_needed(self, submissions):    
+  def  submit_and_retry_if_celery_fails(self, submissions):    
     submission_task = TaskSet( self.send_parallel_submissions_task.s(self, submission) for submission in submissions)
     submission_job = submission_task.apply_async()
     wait_until_its_done = submission_job.get()
@@ -314,7 +314,7 @@ class H033B_Reporter(object):
     submission_count = 0
     description = ''
     
-    submission_job = self.submit_and_retry_if_needed(submissions)
+    submission_job = self.submit_and_retry_if_celery_fails(submissions)
     submission_count= submission_job.completed_count()    
   
     failure = Dhis2_Reports_Submissions_Log.objects.filter(task_id = self.current_task, result=Dhis2_Reports_Submissions_Log.FAILED)
