@@ -796,7 +796,8 @@ class Test_H033B_Reporter(TestCase):
     mock_submit.return_value = ['some_result', 'some_reported_xml', 'some_description']
 
     self.h033b_reporter.log_submission_started()
-    self.h033b_reporter.send_parallel_submissions_task(submission)
+    parallel_result = self.h033b_reporter.send_parallel_submissions_task.delay(self.h033b_reporter, submission)
+    parallel_result.get()
     
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
 
@@ -819,8 +820,9 @@ class Test_H033B_Reporter(TestCase):
     mock_submit.side_effect = urllib2.URLError('fake network failure')
 
     self.h033b_reporter.log_submission_started()
-    self.h033b_reporter.send_parallel_submissions_task(submission)
-
+    parallel_result = self.h033b_reporter.send_parallel_submissions_task.delay(self.h033b_reporter, submission)
+    parallel_result.get()
+    
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
 
     self.assertEquals(log.task_id,self.h033b_reporter.current_task)
@@ -842,7 +844,8 @@ class Test_H033B_Reporter(TestCase):
     mock_submit.side_effect = socket.timeout('fake network failure')
 
     self.h033b_reporter.log_submission_started()
-    self.h033b_reporter.send_parallel_submissions_task(submission)
+    parallel_result = self.h033b_reporter.send_parallel_submissions_task.delay(self.h033b_reporter, submission)
+    parallel_result.get()
 
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
 
@@ -865,8 +868,9 @@ class Test_H033B_Reporter(TestCase):
     mock_submit.side_effect = Exception('fake network failure')
 
     self.h033b_reporter.log_submission_started()
-    self.h033b_reporter.send_parallel_submissions_task(submission)
-
+    parallel_result = self.h033b_reporter.send_parallel_submissions_task.delay(self.h033b_reporter, submission)
+    parallel_result.get()
+    
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
 
     self.assertEquals(log.task_id,self.h033b_reporter.current_task)

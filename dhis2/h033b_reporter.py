@@ -296,7 +296,7 @@ class H033B_Reporter(object):
       reported_xml = reported_xml,
       result = result,
       description = description)    
-   
+    
   def submit_now(self, submissions):  
     self.log_submission_started()
     status = Dhis2_Reports_Report_Task_Log.SUCCESS
@@ -313,7 +313,6 @@ class H033B_Reporter(object):
     
     if submission_job.failed():
       submission_job.retry(countdown = settings.CELERY_TIME_TO_WAIT_BEFORE_RETRYING_SUBMISSION, max_retries= settings.CELERY_NUMBER_OF_RETRIES_IN_CASE_OF_FAILURE)
-      
 
     failure = Dhis2_Reports_Submissions_Log.objects.filter(task_id = self.current_task, result=Dhis2_Reports_Submissions_Log.FAILED)
   
