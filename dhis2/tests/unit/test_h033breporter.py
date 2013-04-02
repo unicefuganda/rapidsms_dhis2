@@ -17,8 +17,8 @@ import socket
 TEST_DHIS2_BASE_URL = settings.DHIS2_BASE_URL
 TEST_DHIS2_USER = settings.DHIS2_REPORTER_USERNAME
 TEST_DHIS2_PASSWORD = settings.DHIS2_REPORTER_PASSWORD
+A_VALID_DHIS2_UUID = settings.DHIS2_TEST_UUID
 
-A_VALID_DHIS2_UUID = u'3b8a12cd-b844-4d87-ab9b-86308af7139a'
 ACTS_XFORM_ID = 55
 VITAMIN_A_XFORM_ID = 63
 
@@ -65,12 +65,6 @@ SUCCESS_XML_RESPONSE = '\
     <dataValueCount imported="3" updated="2" ignored="0"/>\
     <dataSetComplete>2012-11-11</dataSetComplete>\
 </importSummary>'
-
-SOME_VALID_FACILITY_UUIDS = [
-  u'3b8a12cd-b844-4d87-ab9b-86308af7139a',
-  u'45d81a6f-0060-4c6e-ad28-f7a3d8932904',
-  u'2315d1ea-35da-4fdd-99ca-06feab246784'
-]
 
 class Test_H033B_Reporter(TestCase):
   
@@ -886,10 +880,12 @@ class Test_H033B_Reporter(TestCase):
     
     h033b_reporter = H033B_Reporter()
     FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission_1', 'fake_submission_2']
+    SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED = 2
 
-    h033b_reporter.send_parallel_submissions_task = lambda submission: 'mocked cuz not needed, also to speed things up'
-    from celery.task.sets import TaskSet
-    TaskSet = MagicMock(return_value='mocked')
+    h033b_reporter.send_parallel_submissions_task.s = lambda object, submission: 'mocked cuz not needed, also to speed things up' 
+    sub_job = MagicMock()
+    sub_job.completed_count = lambda : SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED 
+    h033b_reporter.submit_and_retry_if_needed = lambda submissions: sub_job
     
     mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
     h033b_reporter.log_submission_started = lambda:mocked_current_task
@@ -906,10 +902,10 @@ class Test_H033B_Reporter(TestCase):
     
     mock_failed_log.return_value = [failed_log]
     
-    h033b_reporter.submit_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
+    h033b_reporter.submit_and_log_task_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
 
     self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
-    self.assertEquals(mocked_current_task.number_of_submissions , len(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO))
+    self.assertEquals(mocked_current_task.number_of_submissions , SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
     self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.FAILED)
     self.assertEquals(mocked_current_task.description, TASK_FAILURE_DECRIPTION)
     
@@ -920,26 +916,51 @@ class Test_H033B_Reporter(TestCase):
     
     h033b_reporter = H033B_Reporter()
     FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission_1', 'fake_submission_2']
+    SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED = 2
 
-    h033b_reporter.send_parallel_submissions_task = lambda submission: 'mocked cuz not needed, also to speed things up'
-    from celery.task.sets import TaskSet
-    TaskSet = MagicMock(return_value='mocked')
-
+    h033b_reporter.send_parallel_submissions_task.s = lambda object, submission: 'mocked cuz not needed, also to speed things up'
+    sub_job = MagicMock()
+    sub_job.completed_count = lambda : SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED
+    h033b_reporter.submit_and_retry_if_needed = lambda submissions: sub_job
+    
     mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
     h033b_reporter.log_submission_started = lambda:mocked_current_task
     h033b_reporter.current_task = mocked_current_task
 
     mock_successful_log.return_value = []
 
-    h033b_reporter.submit_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
+    h033b_reporter.submit_and_log_task_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
 
     self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
-    self.assertEquals(mocked_current_task.number_of_submissions , len(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO))
+    self.assertEquals(mocked_current_task.number_of_submissions ,   SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
     self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
     self.assertEquals(mocked_current_task.description, '')    
       
   def test_successful_weekly_submissions(self,submissions_count=3,delete_old_submissions=True):
     h033b_reporter = H033B_Reporter()
+    from_date = datetime(2013, 1, 21, 00, 00, 00)
+    to_date = datetime(2013, 1, 24, 23, 59, 59)
+    
+    self._generate_some_submissions_data(to_date= to_date, from_date= from_date, submissions_count=3,delete_old_submissions=True)
+
+    with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
+      h033b_reporter.initiate_weekly_submissions(to_date)
+
+    log_record_for_task = h033b_reporter.current_task
+    log_record_for_submissions =  Dhis2_Reports_Submissions_Log.objects.all()
+
+    self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()),1)
+    self.assertEquals(len(Dhis2_Reports_Submissions_Log.objects.all()),3)
+    self.assertEquals(log_record_for_task.number_of_submissions , submissions_count)
+    self.assertEquals(log_record_for_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
+
+    for log_record_for_submission in log_record_for_submissions : 
+      self.assertEquals(log_record_for_submission.result,Dhis2_Reports_Report_Task_Log.SUCCESS)      
+       
+  def _generate_some_submissions_data(self, to_date, from_date, submissions_count=3, delete_old_submissions=True):
+    
+    SOME_VALID_FACILITY_UUIDS =[A_VALID_DHIS2_UUID, '514f2e0c-e05b-4cc9-9921-597e84075770', '0e31f9a4-3dbc-4164-b5ef-5e555f865f7b']
+    
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {
       u'epd': 53,
@@ -958,9 +979,6 @@ class Test_H033B_Reporter(TestCase):
         'combo_id'    : u'gGhClrV5odI'
       }
     ]
-
-    from_date = datetime(2013, 1, 21, 00, 00, 00)
-    to_date = datetime(2013, 1, 24, 23, 59, 59)
 
     if delete_old_submissions : 
       XFormSubmission.objects.all().delete()
@@ -986,18 +1004,4 @@ class Test_H033B_Reporter(TestCase):
       xtras = XFormSubmissionExtras.objects.filter(submission=submission)[0]
       xtras.cdate = submission.created
       xtras.save()
-      submission.save()
-
-    with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
-      h033b_reporter.initiate_weekly_submissions(to_date)
-
-    log_record_for_task = h033b_reporter.current_task
-    log_record_for_submissions =  Dhis2_Reports_Submissions_Log.objects.all()
-
-    self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()),1)
-    self.assertEquals(len(Dhis2_Reports_Submissions_Log.objects.all()),3)
-    self.assertEquals(log_record_for_task.number_of_submissions , submissions_count)
-    self.assertEquals(log_record_for_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
-
-    for log_record_for_submission in log_record_for_submissions : 
-      self.assertEquals(log_record_for_submission.result,Dhis2_Reports_Report_Task_Log.SUCCESS)      
+      submission.save()    

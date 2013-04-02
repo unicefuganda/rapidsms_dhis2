@@ -12,5 +12,5 @@ def weekly_report_submissions_task(date):
 @celery.task
 def submit_reports_now_task(submissions): 
   h033b_reporter = H033B_Reporter()
-  h033b_reporter.submit_now(submissions)
+  h033b_reporter.submit_and_log_task_now(submissions)
 

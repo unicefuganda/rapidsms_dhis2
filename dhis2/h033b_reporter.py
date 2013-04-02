@@ -27,7 +27,7 @@ ERROR_MESSAGE_CONNECTION_FAILED   = u'Error communicating with the remote server
 ERROR_CONNECTION_TIMED_OUT        = u'Connection with remote server timed out'
 ERROR_MESSAGE_UNEXPECTED_ERROR    = u'Unexpected internal error while submitting reports to DHIS2'
 ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2   = u'Unexpected response from DHIS2'
-TASK_FAILURE_DECRIPTION = u'Network failure'
+TASK_FAILURE_DESCRIPTION = u'Network failure'
 
 class H033B_Reporter(object):
   
@@ -295,30 +295,33 @@ class H033B_Reporter(object):
       submission_id = submission.id,
       reported_xml = reported_xml,
       result = result,
-      description = description)    
+      description = description)   
+      
+ 
+  def  submit_and_retry_if_needed(self, submissions):    
+    submission_task = TaskSet( self.send_parallel_submissions_task.s(self, submission) for submission in submissions)
+    submission_job = submission_task.apply_async()
+    wait_until_its_done = submission_job.get()
+
+    if submission_job.failed():
+      submission_job.retry(countdown = settings.CELERY_TIME_TO_WAIT_BEFORE_RETRYING_SUBMISSION, max_retries= settings.CELERY_NUMBER_OF_RETRIES_IN_CASE_OF_FAILURE)
+
+    return submission_job
     
-  def submit_now(self, submissions):  
+  def submit_and_log_task_now(self, submissions):  
     self.log_submission_started()
     status = Dhis2_Reports_Report_Task_Log.SUCCESS
     submission_count = 0
     description = ''
     
-    submission_task = TaskSet( self.send_parallel_submissions_task.s(self, submission) for submission in submissions)
-    submission_job = submission_task.apply_async()
-    wait_until_its_done = submission_job.get()
-    print '*'*100
-    print len(wait_until_its_done)
-    submission_count= submission_job.completed_count()
-    print submission_count
-    
-    if submission_job.failed():
-      submission_job.retry(countdown = settings.CELERY_TIME_TO_WAIT_BEFORE_RETRYING_SUBMISSION, max_retries= settings.CELERY_NUMBER_OF_RETRIES_IN_CASE_OF_FAILURE)
-
+    submission_job = self.submit_and_retry_if_needed(submissions)
+    submission_count= submission_job.completed_count()    
+  
     failure = Dhis2_Reports_Submissions_Log.objects.filter(task_id = self.current_task, result=Dhis2_Reports_Submissions_Log.FAILED)
   
     if failure:
       status = Dhis2_Reports_Report_Task_Log.FAILED
-      description = TASK_FAILURE_DECRIPTION
+      description = TASK_FAILURE_DESCRIPTION
 
     self.log_submission_finished(
         submission_count=submission_count,
@@ -330,6 +333,6 @@ class H033B_Reporter(object):
     last_monday_at_midnight = datetime(last_monday.year, last_monday.month, last_monday.day, 0, 0,0)
     submissions_for_last_week = self.get_submissions_in_date_range(last_monday_at_midnight, date)
 
-    self.submit_now(submissions_for_last_week)
+    self.submit_and_log_task_now(submissions_for_last_week)
 
     
