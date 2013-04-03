@@ -1011,8 +1011,8 @@ class Test_H033B_Reporter(TestCase):
      
      from celery.task import Task, task
      @task
-     def mocked_parallel_submission(arg1, submsission):
-       return submsission
+     def mocked_parallel_submission(args, **options):
+       return args[1]
             
      h033b_reporter.send_parallel_submissions_task = mocked_parallel_submission 
      
@@ -1023,40 +1023,42 @@ class Test_H033B_Reporter(TestCase):
      self.assertEquals(submission_job.get(), dummy_submissions_list)
      self.assertTrue(submission_job.successful())
      
-  @patch('celery.result.TaskSetResult.failed')
-  def test_submit_and_retry_if_celery_fails_when_celery_fails(self, mocked_failed):
+  @patch('celery.result.TaskSetResult.get')   
+  def test_submit_and_retry_if_celery_fails_when_celery_fails(self, mock_get):
     h033b_reporter = H033B_Reporter() 
+    from time import sleep
     
     from celery.task import Task, task
     @task
-    def mocked_parallel_submission(arg1, submsission):
-      return submsission
+    def mocked_parallel_submission(args, **options):  
+      print '*'*100
+      print 'function'    
+      # sleep(10)
+      print '*'*100
+      print 'end function'    
       
-         
+      return args[1]
+      
+    def make_celery_fail():
+      sleep(6)
+      import os
+      print '@'*100
+      print 'about to cut celery'
+      cmd = "ps aux | grep 'celery' | awk '{print $2}' | xargs kill" 
+      os.system(cmd + '-stop')
+      sleep(6)
+      print '@'*100
+      print 'resuming celery'
+      os.system(cmd + '-cont')
+      print 'done'      
+             
     h033b_reporter.send_parallel_submissions_task = mocked_parallel_submission     
     dummy_submissions_list=['submission_1', 'submission_2', 'submission_3']
               
-    mocked_failed.return_value = False  
+    mock_get.return_value = make_celery_fail()
     submission_job = h033b_reporter.submit_and_retry_if_celery_fails(dummy_submissions_list)
     
-    self.assertEquals(submission_job.get(), dummy_submissions_list)
+    assert False 
+    # self.assertEquals(submission_job.get(), dummy_submissions_list)
     self.assertTrue(submission_job.successful())
-    
-    mocked_failed.return_value = True
-    submission_job = h033b_reporter.submit_and_retry_if_celery_fails(dummy_submissions_list)
-    
-    self.assertEquals(submission_job.get(), dummy_submissions_list)
-    self.assertTrue(submission_job.successful())
-    
-    
-    
-    
-  # def  submit_and_retry_if_celery_fails(self, submissions):    
-  #   submission_task = TaskSet( self.send_parallel_submissions_task.s(self, submission) for submission in submissions)
-  #   submission_job = submission_task.apply_async()
-  #   wait_until_its_done = submission_job.get()
-  # 
-  #   if submission_job.failed():
-  #     submission_job.retry(countdown = settings.CELERY_TIME_TO_WAIT_BEFORE_RETRYING_SUBMISSION, max_retries= settings.CELERY_NUMBER_OF_RETRIES_IN_CASE_OF_FAILURE)
-  # 
-  #   return submission_job
+ 

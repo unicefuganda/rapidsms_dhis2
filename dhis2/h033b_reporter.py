@@ -299,12 +299,17 @@ class H033B_Reporter(object):
       
  
   def  submit_and_retry_if_celery_fails(self, submissions):    
-    submission_task = TaskSet( self.send_parallel_submissions_task.s(self, submission) for submission in submissions)
+    # submission_task = TaskSet( self.send_parallel_submissions_task.s( args=(self, submission), retry = True,
+    #                            retry_policy={
+    #                                 'max_retries': settings.CELERY_NUMBER_OF_RETRIES_IN_CASE_OF_FAILURE,
+    #                                 'interval_start' : settings.CELERY_TIME_TO_WAIT_BEFORE_RETRYING_SUBMISSION                       
+    #                                 } ) 
+    #                             for submission in submissions )
+    #                                 
+    submission_task = TaskSet( self.send_parallel_submissions_task.s(args=(self, submission)) for submission in submissions )
+    
     submission_job = submission_task.apply_async()
     wait_until_its_done = submission_job.get()
-
-    if submission_job.failed():
-      submission_job.retry(countdown = settings.CELERY_TIME_TO_WAIT_BEFORE_RETRYING_SUBMISSION, max_retries= settings.CELERY_NUMBER_OF_RETRIES_IN_CASE_OF_FAILURE)
 
     return submission_job
     
