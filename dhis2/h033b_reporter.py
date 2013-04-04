@@ -317,9 +317,9 @@ class H033B_Reporter(object):
     
     submission_job = self.submit_and_retry_if_celery_fails(submissions)
     submission_count= submission_job.completed_count()    
-  
+ 
     failure = Dhis2_Reports_Submissions_Log.objects.filter(task_id = self.current_task, result=Dhis2_Reports_Submissions_Log.FAILED)
-  
+    
     if failure:
       status = Dhis2_Reports_Report_Task_Log.FAILED
       description = TASK_FAILURE_DESCRIPTION

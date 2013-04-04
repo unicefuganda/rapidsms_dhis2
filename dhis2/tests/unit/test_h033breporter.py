@@ -873,69 +873,72 @@ class Test_H033B_Reporter(TestCase):
     self.assertTrue(ERROR_MESSAGE_UNEXPECTED_ERROR in log.description)    
     self.assertEquals(log.reported_xml, '')
   
-  # @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter')   
-  # def test_failed_submission(self, mock_failed_log):
-  #   Dhis2_Reports_Report_Task_Log.objects.all().delete
-  #   Dhis2_Reports_Submissions_Log.objects.all().delete
-  #   
-  #   h033b_reporter = H033B_Reporter()
-  #   FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission_1', 'fake_submission_2']
-  #   SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED = 2
-  # 
-  #   h033b_reporter.send_parallel_submissions_task.s = lambda object, submission: 'mocked cuz not needed, also to speed things up' 
-  #   sub_job = MagicMock()
-  #   sub_job.completed_count = lambda : SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED 
-  #   h033b_reporter.submit_and_retry_if_celery_fails = lambda submissions: sub_job
-  #   
-  #   mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
-  #   h033b_reporter.log_submission_started = lambda:mocked_current_task
-  #   h033b_reporter.current_task = mocked_current_task
-  #   
-  #   xform_id = ACTS_XFORM_ID
-  #   attributes_and_values = {u'epd': 53,
-  #        u'tps': 44}
-  #   facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
-  #   submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
-  #         attributes_and_values=attributes_and_values,facility = facility)
-  #   
-  #   failed_log = Dhis2_Reports_Submissions_Log.objects.create(task_id = mocked_current_task, submission_id=submission.id, result=Dhis2_Reports_Submissions_Log.FAILED)
-  #   
-  #   mock_failed_log.return_value = [failed_log]
-  #   
-  #   h033b_reporter.submit_and_log_task_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
-  # 
-  #   self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
-  #   self.assertEquals(mocked_current_task.number_of_submissions , SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
-  #   self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.FAILED)
-  #   self.assertEquals(mocked_current_task.description, TASK_FAILURE_DESCRIPTION)
-  #   
-  # @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter')   
-  # def test_successful_submission(self, mock_successful_log):
-  #   Dhis2_Reports_Report_Task_Log.objects.all().delete
-  #   Dhis2_Reports_Submissions_Log.objects.all().delete
-  #   
-  #   h033b_reporter = H033B_Reporter()
-  #   FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission_1', 'fake_submission_2']
-  #   SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED = 2
-  # 
-  #   h033b_reporter.send_parallel_submissions_task.s = lambda object, submission: 'mocked cuz not needed, also to speed things up'
-  #   sub_job = MagicMock()
-  #   sub_job.completed_count = lambda : SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED
-  #   h033b_reporter.submit_and_retry_if_celery_fails = lambda submissions: sub_job
-  #   
-  #   mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
-  #   h033b_reporter.log_submission_started = lambda:mocked_current_task
-  #   h033b_reporter.current_task = mocked_current_task
-  # 
-  #   mock_successful_log.return_value = []
-  # 
-  #   h033b_reporter.submit_and_log_task_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
-  # 
-  #   self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
-  #   self.assertEquals(mocked_current_task.number_of_submissions ,   SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
-  #   self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
-  #   self.assertEquals(mocked_current_task.description, '')    
-  #     
+
+  @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter') 
+  @patch('dhis2.h033b_reporter.H033B_Reporter.submit_and_retry_if_celery_fails')   
+  @patch('dhis2.h033b_reporter.H033B_Reporter.log_submission_started')  
+  def test_failed_submission(self, mock_log_started, mocked_submit,  mock_failed_log):
+    Dhis2_Reports_Report_Task_Log.objects.all().delete
+    Dhis2_Reports_Submissions_Log.objects.all().delete
+    
+    h033b_reporter = H033B_Reporter()
+    FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission_1', 'fake_submission_2']
+    SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED = 2
+        
+    mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
+    mock_log_started.return_value = mocked_current_task
+    h033b_reporter.current_task = mocked_current_task
+    
+    sub_job = MagicMock()
+    sub_job.completed_count = MagicMock(return_value=SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
+    mocked_submit.return_value = sub_job
+
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {u'epd': 53,
+         u'tps': 44}
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+          attributes_and_values=attributes_and_values,facility = facility)
+    
+    failed_log = Dhis2_Reports_Submissions_Log.objects.create(task_id = mocked_current_task, submission_id=submission.id, result=Dhis2_Reports_Submissions_Log.FAILED)
+    
+    mock_failed_log.return_value = [failed_log]
+    
+    h033b_reporter.submit_and_log_task_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
+  
+    self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
+    self.assertEquals(mocked_current_task.number_of_submissions , SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
+    self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.FAILED)
+    self.assertEquals(mocked_current_task.description, TASK_FAILURE_DESCRIPTION)
+    
+  @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter')    
+  @patch('dhis2.h033b_reporter.H033B_Reporter.submit_and_retry_if_celery_fails')   
+  @patch('dhis2.h033b_reporter.H033B_Reporter.log_submission_started') 
+  def test_successful_submission(self, mock_log_started, mocked_submit,  mock_success_log):
+    Dhis2_Reports_Report_Task_Log.objects.all().delete
+    Dhis2_Reports_Submissions_Log.objects.all().delete
+
+    h033b_reporter = H033B_Reporter()
+    FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission']
+    SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED = 2
+
+    mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
+    mock_log_started.return_value = mocked_current_task
+    h033b_reporter.current_task = mocked_current_task
+
+    sub_job = MagicMock()
+    sub_job.completed_count = MagicMock(return_value=SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
+    mocked_submit.return_value = sub_job
+
+    mock_success_log.return_value = []
+
+    h033b_reporter.submit_and_log_task_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
+  
+    self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
+    self.assertEquals(mocked_current_task.number_of_submissions ,   SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
+    self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
+    self.assertEquals(mocked_current_task.description, '')    
+      
   # def test_successful_weekly_submissions(self,submissions_count=3,delete_old_submissions=True):
   #   h033b_reporter = H033B_Reporter()
   #   from_date = datetime(2013, 1, 21, 00, 00, 00)
