@@ -9,8 +9,6 @@ from mtrack.models import XFormSubmissionExtras
 from datetime import timedelta,datetime
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log ,Dhis2_Reports_Submissions_Log
 from xml.parsers.expat import ExpatError
-# from celery import Celery
-# celery = Celery()
 
 from celery.task.sets import TaskSet
 from celery.task import Task, task
@@ -20,14 +18,14 @@ DATA_VALUE_SETS_URL               = u'/api/dataValueSets'
 DEFAULT_ORG_UNIT_ID_SCHEME        = u'uuid'
 ISO_8601_UTC_FORMAT               = u'%s-%s-%sT%s:%s:%sZ'
 HMIS_033B_PERIOD_ID               = u'%dW%d'
-ERROR_MESSAGE_NO_HMS_INDICATOR    = u'No valid HMS033b indicators reported for the submission'
-ERROR_MESSAGE_ALL_VALUES_IGNORED  = u'All values rejected by remote server'
-ERROR_MESSAGE_SOME_VALUES_IGNORED = u'Some values rejected by remote server'
-ERROR_MESSAGE_CONNECTION_FAILED   = u'Error communicating with the remote server'
-ERROR_CONNECTION_TIMED_OUT        = u'Connection with remote server timed out'
-ERROR_MESSAGE_UNEXPECTED_ERROR    = u'Unexpected internal error while submitting reports to DHIS2'
-ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2   = u'Unexpected response from DHIS2'
-TASK_FAILURE_DESCRIPTION = u'Network failure'
+ERROR_MESSAGE_NO_HMS_INDICATOR    = u'No valid HMS033b indicators reported for the submission.'
+ERROR_MESSAGE_ALL_VALUES_IGNORED  = u'All values rejected by remote server.'
+ERROR_MESSAGE_SOME_VALUES_IGNORED = u'Some values rejected by remote server.'
+ERROR_MESSAGE_CONNECTION_FAILED   = u'Error communicating with the remote server.'
+ERROR_CONNECTION_TIMED_OUT        = u'Connection with remote server timed out.'
+ERROR_MESSAGE_UNEXPECTED_ERROR    = u'Unexpected internal error while submitting reports to DHIS2.'
+ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2   = u'Unexpected response from DHIS2.'
+TASK_FAILURE_DESCRIPTION = u'Network failure.'
 
 class H033B_Reporter(object):
   
@@ -299,7 +297,7 @@ class H033B_Reporter(object):
       
  
   def  submit_and_retry_if_celery_fails(self, submissions):    
-    submission_task = TaskSet( self.send_parallel_submissions_task.s( args=(self, submission), retry = True,
+    submission_task = TaskSet( self.send_parallel_submissions_task.subtask( (self, submission), retry = True,
                                retry_policy={
                                     'max_retries': settings.CELERY_NUMBER_OF_RETRIES_IN_CASE_OF_FAILURE,
                                     'interval_start' : settings.CELERY_TIME_TO_WAIT_BEFORE_RETRYING_SUBMISSION                       

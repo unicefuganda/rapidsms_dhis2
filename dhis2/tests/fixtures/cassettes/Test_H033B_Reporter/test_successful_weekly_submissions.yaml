@@ -13,10 +13,10 @@
     url: !!python/unicode '/api/dataValueSets'
   response:
     body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
-        process completed successfully</description><dataValueCount imported="2" updated="0"
+        process completed successfully</description><dataValueCount imported="0" updated="2"
         ignored="0"/><dataSetComplete>2013-01-21</dataSetComplete></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Tue,
-        02 Apr 2013 15:37:37 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=017A83416BDDFA63EB4167A44480D3B2;
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Wed,
+        03 Apr 2013 14:38:51 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=FB70222A5FC01751960C7291DF19E451;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}
 - request:
@@ -34,10 +34,10 @@
     url: !!python/unicode '/api/dataValueSets'
   response:
     body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
-        process completed successfully</description><dataValueCount imported="2" updated="0"
+        process completed successfully</description><dataValueCount imported="0" updated="2"
         ignored="0"/><dataSetComplete>2013-01-21</dataSetComplete></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Tue,
-        02 Apr 2013 15:37:42 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=B45B23826DB07E27E3886B5D76642293;
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Wed,
+        03 Apr 2013 14:38:54 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=FCA697C089E1E027BFA88BA5BAD7E6C4;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}
 - request:
@@ -55,9 +55,9 @@
     url: !!python/unicode '/api/dataValueSets'
   response:
     body: {string: '<?xml version=''1.0'' encoding=''UTF-8''?><importSummary xmlns="http://dhis2.org/schema/dxf/2.0"><status>SUCCESS</status><description>Import
-        process completed successfully</description><dataValueCount imported="2" updated="0"
+        process completed successfully</description><dataValueCount imported="0" updated="2"
         ignored="0"/><dataSetComplete>2013-01-21</dataSetComplete></importSummary>'}
-    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Tue,
-        02 Apr 2013 15:37:46 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=C43F05FBC69DD62A47359E0575C9EC92;
+    headers: {connection: close, content-type: application/xml;charset=UTF-8, date: 'Wed,
+        03 Apr 2013 14:38:58 GMT', server: nginx/1.1.19, set-cookie: JSESSIONID=72AC1FBF85083C91FA8C8B2816A20528;
         Path=/; HttpOnly, transfer-encoding: chunked}
     status: {code: 200, message: OK}

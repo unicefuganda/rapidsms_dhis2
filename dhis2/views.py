@@ -84,7 +84,7 @@ def resubmit_failed(request, task_id):
   ids_of_failed_submissions = list(set(submission_log.values_list('submission_id', flat = True)))
   submissions = XFormSubmission.objects.filter(id__in= ids_of_failed_submissions)
   submissions = h033b_reporter.set_submissions_facility(submissions)
-  
+ 
   submit_reports_now_task.delay(submissions)
   messages.success(request, "Submission has started! Refresh in few minutes.")
   return redirect(reverse('dhis2_reporter_index_page'))     

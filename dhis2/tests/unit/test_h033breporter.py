@@ -907,7 +907,7 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
     self.assertEquals(mocked_current_task.number_of_submissions , SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
     self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.FAILED)
-    self.assertEquals(mocked_current_task.description, TASK_FAILURE_DECRIPTION)
+    self.assertEquals(mocked_current_task.description, TASK_FAILURE_DESCRIPTION)
     
   @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter')   
   def test_successful_submission(self, mock_successful_log):
@@ -1011,8 +1011,8 @@ class Test_H033B_Reporter(TestCase):
      
      from celery.task import Task, task
      @task
-     def mocked_parallel_submission(args, **options):
-       return args[1]
+     def mocked_parallel_submission(arg1, submission, **options):
+       return submission
             
      h033b_reporter.send_parallel_submissions_task = mocked_parallel_submission 
      
