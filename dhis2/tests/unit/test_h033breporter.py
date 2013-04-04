@@ -791,7 +791,7 @@ class Test_H033B_Reporter(TestCase):
 
     self.h033b_reporter.log_submission_started()
     parallel_result = self.h033b_reporter.send_parallel_submissions_task.delay(self.h033b_reporter, submission)
-    parallel_result.get()
+    # parallel_result.get()
     
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
 
@@ -815,7 +815,7 @@ class Test_H033B_Reporter(TestCase):
 
     self.h033b_reporter.log_submission_started()
     parallel_result = self.h033b_reporter.send_parallel_submissions_task.delay(self.h033b_reporter, submission)
-    parallel_result.get()
+    # parallel_result.get()
     
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
 
@@ -839,7 +839,7 @@ class Test_H033B_Reporter(TestCase):
 
     self.h033b_reporter.log_submission_started()
     parallel_result = self.h033b_reporter.send_parallel_submissions_task.delay(self.h033b_reporter, submission)
-    parallel_result.get()
+    # parallel_result.get()
 
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
 
@@ -863,7 +863,7 @@ class Test_H033B_Reporter(TestCase):
 
     self.h033b_reporter.log_submission_started()
     parallel_result = self.h033b_reporter.send_parallel_submissions_task.delay(self.h033b_reporter, submission)
-    parallel_result.get()
+    # parallel_result.get()
     
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
 
@@ -1019,7 +1019,6 @@ class Test_H033B_Reporter(TestCase):
      dummy_submissions_list=['submission_1', 'submission_2', 'submission_3']
                
      submission_job = h033b_reporter.submit_and_retry_if_celery_fails(dummy_submissions_list)
-     
      self.assertEquals(submission_job.get(), dummy_submissions_list)
      self.assertTrue(submission_job.successful())
      
