@@ -141,7 +141,7 @@ class Test_H033B_Reporter(TestCase):
     
     for date in dates_iso_string_map :
       self.assertEquals(dates_iso_string_map[date] , self.h033b_reporter.get_utc_time_iso8601(date))
-
+  
   def test_get_week_period_id_for_sunday(self):
      periods_test_args = {
        datetime(2013, 1, 4, 0, 0, 0)        : u'2013W1' ,
@@ -152,10 +152,10 @@ class Test_H033B_Reporter(TestCase):
        datetime(2010, 12, 26, 23, 59, 59)   : u'2010W52',
        datetime(2012, 1, 1, 23, 59, 59)     : u'2012W1'
       }
-
+  
      for date in periods_test_args :
        self.assertEquals(periods_test_args[date] , self.h033b_reporter.get_week_period_id_for_sunday(date))
-
+  
   def test_get_last_sunday_for_day(self):
       days = {
         datetime(2010, 1, 7, 0, 0, 0)     : datetime(2010, 1, 3, 0, 0, 0) ,
@@ -165,7 +165,7 @@ class Test_H033B_Reporter(TestCase):
         datetime(2010, 12, 31, 0, 0, 0)   : datetime(2010, 12, 26, 0, 0, 0)  ,
         datetime(2012, 1, 7, 0, 0, 0)     :  datetime(2012, 1, 1, 0, 0, 0)
        }
-
+  
       for date in days :
         self.assertEquals(days[date] , self.h033b_reporter.get_last_sunday(date))
   
@@ -178,10 +178,10 @@ class Test_H033B_Reporter(TestCase):
         datetime(2010, 12, 31, 0, 0, 0)      : u'2010W52' ,
         datetime(2012, 1, 7, 0, 0, 0)        : u'2012W1'
        }
-
+  
       for date in from_dates:
         self.assertEquals(from_dates[date] , self.h033b_reporter.get_period_id_for_submission(date))
-
+  
   def test_get_reports_data_for_submission_with_no_values_to_report(self):
     attributes_and_values = {}
     xform_id = ACTS_XFORM_ID
@@ -190,7 +190,7 @@ class Test_H033B_Reporter(TestCase):
         attributes_and_values=attributes_and_values,facility = facility)
     submission.facility = facility
     self.assertRaises(LookupError, self.h033b_reporter.get_reports_data_for_submission, submission)
-
+  
   def test_get_reports_data_for_submission(self):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}
@@ -204,15 +204,15 @@ class Test_H033B_Reporter(TestCase):
     self._create_dhis2_indicator_mapping( xform_id = ACTS_XFORM_ID, 
         attributes_and_values = attributes_and_values,
         dhis2_uuis_and_combo_ids= dhis2_uuis_and_combo_ids)
-
+  
     
     facility = Submissions_Test_Helper.create_facility(facility_name=u'xyz',dhis2_uuid=u'uuid_xxx')    
     submission = self._create_submission(facility = facility, xform_id=xform_id, attributes_and_values=attributes_and_values)  
- 
+   
     submission_data = self.h033b_reporter.get_reports_data_for_submission(submission)
     sorter = lambda dataValue : dataValue['dataElement']
     submission_data['dataValues']  = sorted(submission_data['dataValues'],key=sorter)
-
+  
     xform_fields_commands = sorted (attributes_and_values.keys())
     
     for i in range(len(submission_data['dataValues'])):
@@ -230,7 +230,7 @@ class Test_H033B_Reporter(TestCase):
     missing_dhis2_uuis_and_combo_ids= [(u'OMxmmYvvLai' , u'BrX1bohix6a')]
     corresponding_attributes_and_values = { u'eps': 62}
     correct_attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}
-
+  
     self._create_dhis2_indicator_mapping( xform_id = ACTS_XFORM_ID, 
         dhis2_uuis_and_combo_ids= missing_dhis2_uuis_and_combo_ids,
         attributes_and_values = corresponding_attributes_and_values)
@@ -238,36 +238,36 @@ class Test_H033B_Reporter(TestCase):
     facility = Submissions_Test_Helper.create_facility(facility_name=u'xyz',dhis2_uuid=u'uuid_xxx')    
     submission = self._create_submission(facility = facility, xform_id=xform_id,
                   attributes_and_values= correct_attributes_and_values)  
-
+  
     submission_data = self.h033b_reporter.get_reports_data_for_submission(submission)
-
+  
     self.assertEquals(len(submission_data['dataValues']) , 1)
-
+  
     self.assertEquals(submission_data['dataValues'][0]['dataElement'] , 'OMxmmYvvLai')
     self.assertEquals(submission_data['dataValues'][0]['value'] ,62 )
     self.assertEquals(submission_data['dataValues'][0]['categoryOptionCombo'] ,u'BrX1bohix6a' )
-
+  
   @patch('rapidsms_xforms.models.XFormSubmissionValue.objects.filter')
   def test_missing_indicator_values_are_NOT_reported_in_data_for_submission(self, mock_xform_filter):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}
-
+  
     dhis2_uuis_and_combo_ids= [
      (u'NoJfAIcxjSY' , u'gGhClrV5odI'),
      (u'OMxmmYvvLai' , u'BrX1bohix6a'),
      (u'w3mO7SZdbb8' , u'drJyZS90kYV'),
       ]
-
+  
     self._create_dhis2_indicator_mapping( xform_id = ACTS_XFORM_ID, 
         attributes_and_values = attributes_and_values,
         dhis2_uuis_and_combo_ids= dhis2_uuis_and_combo_ids)
-
+  
     facility = Submissions_Test_Helper.create_facility(facility_name=u'xyz',dhis2_uuid=u'uuid_xxx')    
     submission = self._create_submission(facility = facility, xform_id=xform_id, attributes_and_values=attributes_and_values)  
     
     # mocking needed because _create_submission (only used in test not dhis2) automatically clean None submission.value 
     xform = XForm.objects.get(id=xform_id)
-
+  
     submission_value_epd = MagicMock()
     submission_value_epd.value = None
     submission_value_epd.attribute = XFormField.objects.get(xform=xform, command='epd')
@@ -281,7 +281,7 @@ class Test_H033B_Reporter(TestCase):
     submission_value_fpd.attribute = XFormField.objects.get(xform=xform, command='fpd')
     
     mock_xform_filter.return_value = [submission_value_epd, submission_value_eps, submission_value_fpd]
-
+  
     submission_data = self.h033b_reporter.get_reports_data_for_submission(submission)
     
     self.assertEquals(len(submission_data['dataValues']) , 1)
@@ -297,20 +297,20 @@ class Test_H033B_Reporter(TestCase):
      (u'OMxmmYvvLai' , u'BrX1bohix6a'),
      (u'w3mO7SZdbb8' , u'drJyZS90kYV'),
       ] ):
-
+  
     xform_fields_commands = sorted (attributes_and_values.keys())
-
+  
     for index in range(len(xform_fields_commands)) : 
       dhis2_uid = dhis2_uuis_and_combo_ids[index][0]
       dhis2_combo_id = dhis2_uuis_and_combo_ids[index][1]
       attribute = XFormField.objects.get(command=xform_fields_commands[index]).attribute_ptr
-
+  
       Dhis2_Mtrac_Indicators_Mapping.objects.create( 
         eav_attribute = attribute,
         dhis2_uuid =dhis2_uid ,
         dhis2_combo_id=dhis2_combo_id
       )
-
+  
   def _create_submission(self, facility,
     created = datetime(2012, 1, 7, 0, 0, 0), 
     xform_id = ACTS_XFORM_ID,
@@ -323,21 +323,21 @@ class Test_H033B_Reporter(TestCase):
       attributes_and_values=attributes_and_values,
       facility = facility
     )
-
+  
     submission.created = created
     submission.save()   
-
+  
     submission.facility = facility
     
     if create_attribute_mappings:
       Submissions_Test_Helper.create_attribute_mappings_for_submission(submission)
-
+  
     return submission
   
   def test_get_submissions_in_date_range(self):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {}
-
+  
     from_date = datetime(2011, 12, 18, 00, 00, 00)
     to_date = datetime(2011, 12, 19, 23, 59, 59)
     
@@ -368,31 +368,31 @@ class Test_H033B_Reporter(TestCase):
   def test_get_submissions_in_date_range_for_submissions_has_errors_True(self):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {}
-
+  
     from_date = datetime(2011, 12, 18, 00, 00, 00)
     to_date = datetime(2011, 12, 19, 23, 59, 59)
-
+  
     facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1',dhis2_uuid=u'test_uuid1')   
-
+  
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
        attributes_and_values=attributes_and_values,facility = facility)
     submission.created = from_date + timedelta(seconds = 1)
     submission.has_errors = True
     submission.save()
-
+  
     submissions_in_period  = self.h033b_reporter.get_submissions_in_date_range(from_date,to_date)
-
+  
     self.assertEquals(len(submissions_in_period) , 0)
     
   def test_get_submissions_in_date_range_for_no_submission_extra(self):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {}
-
+  
     from_date = datetime(2011, 12, 18, 00, 00, 00)
     to_date = datetime(2011, 12, 19, 23, 59, 59)
-
+  
     facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1',dhis2_uuid=u'test_uuid1')   
-
+  
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
        attributes_and_values=attributes_and_values,facility = facility)
     submission.created = from_date + timedelta(seconds = 1)
@@ -405,12 +405,12 @@ class Test_H033B_Reporter(TestCase):
   def test_get_submissions_in_date_range_for_missing_facility(self):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {}
-
+  
     from_date = datetime(2011, 12, 18, 00, 00, 00)
     to_date = datetime(2011, 12, 19, 23, 59, 59)
-
+  
     facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1', dhis2_uuid=u'test_uuid1')   
-
+  
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
        attributes_and_values=attributes_and_values,facility = facility)
     submission.created = from_date + timedelta(seconds = 1)
@@ -421,19 +421,19 @@ class Test_H033B_Reporter(TestCase):
     xtra.save()
     
     submissions_in_period  = self.h033b_reporter.get_submissions_in_date_range(from_date,to_date)
-
+  
     self.assertEquals(len(submissions_in_period) , 0)
     
   def test_get_submissions_in_date_range_for_reported_submissions(self):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {}
     h033b_reporter = H033B_Reporter()
-
+  
     from_date = datetime(2011, 12, 18, 00, 00, 00)
     to_date = datetime(2011, 12, 19, 23, 59, 59)
-
+  
     facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1',dhis2_uuid=u'test_uuid1')   
-
+  
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
        attributes_and_values=attributes_and_values,facility = facility)
        
@@ -449,32 +449,32 @@ class Test_H033B_Reporter(TestCase):
     )
     
     submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
-
+  
     self.assertEquals(len(submissions_in_period) , 0)
     
   def test_get_submissions_in_date_range_returns_no_submission_while_latest_submission_is_already_reported_to_dhis2(self):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {}
     h033b_reporter = H033B_Reporter()
-
+  
     from_date = datetime(2011, 12, 18, 00, 00, 00)
     to_date = datetime(2011, 12, 19, 23, 59, 59)
-
+  
     XFormSubmission.objects.all().delete()
-
+  
     facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1',dhis2_uuid=u'test_uuid1')   
-
+  
     old_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
         attributes_and_values=attributes_and_values,facility = facility)
-
+  
     latest_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
             attributes_and_values=attributes_and_values,facility = facility)
-
+  
     old_submission.created = from_date + timedelta(seconds = 1)
     latest_submission.created = to_date - timedelta(seconds =1)
     old_submission.save()
     latest_submission.save()
-
+  
     h033b_reporter.log_submission_started()
     
     report_submissions_log = Dhis2_Reports_Submissions_Log.objects.create(
@@ -486,34 +486,34 @@ class Test_H033B_Reporter(TestCase):
     )
     
     submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
-
+  
     self.assertEquals(len(submissions_in_period) , 0)
-
+  
   def test_get_submissions_in_date_range_returns_submissions_created_after_last_submission_report(self):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {}
     h033b_reporter = H033B_Reporter()
-
+  
     from_date = datetime(2011, 12, 18, 00, 00, 00)
     to_date = datetime(2011, 12, 19, 23, 59, 59)
-
+  
     XFormSubmission.objects.all().delete()
-
+  
     facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1',dhis2_uuid=u'test_uuid1')   
-
+  
     old_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
         attributes_and_values=attributes_and_values,facility = facility)
-
+  
     reported_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
             attributes_and_values=attributes_and_values,facility = facility)
-
+  
     old_submission.created = from_date + timedelta(seconds = 1)
     reported_submission.created = from_date + timedelta(seconds = 5)
     old_submission.save()
     reported_submission.save()
-
+  
     h033b_reporter.log_submission_started()
-
+  
     report_submissions_log = Dhis2_Reports_Submissions_Log.objects.create(
       task_id = h033b_reporter.current_task,
       submission_id = reported_submission.id,
@@ -528,7 +528,7 @@ class Test_H033B_Reporter(TestCase):
     new_submission.save()
     
     submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
-
+  
     self.assertEquals(len(submissions_in_period) , 1)  
     self.assertEquals(submissions_in_period[0], new_submission)  
          
@@ -540,7 +540,7 @@ class Test_H033B_Reporter(TestCase):
      u'male2': 46,
      u'female2': 47
      }
-
+  
     attributes_and_values2 = {
       u'epd': 53,
          u'eps': 62,
@@ -548,43 +548,43 @@ class Test_H033B_Reporter(TestCase):
     from_date  = datetime.now()
     
     XFormSubmission.objects.all().delete()
-
+  
     facility= Submissions_Test_Helper.create_facility()
-
+  
     Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility= facility)   
-
+  
     Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility= facility)    
-
+  
     latest_submission1 = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility= facility)    
-
-
+  
+  
     facility2= Submissions_Test_Helper.create_facility(facility_name=u'test_facility2',dhis2_uuid=u'test_uuid2')
     
     Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
        attributes_and_values=attributes_and_values,facility= facility2)   
-
-
+  
+  
     latest_submission2 = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
        attributes_and_values=attributes_and_values,facility= facility2)
-
+  
     Submissions_Test_Helper.create_submission_object(xform_id=ACTS_XFORM_ID,
           attributes_and_values=attributes_and_values2,facility= facility2)
-
+  
     latest_submission3 = Submissions_Test_Helper.create_submission_object(xform_id=ACTS_XFORM_ID,
       attributes_and_values=attributes_and_values2,facility= facility2)    
-
+  
     facility3= Submissions_Test_Helper.create_facility(facility_name=u'test_facility3',dhis2_uuid=u'test_uuid3')
-
+  
     latest_submission4 = Submissions_Test_Helper.create_submission_object(xform_id=ACTS_XFORM_ID,
       attributes_and_values=attributes_and_values2,facility= facility3)
       
     to_date = datetime.now()
     
     submissions_list  = self.h033b_reporter.get_submissions_in_date_range(from_date,to_date)
-
+  
     self.assertEquals(len(submissions_list), 4)
     self.assertTrue(latest_submission1 in submissions_list)
     self.assertTrue(latest_submission2 in submissions_list)
@@ -601,7 +601,7 @@ class Test_H033B_Reporter(TestCase):
     self.assertTrue(before < log_record.time_started )
     self.assertTrue(after > log_record.time_started )
     
-
+  
   def test_log_submission_finished(self):
     Dhis2_Reports_Report_Task_Log.objects.all().delete()
     self.h033b_reporter.log_submission_started()
@@ -611,7 +611,7 @@ class Test_H033B_Reporter(TestCase):
       submission_count=ARBITRARY_SUBMISSION_COUNT,
       status= Dhis2_Reports_Report_Task_Log.SUCCESS,
       description='Submitted succesfully to dhis2')
-
+  
     log_record_fetched = Dhis2_Reports_Report_Task_Log.objects.all()[0]
     self.assertEquals(log_record_fetched.number_of_submissions , ARBITRARY_SUBMISSION_COUNT)
     self.assertEquals(log_record_fetched.description , 'Submitted succesfully to dhis2')
@@ -627,7 +627,7 @@ class Test_H033B_Reporter(TestCase):
     facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values_no_033b,facility = facility)   
-
+  
     submission.facility = facility
     submission.save()
     
@@ -637,22 +637,22 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(result, Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA)
     self.assertIsNotNone(description, 'LookupError: '+ ERROR_MESSAGE_NO_HMS_INDICATOR)
       
-
+  
   def test_dhis2_returns_error_for_missing_orgUnit_mapping(self):
     self.h033b_reporter = H033B_Reporter()
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {u'epd': 53,
      u'tps': 44}
-
+  
     cdate = datetime(2013,1,1,1,1,1)
     facility= Submissions_Test_Helper.create_facility(dhis2_uuid = 'CRAP_UUID_TO_CAUSE_ERROR')
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
       attributes_and_values=attributes_and_values,facility = facility)   
-
+  
     submission.created = cdate
     submission.facility = facility
     submission.save()
-
+  
     Submissions_Test_Helper.create_attribute_mappings_for_submission(submission)
     self.h033b_reporter.log_submission_started()
   
@@ -662,7 +662,7 @@ class Test_H033B_Reporter(TestCase):
     self.assertIsNotNone(reported_xml)
     self.assertEquals(result,Dhis2_Reports_Submissions_Log.ERROR)
     self.assertTrue('OrganisationUnit  : Must be provided to complete data set' in description)  
-
+  
   def test_doesnt_log_xml_and_no_description_for_success_submissions(self):
     h033b_reporter = H033B_Reporter()
     
@@ -671,11 +671,11 @@ class Test_H033B_Reporter(TestCase):
     h033b_reporter.submit_report = mock_send
     
     result, reported_xml, description =  h033b_reporter.submit_report_and_log_result('fake submission')
-
+  
     self.assertIsNone(reported_xml)
     self.assertEquals(result,Dhis2_Reports_Submissions_Log.SUCCESS)
     self.assertEquals(description, '')
-
+  
   def test_http_response_contains_error_is_logged(self):
     h033b_reporter = H033B_Reporter()
     
@@ -705,16 +705,16 @@ class Test_H033B_Reporter(TestCase):
               'updated': NUMBER_OF_INDICATOR_ACCEPTED,
                'imported': NUMBER_OF_INDICATOR_ACCEPTED,
                'request_xml':None}
-
+  
     mock_submit = lambda data : result
     h033b_reporter.submit_report = mock_submit
-
+  
     submission_result, reported_xml, description = h033b_reporter.submit_report_and_log_result('fake submission')
     
     self.assertEquals(submission_result, Dhis2_Reports_Submissions_Log.ERROR )
     self.assertEquals(description, ERROR_MESSAGE_ALL_VALUES_IGNORED)
     self.assertEquals(reported_xml, result['request_xml'])
-
+  
   def test_http_response_accepts_no_indicators_is_logged(self):
     h033b_reporter = H033B_Reporter()
     
@@ -727,12 +727,12 @@ class Test_H033B_Reporter(TestCase):
                'imported': SOME_POSITIVE_NUMBER,
                'ignored': INDICATORS_IGNORED,
                'request_xml':None}
-
+  
     mock_submit = lambda data : result
     h033b_reporter.submit_report = mock_submit
-
+  
     submission_result, reported_xml, description = h033b_reporter.submit_report_and_log_result('fake submission')
-
+  
     self.assertEquals(submission_result, Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED )
     self.assertEquals(description,ERROR_MESSAGE_SOME_VALUES_IGNORED )
     self.assertEquals(reported_xml, result['request_xml'])
@@ -743,36 +743,36 @@ class Test_H033B_Reporter(TestCase):
     h033b_reporter.get_reports_data_for_submission = lambda submission : 'mocked because not needed and also slows down the test significantly' 
     SOME_POSITIVE_NUMBER  = 1
     INDICATORS_IGNORED  = 1
-
+  
     result = {'error': None,
               'updated': SOME_POSITIVE_NUMBER,
                'imported': SOME_POSITIVE_NUMBER,
                'ignored': INDICATORS_IGNORED,
                'request_xml':None}
-
+  
     mock_submit = lambda data : result
     h033b_reporter.submit_report = mock_submit
-
+  
     submission_result, reported_xml, description =h033b_reporter.submit_report_and_log_result('fake submission')
-
+  
     self.assertEquals(submission_result, Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED )
     self.assertEquals(description,ERROR_MESSAGE_SOME_VALUES_IGNORED )
     self.assertEquals(reported_xml, result['request_xml'])
     
   def test_http_unrecognized_format_response_is_logged(self):
     h033b_reporter = H033B_Reporter()
-
+  
     h033b_reporter.get_reports_data_for_submission = lambda submission : 'mocked because not needed and also slows down the test significantly' 
     SOME_POSITIVE_NUMBER  = 1
     INDICATORS_IGNORED  = 1
-
+  
     unrecognized_response = 'CRAPPPP'
-
+  
     mock_submit = lambda data : h033b_reporter.parse_submission_response(unrecognized_response,'request xml')
     h033b_reporter.submit_report = mock_submit
-
+  
     submission_result, reported_xml, description =h033b_reporter.submit_report_and_log_result('fake submission')
-
+  
     self.assertEquals(submission_result, Dhis2_Reports_Submissions_Log.ERROR )
     self.assertTrue(ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2 in description)
     self.assertEquals(reported_xml, 'request xml')  
@@ -790,8 +790,8 @@ class Test_H033B_Reporter(TestCase):
     mock_submit.return_value = ['some_result', 'some_reported_xml', 'some_description']
 
     self.h033b_reporter.log_submission_started()
-    parallel_result = self.h033b_reporter.send_parallel_submissions_task.delay(self.h033b_reporter, submission)
-    # parallel_result.get()
+    self.h033b_reporter.send_parallel_submissions_task(self.h033b_reporter, submission)
+
     
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
 
@@ -810,15 +810,15 @@ class Test_H033B_Reporter(TestCase):
     facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
           attributes_and_values=attributes_and_values,facility = facility)
-
+  
     mock_submit.side_effect = urllib2.URLError('fake network failure')
-
+  
     self.h033b_reporter.log_submission_started()
-    parallel_result = self.h033b_reporter.send_parallel_submissions_task.delay(self.h033b_reporter, submission)
-    # parallel_result.get()
+    self.h033b_reporter.send_parallel_submissions_task(self.h033b_reporter, submission)
+
     
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
-
+  
     self.assertEquals(log.task_id,self.h033b_reporter.current_task)
     self.assertEquals(log.submission_id,submission.id)
     self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.FAILED)
@@ -834,15 +834,15 @@ class Test_H033B_Reporter(TestCase):
     facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
           attributes_and_values=attributes_and_values,facility = facility)
-
+  
     mock_submit.side_effect = socket.timeout('fake network failure')
-
+  
     self.h033b_reporter.log_submission_started()
-    parallel_result = self.h033b_reporter.send_parallel_submissions_task.delay(self.h033b_reporter, submission)
-    # parallel_result.get()
-
+    self.h033b_reporter.send_parallel_submissions_task(self.h033b_reporter, submission)
+  
+  
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
-
+  
     self.assertEquals(log.task_id,self.h033b_reporter.current_task)
     self.assertEquals(log.submission_id,submission.id)
     self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.FAILED)
@@ -858,167 +858,167 @@ class Test_H033B_Reporter(TestCase):
     facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
           attributes_and_values=attributes_and_values,facility = facility)
-
+  
     mock_submit.side_effect = Exception('fake network failure')
-
+  
     self.h033b_reporter.log_submission_started()
-    parallel_result = self.h033b_reporter.send_parallel_submissions_task.delay(self.h033b_reporter, submission)
-    # parallel_result.get()
+    self.h033b_reporter.send_parallel_submissions_task(self.h033b_reporter, submission)
+  
     
     log = Dhis2_Reports_Submissions_Log.objects.get(task_id=self.h033b_reporter.current_task)
-
+  
     self.assertEquals(log.task_id,self.h033b_reporter.current_task)
     self.assertEquals(log.submission_id,submission.id)
     self.assertEquals(log.result, Dhis2_Reports_Submissions_Log.FAILED)
     self.assertTrue(ERROR_MESSAGE_UNEXPECTED_ERROR in log.description)    
     self.assertEquals(log.reported_xml, '')
   
-  @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter')   
-  def test_failed_submission(self, mock_failed_log):
-    Dhis2_Reports_Report_Task_Log.objects.all().delete
-    Dhis2_Reports_Submissions_Log.objects.all().delete
-    
-    h033b_reporter = H033B_Reporter()
-    FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission_1', 'fake_submission_2']
-    SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED = 2
-
-    h033b_reporter.send_parallel_submissions_task.s = lambda object, submission: 'mocked cuz not needed, also to speed things up' 
-    sub_job = MagicMock()
-    sub_job.completed_count = lambda : SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED 
-    h033b_reporter.submit_and_retry_if_celery_fails = lambda submissions: sub_job
-    
-    mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
-    h033b_reporter.log_submission_started = lambda:mocked_current_task
-    h033b_reporter.current_task = mocked_current_task
-    
-    xform_id = ACTS_XFORM_ID
-    attributes_and_values = {u'epd': 53,
-         u'tps': 44}
-    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
-    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
-          attributes_and_values=attributes_and_values,facility = facility)
-    
-    failed_log = Dhis2_Reports_Submissions_Log.objects.create(task_id = mocked_current_task, submission_id=submission.id, result=Dhis2_Reports_Submissions_Log.FAILED)
-    
-    mock_failed_log.return_value = [failed_log]
-    
-    h033b_reporter.submit_and_log_task_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
-
-    self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
-    self.assertEquals(mocked_current_task.number_of_submissions , SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
-    self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.FAILED)
-    self.assertEquals(mocked_current_task.description, TASK_FAILURE_DESCRIPTION)
-    
-  @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter')   
-  def test_successful_submission(self, mock_successful_log):
-    Dhis2_Reports_Report_Task_Log.objects.all().delete
-    Dhis2_Reports_Submissions_Log.objects.all().delete
-    
-    h033b_reporter = H033B_Reporter()
-    FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission_1', 'fake_submission_2']
-    SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED = 2
-
-    h033b_reporter.send_parallel_submissions_task.s = lambda object, submission: 'mocked cuz not needed, also to speed things up'
-    sub_job = MagicMock()
-    sub_job.completed_count = lambda : SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED
-    h033b_reporter.submit_and_retry_if_celery_fails = lambda submissions: sub_job
-    
-    mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
-    h033b_reporter.log_submission_started = lambda:mocked_current_task
-    h033b_reporter.current_task = mocked_current_task
-
-    mock_successful_log.return_value = []
-
-    h033b_reporter.submit_and_log_task_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
-
-    self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
-    self.assertEquals(mocked_current_task.number_of_submissions ,   SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
-    self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
-    self.assertEquals(mocked_current_task.description, '')    
-      
-  def test_successful_weekly_submissions(self,submissions_count=3,delete_old_submissions=True):
-    h033b_reporter = H033B_Reporter()
-    from_date = datetime(2013, 1, 21, 00, 00, 00)
-    to_date = datetime(2013, 1, 24, 23, 59, 59)
-    
-    self._generate_some_submissions_data(to_date= to_date, from_date= from_date, submissions_count=3,delete_old_submissions=True)
-
-    with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
-      h033b_reporter.initiate_weekly_submissions(to_date)
-
-    log_record_for_task = h033b_reporter.current_task
-    log_record_for_submissions =  Dhis2_Reports_Submissions_Log.objects.all()
-
-    self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()),1)
-    self.assertEquals(len(Dhis2_Reports_Submissions_Log.objects.all()),3)
-    self.assertEquals(log_record_for_task.number_of_submissions , submissions_count)
-    self.assertEquals(log_record_for_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
-
-    for log_record_for_submission in log_record_for_submissions : 
-      self.assertEquals(log_record_for_submission.result,Dhis2_Reports_Report_Task_Log.SUCCESS)      
-       
-  def _generate_some_submissions_data(self, to_date, from_date, submissions_count=3, delete_old_submissions=True):
-    
-    SOME_VALID_FACILITY_UUIDS =[A_VALID_DHIS2_UUID, '514f2e0c-e05b-4cc9-9921-597e84075770', '0e31f9a4-3dbc-4164-b5ef-5e555f865f7b']
-    
-    xform_id = ACTS_XFORM_ID
-    attributes_and_values = {
-      u'epd': 53,
-         u'eps': 62,
-    }
-
-    xfrom_field_mappings = [
-      {
-        'x_form_field_command_id' : u'epd',
-        'dhis2_uuid'  :u'NoJfAIcxjSY',
-        'combo_id'    : u'gGhClrV5odI'
-      },
-      {
-        'x_form_field_command_id' : u'eps',
-        'dhis2_uuid'  :u'OMxmmYvvLai',
-        'combo_id'    : u'gGhClrV5odI'
-      }
-    ]
-
-    if delete_old_submissions : 
-      XFormSubmission.objects.all().delete()
-      Dhis2_Reports_Report_Task_Log.objects.all().delete()
-      Dhis2_Reports_Submissions_Log.objects.all().delete()
-
-    for xfrom_field_mapping in xfrom_field_mappings :
-      mtrac_id  = XFormField.objects.filter(command=xfrom_field_mapping['x_form_field_command_id'])[0].attribute_ptr_id
-      eav_attribute = Attribute.objects.get(id=mtrac_id)
-
-      Dhis2_Mtrac_Indicators_Mapping.objects.create(
-        eav_attribute = eav_attribute,
-        dhis2_uuid = xfrom_field_mapping['dhis2_uuid'] ,
-        dhis2_combo_id= xfrom_field_mapping['combo_id']
-      )
-
-    for x in range(submissions_count) : 
-      facility= Submissions_Test_Helper.create_facility(facility_name=u'test_facility'+str(x),dhis2_uuid=SOME_VALID_FACILITY_UUIDS[x%len(SOME_VALID_FACILITY_UUIDS )])
-
-      submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
-        attributes_and_values=attributes_and_values,facility = facility)
-      submission.created = from_date + timedelta(seconds = ((to_date-from_date).seconds + x/submissions_count))
-      xtras = XFormSubmissionExtras.objects.filter(submission=submission)[0]
-      xtras.cdate = submission.created
-      xtras.save()
-      submission.save()    
-      
-  def test_submit_and_retry_if_celery_fails_when_celery_is_successful(self):
-     h033b_reporter = H033B_Reporter() 
-     
-     from celery.task import Task, task
-     @task
-     def mocked_parallel_submission(arg1, submission, **options):
-       return submission
-            
-     h033b_reporter.send_parallel_submissions_task = mocked_parallel_submission 
-     
-     dummy_submissions_list=['submission_1', 'submission_2', 'submission_3']
-               
-     submission_job = h033b_reporter.submit_and_retry_if_celery_fails(dummy_submissions_list)
-     self.assertEquals(submission_job.get(), dummy_submissions_list)
-     self.assertTrue(submission_job.successful())
-     
+  # @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter')   
+  # def test_failed_submission(self, mock_failed_log):
+  #   Dhis2_Reports_Report_Task_Log.objects.all().delete
+  #   Dhis2_Reports_Submissions_Log.objects.all().delete
+  #   
+  #   h033b_reporter = H033B_Reporter()
+  #   FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission_1', 'fake_submission_2']
+  #   SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED = 2
+  # 
+  #   h033b_reporter.send_parallel_submissions_task.s = lambda object, submission: 'mocked cuz not needed, also to speed things up' 
+  #   sub_job = MagicMock()
+  #   sub_job.completed_count = lambda : SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED 
+  #   h033b_reporter.submit_and_retry_if_celery_fails = lambda submissions: sub_job
+  #   
+  #   mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
+  #   h033b_reporter.log_submission_started = lambda:mocked_current_task
+  #   h033b_reporter.current_task = mocked_current_task
+  #   
+  #   xform_id = ACTS_XFORM_ID
+  #   attributes_and_values = {u'epd': 53,
+  #        u'tps': 44}
+  #   facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+  #   submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+  #         attributes_and_values=attributes_and_values,facility = facility)
+  #   
+  #   failed_log = Dhis2_Reports_Submissions_Log.objects.create(task_id = mocked_current_task, submission_id=submission.id, result=Dhis2_Reports_Submissions_Log.FAILED)
+  #   
+  #   mock_failed_log.return_value = [failed_log]
+  #   
+  #   h033b_reporter.submit_and_log_task_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
+  # 
+  #   self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
+  #   self.assertEquals(mocked_current_task.number_of_submissions , SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
+  #   self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.FAILED)
+  #   self.assertEquals(mocked_current_task.description, TASK_FAILURE_DESCRIPTION)
+  #   
+  # @patch('dhis2.models.Dhis2_Reports_Submissions_Log.objects.filter')   
+  # def test_successful_submission(self, mock_successful_log):
+  #   Dhis2_Reports_Report_Task_Log.objects.all().delete
+  #   Dhis2_Reports_Submissions_Log.objects.all().delete
+  #   
+  #   h033b_reporter = H033B_Reporter()
+  #   FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission_1', 'fake_submission_2']
+  #   SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED = 2
+  # 
+  #   h033b_reporter.send_parallel_submissions_task.s = lambda object, submission: 'mocked cuz not needed, also to speed things up'
+  #   sub_job = MagicMock()
+  #   sub_job.completed_count = lambda : SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED
+  #   h033b_reporter.submit_and_retry_if_celery_fails = lambda submissions: sub_job
+  #   
+  #   mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
+  #   h033b_reporter.log_submission_started = lambda:mocked_current_task
+  #   h033b_reporter.current_task = mocked_current_task
+  # 
+  #   mock_successful_log.return_value = []
+  # 
+  #   h033b_reporter.submit_and_log_task_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
+  # 
+  #   self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
+  #   self.assertEquals(mocked_current_task.number_of_submissions ,   SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
+  #   self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
+  #   self.assertEquals(mocked_current_task.description, '')    
+  #     
+  # def test_successful_weekly_submissions(self,submissions_count=3,delete_old_submissions=True):
+  #   h033b_reporter = H033B_Reporter()
+  #   from_date = datetime(2013, 1, 21, 00, 00, 00)
+  #   to_date = datetime(2013, 1, 24, 23, 59, 59)
+  #   
+  #   self._generate_some_submissions_data(to_date= to_date, from_date= from_date, submissions_count=3,delete_old_submissions=True)
+  # 
+  #   with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):
+  #     h033b_reporter.initiate_weekly_submissions(to_date)
+  # 
+  #   log_record_for_task = h033b_reporter.current_task
+  #   log_record_for_submissions =  Dhis2_Reports_Submissions_Log.objects.all()
+  # 
+  #   self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()),1)
+  #   self.assertEquals(len(Dhis2_Reports_Submissions_Log.objects.all()),3)
+  #   self.assertEquals(log_record_for_task.number_of_submissions , submissions_count)
+  #   self.assertEquals(log_record_for_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
+  # 
+  #   for log_record_for_submission in log_record_for_submissions : 
+  #     self.assertEquals(log_record_for_submission.result,Dhis2_Reports_Report_Task_Log.SUCCESS)      
+  #      
+  # def _generate_some_submissions_data(self, to_date, from_date, submissions_count=3, delete_old_submissions=True):
+  #   
+  #   SOME_VALID_FACILITY_UUIDS =[A_VALID_DHIS2_UUID, '514f2e0c-e05b-4cc9-9921-597e84075770', '0e31f9a4-3dbc-4164-b5ef-5e555f865f7b']
+  #   
+  #   xform_id = ACTS_XFORM_ID
+  #   attributes_and_values = {
+  #     u'epd': 53,
+  #        u'eps': 62,
+  #   }
+  # 
+  #   xfrom_field_mappings = [
+  #     {
+  #       'x_form_field_command_id' : u'epd',
+  #       'dhis2_uuid'  :u'NoJfAIcxjSY',
+  #       'combo_id'    : u'gGhClrV5odI'
+  #     },
+  #     {
+  #       'x_form_field_command_id' : u'eps',
+  #       'dhis2_uuid'  :u'OMxmmYvvLai',
+  #       'combo_id'    : u'gGhClrV5odI'
+  #     }
+  #   ]
+  # 
+  #   if delete_old_submissions : 
+  #     XFormSubmission.objects.all().delete()
+  #     Dhis2_Reports_Report_Task_Log.objects.all().delete()
+  #     Dhis2_Reports_Submissions_Log.objects.all().delete()
+  # 
+  #   for xfrom_field_mapping in xfrom_field_mappings :
+  #     mtrac_id  = XFormField.objects.filter(command=xfrom_field_mapping['x_form_field_command_id'])[0].attribute_ptr_id
+  #     eav_attribute = Attribute.objects.get(id=mtrac_id)
+  # 
+  #     Dhis2_Mtrac_Indicators_Mapping.objects.create(
+  #       eav_attribute = eav_attribute,
+  #       dhis2_uuid = xfrom_field_mapping['dhis2_uuid'] ,
+  #       dhis2_combo_id= xfrom_field_mapping['combo_id']
+  #     )
+  # 
+  #   for x in range(submissions_count) : 
+  #     facility= Submissions_Test_Helper.create_facility(facility_name=u'test_facility'+str(x),dhis2_uuid=SOME_VALID_FACILITY_UUIDS[x%len(SOME_VALID_FACILITY_UUIDS )])
+  # 
+  #     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+  #       attributes_and_values=attributes_and_values,facility = facility)
+  #     submission.created = from_date + timedelta(seconds = ((to_date-from_date).seconds + x/submissions_count))
+  #     xtras = XFormSubmissionExtras.objects.filter(submission=submission)[0]
+  #     xtras.cdate = submission.created
+  #     xtras.save()
+  #     submission.save()    
+  #     
+  # def test_submit_and_retry_if_celery_fails_when_celery_is_successful(self):
+  #    h033b_reporter = H033B_Reporter() 
+  #    
+  #    from celery.task import Task, task
+  #    @task
+  #    def mocked_parallel_submission(arg1, submission, **options):
+  #      return submission
+  #           
+  #    h033b_reporter.send_parallel_submissions_task = mocked_parallel_submission 
+  #    
+  #    dummy_submissions_list=['submission_1', 'submission_2', 'submission_3']
+  #              
+  #    submission_job = h033b_reporter.submit_and_retry_if_celery_fails(dummy_submissions_list)
+  #    self.assertEquals(submission_job.get(), dummy_submissions_list)
+  #    self.assertTrue(submission_job.successful())
+  #    
