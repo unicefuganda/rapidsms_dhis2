@@ -531,6 +531,93 @@ class Test_H033B_Reporter(TestCase):
   
     self.assertEquals(len(submissions_in_period) , 1)  
     self.assertEquals(submissions_in_period[0], new_submission)  
+    
+  def test_get_submissions_in_date_range_returns_soft_approved_submissions_after_last_submission_report(self):
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}
+    h033b_reporter = H033B_Reporter()
+
+    from_date = datetime(2011, 12, 18, 00, 00, 00)
+    to_date = datetime(2011, 12, 19, 23, 59, 59)
+
+    XFormSubmission.objects.all().delete()
+
+    facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1',dhis2_uuid=u'test_uuid1')   
+
+    old_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+        attributes_and_values=attributes_and_values,facility = facility)
+
+    reported_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+            attributes_and_values=attributes_and_values,facility = facility)
+
+    old_submission.created = from_date + timedelta(seconds = 1)
+    reported_submission.created = from_date + timedelta(seconds = 5)
+    old_submission.save()
+    reported_submission.save()
+
+    h033b_reporter.log_submission_started()
+
+    report_submissions_log = Dhis2_Reports_Submissions_Log.objects.create(
+      task_id = h033b_reporter.current_task,
+      submission_id = reported_submission.id,
+      reported_xml = 'crap', 
+      result = Dhis2_Reports_Report_Task_Log.SUCCESS,
+      description ='No Description'
+    )
+
+    reported_submission.approved =True
+    for sub_value in reported_submission.submission_values():
+       sub_value.modified = report_submissions_log.task_id.time_started + timedelta(seconds=1)
+       sub_value.save()
+    
+    reported_submission.save()   
+    
+    submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
+
+    self.assertEquals(len(submissions_in_period) , 1)  
+    self.assertEquals(submissions_in_period[0], reported_submission)  
+    
+    
+  def test_get_submissions_in_date_range_returns_none_if_soft_approval_does_not_change_modified_date(self):
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}
+    h033b_reporter = H033B_Reporter()
+
+    from_date = datetime(2011, 12, 18, 00, 00, 00)
+    to_date = datetime(2011, 12, 19, 23, 59, 59)
+
+    XFormSubmission.objects.all().delete()
+
+    facility = Submissions_Test_Helper.create_facility(facility_name=u'test_facility1',dhis2_uuid=u'test_uuid1')   
+
+    old_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+        attributes_and_values=attributes_and_values,facility = facility)
+
+    reported_submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+            attributes_and_values=attributes_and_values,facility = facility)
+
+    old_submission.created = from_date + timedelta(seconds = 1)
+    reported_submission.created = from_date + timedelta(seconds = 5)
+    old_submission.save()
+    reported_submission.save()
+
+    h033b_reporter.log_submission_started()
+
+    report_submissions_log = Dhis2_Reports_Submissions_Log.objects.create(
+      task_id = h033b_reporter.current_task,
+      submission_id = reported_submission.id,
+      reported_xml = 'crap', 
+      result = Dhis2_Reports_Report_Task_Log.SUCCESS,
+      description ='No Description'
+    )
+
+    reported_submission.approved =True
+    reported_submission.save()   
+    
+    submissions_in_period  = h033b_reporter.get_submissions_in_date_range(from_date,to_date)
+
+    self.assertEquals(len(submissions_in_period) , 0)  
+    
          
   def test_remove_duplicate_reports(self):
     xform_id = VITAMIN_A_XFORM_ID

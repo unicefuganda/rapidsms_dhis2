@@ -209,12 +209,24 @@ class H033B_Reporter(object):
       
     reported_submissions_ids = list(set(reported_submissions.values_list('submission_id',flat=True)))
     
+    reported_submissions_ids = self._exclude_soft_approved_submissions(reported_submissions_ids)
+   
     for submission_id in reported_submissions_ids : 
       valid_submission_ids.remove(submission_id)  
       
     return valid_submission_ids  
-  
-  
+    
+  def _exclude_soft_approved_submissions(self, reported_submissions_ids):
+    soft_approved_submissions = XFormSubmission.objects.filter(id__in = reported_submissions_ids, approved = True)
+
+    if soft_approved_submissions :
+      soft_approved_ids = [ reported_submissions_ids.remove(submission.id) for submission in soft_approved_submissions \
+                if submission.submission_values().order_by('modified')[0].modified > \
+                Dhis2_Reports_Submissions_Log.objects.filter(submission_id=submission.id, \
+                result=Dhis2_Reports_Submissions_Log.SUCCESS).latest('task_id').task_id.time_started ]
+    
+    return reported_submissions_ids
+    
   def _are_submissions_duplicate(self,submission1,submission2):
     return submission1.xform.id == submission2.xform.id and submission1.facility.id == submission2.facility.id
     
