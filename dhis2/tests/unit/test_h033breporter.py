@@ -10,6 +10,7 @@ from rapidsms_xforms.models import XForm, XFormField , XFormSubmission,  XFormSu
 from mtrack.models import XFormSubmissionExtras 
 from eav.models import Attribute
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log,Dhis2_Reports_Submissions_Log
+from healthmodels.models.HealthFacility import FredFacilityDetail
 from mock import *
 import urllib2
 import socket
@@ -190,7 +191,21 @@ class Test_H033B_Reporter(TestCase):
         attributes_and_values=attributes_and_values,facility = facility)
     submission.facility = facility
     self.assertRaises(LookupError, self.h033b_reporter.get_reports_data_for_submission, submission)
-  
+    
+  def test_get_reports_data_for_submission_with_non_hmis_reporting_facility(self):
+    SOME_UUID= 'uuid'
+    
+    facility= Submissions_Test_Helper.create_facility(facility_name=u'facility_xyz',dhis2_uuid=SOME_UUID)
+
+    submission = MagicMock()
+    submission.facility.uuid = SOME_UUID
+    
+    fred_map, status = FredFacilityDetail.objects.get_or_create(uuid=facility)
+    fred_map.h033b=False
+    fred_map.save()
+    
+    self.assertRaises(LookupError, self.h033b_reporter.get_reports_data_for_submission, submission)    
+
   def test_get_reports_data_for_submission(self):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}
@@ -741,6 +756,9 @@ class Test_H033B_Reporter(TestCase):
     submission.save()
   
     Submissions_Test_Helper.create_attribute_mappings_for_submission(submission)
+    
+    
+    
     self.h033b_reporter.log_submission_started()
   
     with vcr.use_cassette(FIXTURES + self.__class__.__name__ + "/" + sys._getframe().f_code.co_name + ".yaml"):

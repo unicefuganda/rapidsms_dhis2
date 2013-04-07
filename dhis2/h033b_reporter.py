@@ -9,6 +9,7 @@ from rapidsms_xforms.models import XFormSubmissionValue ,XFormSubmission
 from mtrack.models import XFormSubmissionExtras
 from datetime import timedelta,datetime
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log ,Dhis2_Reports_Submissions_Log
+from healthmodels.models.HealthFacility import FredFacilityDetail
 from xml.parsers.expat import ExpatError
 
 from celery.task.sets import TaskSet
@@ -20,6 +21,7 @@ DEFAULT_ORG_UNIT_ID_SCHEME        = u'uuid'
 ISO_8601_UTC_FORMAT               = u'%s-%s-%sT%s:%s:%sZ'
 HMIS_033B_PERIOD_ID               = u'%dW%d'
 ERROR_MESSAGE_NO_HMS_INDICATOR    = u'No valid HMS033b indicators reported for the submission.'
+ERROR_MESSAGE_NO_HMS_FACILITY    = u'Facility is not a registered HMIS033b reporter.'
 ERROR_MESSAGE_ALL_VALUES_IGNORED  = u'All values rejected by remote server.'
 ERROR_MESSAGE_SOME_VALUES_IGNORED = u'Some values rejected by remote server.'
 ERROR_MESSAGE_CONNECTION_FAILED   = u'Error communicating with the remote server.'
@@ -120,6 +122,10 @@ class H033B_Reporter(object):
     return last_sunday
   
   def get_reports_data_for_submission(self,submission,orgUnitIdScheme=DEFAULT_ORG_UNIT_ID_SCHEME):
+    orgUnit = submission.facility.uuid
+    if not FredFacilityDetail.objects.get(uuid=orgUnit).h033b:
+      raise LookupError(ERROR_MESSAGE_NO_HMS_FACILITY)
+    
     data = {}
     data['orgUnit']           = submission.facility.uuid
     data['completeDate']      = self.get_utc_time_iso8601(submission.created)
@@ -209,14 +215,14 @@ class H033B_Reporter(object):
       
     reported_submissions_ids = list(set(reported_submissions.values_list('submission_id',flat=True)))
     
-    reported_submissions_ids = self._exclude_soft_approved_submissions(reported_submissions_ids)
+    reported_submissions_ids = self._exclude_soft_approved_submissions_from_removal(reported_submissions_ids)
    
     for submission_id in reported_submissions_ids : 
       valid_submission_ids.remove(submission_id)  
       
     return valid_submission_ids  
     
-  def _exclude_soft_approved_submissions(self, reported_submissions_ids):
+  def _exclude_soft_approved_submissions_from_removal(self, reported_submissions_ids):
     soft_approved_submissions = XFormSubmission.objects.filter(id__in = reported_submissions_ids, approved = True)
 
     if soft_approved_submissions :

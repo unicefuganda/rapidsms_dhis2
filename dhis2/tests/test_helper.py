@@ -7,6 +7,7 @@ from eav.models import Attribute ,Value
 from mtrack.models import XFormSubmissionExtras
 from rapidsms_xforms.models import XFormSubmissionValue, XForm, XFormSubmission
 from dhis2.models import Dhis2_Temp_Mtrac_Indicators_Mapping
+from healthmodels.models.HealthFacility import FredFacilityDetail
 
 FIXTURES = os.path.abspath(dhis2.__path__[0]) + "/tests/fixtures/cassettes/"
 SOME_VALID_DHIS_ELEMENT_ID_AND_COMBO =  {
@@ -42,6 +43,9 @@ class Submissions_Test_Helper(object):
     facility.name = facility_name;
     facility.uuid = dhis2_uuid
     facility.save(cascade_update=False)
+    
+    FredFacilityDetail.objects.get_or_create(uuid=facility, h033b=True)
+    
     return facility
     
   @classmethod
