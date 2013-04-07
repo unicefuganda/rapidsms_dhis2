@@ -174,7 +174,7 @@ class Test_H033B_Reporter(TestCase):
         datetime(2010, 1, 7, 0, 0, 0)        : u'2010W1',
         datetime(2010, 1 , 13, 0, 0, 0)      : u'2010W2'  ,
         datetime(2010, 2, 9 , 0 , 0 , 0 )    : u'2010W6' ,
-        datetime(2010, 3 , 8 , 0 , 0 , 0 )   : u'2010W10'  ,
+        datetime(2010, 3 , 8 , 0 , 0 , 0 )   : u'2010W10' ,
         datetime(2010, 12, 31, 0, 0, 0)      : u'2010W52' ,
         datetime(2012, 1, 7, 0, 0, 0)        : u'2012W1'
        }
@@ -247,7 +247,7 @@ class Test_H033B_Reporter(TestCase):
     self.assertEquals(submission_data['dataValues'][0]['value'] ,62 )
     self.assertEquals(submission_data['dataValues'][0]['categoryOptionCombo'] ,u'BrX1bohix6a' )
   
-  @patch('rapidsms_xforms.models.XFormSubmissionValue.objects.filter')
+  @patch('rapidsms_xforms.models.XFormSubmission.submission_values')
   def test_missing_indicator_values_are_NOT_reported_in_data_for_submission(self, mock_xform_filter):
     xform_id = ACTS_XFORM_ID
     attributes_and_values = {u'epd': 53, u'eps': 62, u'fpd': 71}

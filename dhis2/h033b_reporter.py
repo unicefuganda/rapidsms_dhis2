@@ -1,6 +1,7 @@
 import settings
 import urllib2, base64
 import socket
+import csv
 from django.template import Context
 from xml.dom.minidom import parseString
 from django.template.loader import get_template as load_xml_template
@@ -133,7 +134,7 @@ class H033B_Reporter(object):
     return data
     
   def set_data_values_from_submission_value(self,data,submission):
-    submission_values  = XFormSubmissionValue.objects.filter(submission=submission)
+    submission_values  = submission.submission_values() 
     data['dataValues']    = []
         
     for submission_value in submission_values : 
@@ -269,8 +270,16 @@ class H033B_Reporter(object):
   
     return result, reported_xml, description
   
+  def write_to_csv(self, start_time, exception):
+    end_time = datetime.now()
+    f=open("/tmp/DHIS2_submission_URLError.csv", "ab")
+    csv_file = csv.writer(f)  
+    csv_file.writerow([start_time, end_time, exception])
+    f.close()  
+  
   @task
   def send_parallel_submissions_task(self, submission):
+    start_time = datetime.now()
     reported_xml = ''
     try :
       result, reported_xml, description= self.submit_report_and_log_result(submission) 
@@ -278,10 +287,12 @@ class H033B_Reporter(object):
       exception = type(e).__name__ +":"+ str(e)
       result = Dhis2_Reports_Submissions_Log.FAILED
       description = ERROR_MESSAGE_CONNECTION_FAILED + ' Exception : '+exception
+      self.write_to_csv(start_time, exception)
     except socket.timeout as e:
       exception = type(e).__name__ +":"+ str(e)
       result = Dhis2_Reports_Submissions_Log.FAILED
       description = ERROR_CONNECTION_TIMED_OUT + ' Exception : '+exception
+      self.write_to_csv(start_time, exception)
     except Exception ,e :
       exception = type(e).__name__ +":"+ str(e)
       result = Dhis2_Reports_Submissions_Log.FAILED
@@ -294,9 +305,11 @@ class H033B_Reporter(object):
       reported_xml = reported_xml,
       result = result,
       description = description)   
+    
       
  
-  def  submit_and_retry_if_celery_fails(self, submissions):    
+  def  submit_and_retry_if_celery_fails(self, submissions):
+      
     submission_task = TaskSet( self.send_parallel_submissions_task.subtask( (self, submission), retry = True,
                                retry_policy={
                                     'max_retries': settings.CELERY_NUMBER_OF_RETRIES_IN_CASE_OF_FAILURE,
