@@ -14,6 +14,7 @@ TASK_STATUS_CSS_MAPPING = {
 SUBMISSION_STATUS_CSS_MAPPING = {
   Dhis2_Reports_Submissions_Log.SUCCESS                   : 'success',
   Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA   : 'info',
+  Dhis2_Reports_Submissions_Log.NON_REPORTING_FACILITIES  : 'info',
   Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED   : 'warning',
   Dhis2_Reports_Submissions_Log.ERROR                     : 'error',
   Dhis2_Reports_Submissions_Log.FAILED                    : 'error'
