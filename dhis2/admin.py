@@ -1,5 +1,4 @@
 from django.contrib import admin
-from .models import CodeStatus, Dhis2Mapping
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping
 
 class Indicators_Mapping_Admin(admin.ModelAdmin):
