@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %} H033b Reporter Tasks | Non HMIS033b Indicators for report id "{{ task_log.id }}" {% endblock %}
+
+{% block content %}
+  <div class="container">
+      <h3>Non HMIS033b Reported Indicators, report id "<a class="task_id" href='{% url task_summary task_log.id %}'>{{ task_log.id }}</a>"</h3>
+      <div >
+      <table class="table">
+        <tr>
+          <td>
+            Started 
+          </td>          
+          <td>
+            {{ task_log.time_started|date:"M d, Y, h:i"}}
+          </td>            
+          
+        </tr>
+		{% load status_css_tag %}	
+        <tr class=" {% get_task_css task_log.status %}">
+          <td>
+            Result   
+          </td>           
+          <td >
+            {{ task_log.status|default_if_none:'' }}
+          </td>            
+          
+        </tr>
+        
+      </table>
+      </div>
+      
+     <table class="table table-hover table-bordered">
+        <thead>
+          <tr>
+            <th>
+              XForm Details
+            </th>
+            <th>
+              Number of Submissions
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          {% for xform_detail in xform_details %}
+            <tr >
+              <td>
+	              <li>Name: {{ xform_detail.xform.name|default_if_none:'' }}</li>
+                <li>id: {{ xform_detail.xform.id|default_if_none:'' }}</li>
+              </td>
+              <td>
+                {{ xform_detail.number|default_if_none:'' }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+{% endblock %}

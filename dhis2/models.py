@@ -84,6 +84,7 @@ class Dhis2_Reports_Report_Task_Log(models.Model):
 class Dhis2_Reports_Submissions_Log(models.Model):
   SUCCESS = "SUCCESS"
   INVALID_SUBMISSION_DATA  = "INVALID_SUBMISSION_DATA"
+  NON_REPORTING_FACILITIES  = "NON_REPORTING_FACILITIES"
   SOME_ATTRIBUTES_IGNORED = "SOME_ATTRIBUTES_IGNORED"
   ERROR                   = 'ERROR'
   FAILED                  = 'FAILED'

@@ -8,6 +8,8 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from healthmodels.models.HealthFacility import *
+from rapidsms_xforms.models import XForm
 
 from dhis2.h033b_reporter import *
 from dhis2.models import Dhis2_Reports_Report_Task_Log,Dhis2_Reports_Submissions_Log
@@ -22,7 +24,8 @@ RESULT_URLS = {
     Dhis2_Reports_Submissions_Log.SUCCESS                 : [' Successful submissions', ''], # we provide no urls for success -- too many and no need for them
     Dhis2_Reports_Submissions_Log.FAILED                  : [' Network failure or other failed submissions','failed'],
     Dhis2_Reports_Submissions_Log.ERROR                   : [' With invalid orgUnit or diseases ID changed','errors'],
-    Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA : [' No HMIS003b indicators',''], # invalid means, no HMIS indicators, no need to display them.
+    Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA : [' No HMIS033b indicators','non-hmis-indicators'], 
+    Dhis2_Reports_Submissions_Log.NON_REPORTING_FACILITIES : [' Non HMIS033b reporting facilities','non-hmis-facilities'], 
     Dhis2_Reports_Submissions_Log.SOME_ATTRIBUTES_IGNORED : [' Ignored', 'ignored'],
 }
 
@@ -141,3 +144,47 @@ def _generate_log_page(request, task_id, result, view_html):
 
   return render(request, view_html, teplate_data)
 
+def task_non_hmis_facilities(request,task_id):
+  task = Dhis2_Reports_Report_Task_Log.objects.get(id=task_id)
+  result = Dhis2_Reports_Submissions_Log.NON_REPORTING_FACILITIES
+  submissions_tasks = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task, result=result)
+  
+  for submission in submissions_tasks:
+    submission.reported_xml = HealthFacilityBase.objects.get(id=int(submission.reported_xml))
+  
+  paginator = Paginator(submissions_tasks, TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE)
+  page = request.GET.get('page')
+  page = int(page) if page else 1
+  
+  try:
+    task_submissions_paginator = paginator.page(page)
+  except PageNotAnInteger:
+    task_submissions_paginator = paginator.page(1)
+  except EmptyPage:
+    task_submissions_paginator = paginator.page(paginator.num_pages)
+
+  teplate_data = {
+    'task_log'  : task,
+    'task_submissions_paginator':task_submissions_paginator,
+   }
+  return render(request, 'non_hmis_facility.html', teplate_data)
+
+def task_non_hmis_indicators(request,task_id):
+  task = Dhis2_Reports_Report_Task_Log.objects.get(id=task_id)
+  result = Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA
+  submissions_tasks = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task, result=result)
+  
+  xform_list = list(set(submissions_tasks.values_list('reported_xml', flat=True)))
+  print xform_list
+  xform_detail =[]
+  for xform_id in xform_list:
+    detail={'xform': XForm.objects.get(id=int(xform_id)),
+            'number': len(submissions_tasks.filter(reported_xml=xform_id))
+            }
+    xform_detail.append(detail)        
+
+  teplate_data = {
+    'task_log'  : task,
+    'xform_details':xform_detail,
+   }
+  return render(request, 'non_hmis_facility.html', teplate_data)

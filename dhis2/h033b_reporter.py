@@ -9,6 +9,7 @@ from rapidsms_xforms.models import XFormSubmissionValue ,XFormSubmission
 from mtrack.models import XFormSubmissionExtras
 from datetime import timedelta,datetime
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log ,Dhis2_Reports_Submissions_Log
+from dhis2.custom_exceptions import *
 from healthmodels.models.HealthFacility import FredFacilityDetail
 from xml.parsers.expat import ExpatError
 
@@ -122,12 +123,13 @@ class H033B_Reporter(object):
     return last_sunday
   
   def get_reports_data_for_submission(self,submission,orgUnitIdScheme=DEFAULT_ORG_UNIT_ID_SCHEME):
-    orgUnit = submission.facility.uuid
-    if not FredFacilityDetail.objects.get(uuid=orgUnit).h033b:
-      raise LookupError(ERROR_MESSAGE_NO_HMS_FACILITY)
+    orgUnit = submission.facility
+    fred_map = FredFacilityDetail.objects.filter(uuid=orgUnit)
+    if not (fred_map  and fred_map[0].h033b):
+      raise FacilityError(ERROR_MESSAGE_NO_HMS_FACILITY, orgUnit.id)
     
     data = {}
-    data['orgUnit']           = submission.facility.uuid
+    data['orgUnit']           = orgUnit.uuid
     data['completeDate']      = self.get_utc_time_iso8601(submission.created)
     data['period']            = self.get_period_id_for_submission(submission.created)
     data['orgUnitIdScheme']   = orgUnitIdScheme
@@ -135,7 +137,7 @@ class H033B_Reporter(object):
     self.set_data_values_from_submission_value(data,submission)
     
     if not data['dataValues'] : 
-      raise LookupError(ERROR_MESSAGE_NO_HMS_INDICATOR)
+      raise DataError(ERROR_MESSAGE_NO_HMS_INDICATOR, submission.xform.id)
     
     return data
     
@@ -276,11 +278,17 @@ class H033B_Reporter(object):
       log_message = "%s\n%s"%(ERROR_MESSAGE_UNEXPECTED_RESPONSE_FROM_DHIS2,error_message)
       log_result = Dhis2_Reports_Submissions_Log.ERROR
       requestXML = e.request_xml 
-    except LookupError ,e :
+    except DataError ,e :
       error_message = type(e).__name__ +": "+ str(e)
       log_message = error_message
       log_result = Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA
-      requestXML=None
+      requestXML=e.xform
+    except FacilityError ,e :
+      error_message = type(e).__name__ +": "+ str(e)
+      log_message = error_message
+      log_result = Dhis2_Reports_Submissions_Log.NON_REPORTING_FACILITIES
+      requestXML=e.facility
+      
     
     reported_xml = requestXML if not success else None 
     result = log_result
@@ -356,7 +364,7 @@ class H033B_Reporter(object):
       description = TASK_FAILURE_DESCRIPTION
 
     self.log_submission_finished(
-        submission_count=submission_count,
+        submission_count=len(submissions),
         status= status,
         description=description)
 

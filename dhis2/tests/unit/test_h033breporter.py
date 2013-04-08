@@ -190,7 +190,7 @@ class Test_H033B_Reporter(TestCase):
     submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
         attributes_and_values=attributes_and_values,facility = facility)
     submission.facility = facility
-    self.assertRaises(LookupError, self.h033b_reporter.get_reports_data_for_submission, submission)
+    self.assertRaises(DataError, self.h033b_reporter.get_reports_data_for_submission, submission)
     
   def test_get_reports_data_for_submission_with_non_hmis_reporting_facility(self):
     SOME_UUID= 'uuid'
@@ -204,7 +204,20 @@ class Test_H033B_Reporter(TestCase):
     fred_map.h033b=False
     fred_map.save()
     
-    self.assertRaises(LookupError, self.h033b_reporter.get_reports_data_for_submission, submission)    
+    self.assertRaises(FacilityError, self.h033b_reporter.get_reports_data_for_submission, submission)    
+    
+  def test_get_reports_data_for_submission_with_non_fred_mapped_facility(self):
+    SOME_UUID= 'uuid'
+
+    facility= Submissions_Test_Helper.create_facility(facility_name=u'facility_xyz',dhis2_uuid=SOME_UUID)
+
+    submission = MagicMock()
+    submission.facility.uuid = SOME_UUID
+
+    FredFacilityDetail.objects.filter(uuid=facility).delete()
+    
+    self.assertRaises(FacilityError, self.h033b_reporter.get_reports_data_for_submission, submission)    
+    
 
   def test_get_reports_data_for_submission(self):
     xform_id = ACTS_XFORM_ID
@@ -735,9 +748,33 @@ class Test_H033B_Reporter(TestCase):
     
     result, reported_xml, description = h033b_reporter.submit_report_and_log_result(submission)
     
-    self.assertIsNone(reported_xml)
+    self.assertEquals(xform_id, reported_xml)
     self.assertEquals(result, Dhis2_Reports_Submissions_Log.INVALID_SUBMISSION_DATA)
-    self.assertIsNotNone(description, 'LookupError: '+ ERROR_MESSAGE_NO_HMS_INDICATOR)
+    self.assertTrue('DataError: '+ ERROR_MESSAGE_NO_HMS_INDICATOR in description)
+
+  def test_non_hmis_reporting_facility(self):
+    xform_id = ACTS_XFORM_ID
+    attributes_and_values_no_033b = {u'epd': 53,
+     u'tps': 44}
+
+    h033b_reporter = H033B_Reporter()
+    h033b_reporter.log_submission_started()
+    facility= Submissions_Test_Helper.create_facility(dhis2_uuid = A_VALID_DHIS2_UUID)
+    submission = Submissions_Test_Helper.create_submission_object(xform_id=xform_id,
+      attributes_and_values=attributes_and_values_no_033b,facility = facility)   
+
+    submission.facility = facility
+    submission.save()
+    
+    fred_map = FredFacilityDetail.objects.get(uuid=facility)
+    fred_map.h033b=False
+    fred_map.save()
+   
+    result, reported_xml, description = h033b_reporter.submit_report_and_log_result(submission)
+
+    self.assertEquals(facility.id, reported_xml)
+    self.assertEquals(result, Dhis2_Reports_Submissions_Log.NON_REPORTING_FACILITIES)
+    self.assertTrue('FacilityError: '+ ERROR_MESSAGE_NO_HMS_FACILITY in description)
       
   
   def test_dhis2_returns_error_for_missing_orgUnit_mapping(self):

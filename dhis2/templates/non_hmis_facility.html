@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %} H033b Reporter Tasks | Non HMIS033b Reporting Facilities for report id "{{ task_log.id }}" {% endblock %}
+
+{% block content %}
+  <div class="container">
+      <h3>Submissions from non HMIS033b reporting facility, report id "<a class="task_id" href='{% url task_summary task_log.id %}'>{{ task_log.id }}</a>"</h3>
+      <div >
+      <table class="table">
+        <tr>
+          <td>
+            Started 
+          </td>          
+          <td>
+            {{ task_log.time_started|date:"M d, Y, h:i"}}
+          </td>            
+          
+        </tr>
+		{% load status_css_tag %}	
+        <tr class=" {% get_task_css task_log.status %}">
+          <td>
+            Result   
+          </td>           
+          <td >
+            {{ task_log.status|default_if_none:'' }}
+          </td>            
+          
+        </tr>
+        
+      </table>
+      </div>
+      
+     <table class="table table-hover table-bordered">
+        <thead>
+          <tr>
+            <th>
+              Submissions ID
+            </th>
+            <th>
+              Facility Details
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          {% for task_submission in task_submissions_paginator.object_list %}
+            <tr class=" {% get_submission_css task_submission.result %}">
+              <td>
+                {{ task_submission.submission_id|default_if_none:'' }}
+              </td>
+              <td>
+                <li>Name: {{ task_submission.reported_xml.name|default_if_none:'' }}</li>
+                <li>uuid: {{ task_submission.reported_xml.uuid|default_if_none:'' }}</li>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if task_submissions_paginator.object_list > 0 %}
+      <div class="pagination">
+          <ul>
+          {% if task_submissions_paginator.has_previous %}
+              <li><a href="?page={{ task_submissions_paginator.previous_page_number }}{{ getvars }}{{ hashtag }}" class="prev">&lsaquo;&lsaquo; Prev</a></li>
+          {% else %}
+              <li class="disabled prev"><a href="#">&lsaquo;&lsaquo; Prev</a></li>
+          {% endif %}
+           <li  class="disabled prev">
+             <a href="#">
+              {{ task_submissions_paginator }}
+             </a>
+           </li>
+          {% if task_submissions_paginator.has_next %}
+              <li><a href="?page={{ task_submissions_paginator.next_page_number }}{{ getvars }}{{ hashtag }}" class="next">Next &rsaquo;&rsaquo;</a></li>
+          {% else %}
+              <li class="disabled next"><a href="#">Next &rsaquo;&rsaquo;</a></li>
+          {% endif %}
+          </ul>
+      </div>
+      {% endif %}
+{% endblock %}
