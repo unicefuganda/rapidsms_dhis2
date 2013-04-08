@@ -46,8 +46,8 @@
           {% for xform_detail in xform_details %}
             <tr >
               <td>
-	              <li>Name: {{ xform_detail.xform.name|default_if_none:'' }}</li>
-                <li>id: {{ xform_detail.xform.id|default_if_none:'' }}</li>
+	              <li><b>Name:</b> {{ xform_detail.xform.name|default_if_none:'' }}</li>
+                <li><b>id:</b> {{ xform_detail.xform.id|default_if_none:'' }}</li>
               </td>
               <td>
                 {{ xform_detail.number|default_if_none:'' }}

@@ -33,16 +33,7 @@ def index(request):
   task_logs = _get_tasks_view_data()
   sorter_by_start_time = lambda data : data.time_started
   task_logs = sorted(task_logs,key=sorter_by_start_time, reverse=True)
-  paginator = Paginator(task_logs, TASK_LOG_RECORDS_PER_PAGE)
-  page = request.GET.get('page')
-  page = int(page) if page else 1
-  
-  try:
-    task_logs_paginator = paginator.page(page)
-  except PageNotAnInteger:
-    task_logs_paginator = paginator.page(1)
-  except EmptyPage:
-    task_logs_paginator = paginator.page(paginator.num_pages)
+  task_logs_paginator = _paginate(request, task_logs)
   
   return render(request, 'h033b_reporter_index.html', {'tasks_logs_paginator':task_logs_paginator})
 
@@ -89,7 +80,7 @@ def resubmit_failed(request, task_id):
   submissions = h033b_reporter.set_submissions_facility(submissions)
  
   submit_reports_now_task.delay(submissions)
-  messages.success(request, "Submission has started! Refresh in few minutes.")
+  messages.success(request, "Submission has started! Please refresh in few minutes.")
   return redirect(reverse('dhis2_reporter_index_page'))     
   
 
@@ -124,23 +115,14 @@ def _get_task_details(task):
 def _generate_log_page(request, task_id, result, view_html):
   task = Dhis2_Reports_Report_Task_Log.objects.get(id=task_id)
   submissions_tasks = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task, result=result)
-  paginator = Paginator(submissions_tasks, TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE)
-  page = request.GET.get('page')
-  page = int(page) if page else 1
-  
+  task_submissions_paginator = _paginate(request, submissions_tasks)
+
   task.show_resubmit_button= Dhis2_Reports_Submissions_Log.objects.filter(task_id=task, result=Dhis2_Reports_Submissions_Log.FAILED)
-
-  try:
-    task_submissions_paginator = paginator.page(page)
-  except PageNotAnInteger:
-    task_submissions_paginator = paginator.page(1)
-  except EmptyPage:
-    task_submissions_paginator = paginator.page(paginator.num_pages)
-
+ 
   teplate_data = {
     'task_log'  : task,
     'task_submissions_paginator':task_submissions_paginator,
-  }
+    }
 
   return render(request, view_html, teplate_data)
 
@@ -149,20 +131,19 @@ def task_non_hmis_facilities(request,task_id):
   result = Dhis2_Reports_Submissions_Log.NON_REPORTING_FACILITIES
   submissions_tasks = Dhis2_Reports_Submissions_Log.objects.filter(task_id=task, result=result)
   
-  for submission in submissions_tasks:
-    submission.reported_xml = HealthFacilityBase.objects.get(id=int(submission.reported_xml))
+  facility_list = list(set(submissions_tasks.values_list('reported_xml', flat=True)))
+  non_hmis_data =[]
   
-  paginator = Paginator(submissions_tasks, TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE)
-  page = request.GET.get('page')
-  page = int(page) if page else 1
-  
-  try:
-    task_submissions_paginator = paginator.page(page)
-  except PageNotAnInteger:
-    task_submissions_paginator = paginator.page(1)
-  except EmptyPage:
-    task_submissions_paginator = paginator.page(paginator.num_pages)
-
+  for facility_id in facility_list:
+    associated_facility = submissions_tasks.filter(reported_xml = facility_id)
+    submission_ids = list(set(associated_facility.values_list('id', flat=True)))
+    facility ={'facility': HealthFacilityBase.objects.get(id=facility_id),
+                'submission': str(submission_ids).strip('[]')
+                }
+    non_hmis_data.append(facility)
+ 
+  task_submissions_paginator = _paginate(request, non_hmis_data)
+ 
   teplate_data = {
     'task_log'  : task,
     'task_submissions_paginator':task_submissions_paginator,
@@ -187,4 +168,19 @@ def task_non_hmis_indicators(request,task_id):
     'task_log'  : task,
     'xform_details':xform_detail,
    }
-  return render(request, 'non_hmis_facility.html', teplate_data)
+  return render(request, 'non_hmis_indicators.html', teplate_data)
+
+def _paginate(request, submissions_tasks):
+  paginator = Paginator(submissions_tasks, TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE)
+  page = request.GET.get('page')
+  page = int(page) if page else 1
+  
+  try:
+    task_submissions_paginator = paginator.page(page)
+  except PageNotAnInteger:
+    task_submissions_paginator = paginator.page(1)
+  except EmptyPage:
+    task_submissions_paginator = paginator.page(paginator.num_pages)
+  
+  return task_submissions_paginator
+    

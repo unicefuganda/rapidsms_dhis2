@@ -34,23 +34,23 @@
         <thead>
           <tr>
             <th>
-              Submissions ID
+	            Facility Details
             </th>
             <th>
-              Facility Details
-            </th>
+               Submissions IDs
+	           </th>
           </tr>
         </thead>
         <tbody>
           
-          {% for task_submission in task_submissions_paginator.object_list %}
-            <tr class=" {% get_submission_css task_submission.result %}">
+          {% for facility in task_submissions_paginator.object_list %}
+            <tr >
               <td>
-                {{ task_submission.submission_id|default_if_none:'' }}
+	              <li><b>Name:</b> {{ facility.facility.name|default_if_none:'' }}</li>
+                <li><b>uuid:</b> {{ facility.facility.uuid|default_if_none:'' }}</li>
               </td>
               <td>
-                <li>Name: {{ task_submission.reported_xml.name|default_if_none:'' }}</li>
-                <li>uuid: {{ task_submission.reported_xml.uuid|default_if_none:'' }}</li>
+	                {{ facility.submission|default_if_none:'' }}
               </td>
             </tr>
           {% endfor %}
