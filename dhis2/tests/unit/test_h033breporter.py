@@ -1061,23 +1061,18 @@ class Test_H033B_Reporter(TestCase):
     Dhis2_Reports_Submissions_Log.objects.all().delete
 
     h033b_reporter = H033B_Reporter()
-    FAKE_SUBMISSION_LIST_OF_LENGTH_TWO = ['fake_submission']
-    SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED = 2
+    FAKE_SUBMISSION_LIST = ['fake_submission']
 
     mocked_current_task = Dhis2_Reports_Report_Task_Log.objects.create()
     mock_log_started.return_value = mocked_current_task
     h033b_reporter.current_task = mocked_current_task
 
-    sub_job = MagicMock()
-    sub_job.completed_count = MagicMock(return_value=SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
-    mocked_submit.return_value = sub_job
-
     mock_success_log.return_value = []
 
-    h033b_reporter.submit_and_log_task_now(FAKE_SUBMISSION_LIST_OF_LENGTH_TWO)
+    h033b_reporter.submit_and_log_task_now(FAKE_SUBMISSION_LIST)
   
     self.assertEquals(len(Dhis2_Reports_Report_Task_Log.objects.all()), 1)
-    self.assertEquals(mocked_current_task.number_of_submissions ,   SOME_NUMBER_I_DONT_CARE_WHAT_VALUE_IT_IS_BECAUSE_MOCKED)
+    self.assertEquals(mocked_current_task.number_of_submissions ,   len(FAKE_SUBMISSION_LIST))
     self.assertEquals(mocked_current_task.status , Dhis2_Reports_Report_Task_Log.SUCCESS)
     self.assertEquals(mocked_current_task.description, '')    
       
