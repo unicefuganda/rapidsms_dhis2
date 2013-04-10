@@ -15,7 +15,7 @@ from dhis2.h033b_reporter import *
 from dhis2.models import Dhis2_Reports_Report_Task_Log,Dhis2_Reports_Submissions_Log
 from dhis2.reports_submission_tasks import *
 
-import datetime
+from datetime import datetime, timedelta
 
 TASK_LOG_RECORDS_PER_PAGE = 10
 TASK_SUBMISSIONS_LOG_RECORDS_PER_PAGE = 10
@@ -68,8 +68,9 @@ def task_summary(request,task_id):
   return render(request, 'submission_summary.html', teplate_data)
   
 def resubmit_failed(request, task_id):
-  if Dhis2_Reports_Report_Task_Log.objects.filter(status = Dhis2_Reports_Report_Task_Log.RUNNING):
-    messages.error(request, "Submission aborted: other indicators submission in progress! relaunch submission in a few minutes.")
+  running_tasks = Dhis2_Reports_Report_Task_Log.objects.filter(status = Dhis2_Reports_Report_Task_Log.RUNNING)
+  if running_tasks and datetime.now()-running_tasks.latest('time_started').time_started < timedelta(hours=2):
+    messages.error(request, "Submission aborted: other submissions launched less than two hours ago! Relaunch submission later.")
     return redirect(reverse('dhis2_reporter_index_page'))     
   
   h033b_reporter = H033B_Reporter()
@@ -89,7 +90,7 @@ def _get_tasks_view_data():
   data = []
   for task in tasks : 
     task_view_data = task
-    task.time_finished = task.time_finished if task.time_finished else datetime.datetime.now() 
+    task.time_finished = task.time_finished if task.time_finished else datetime.now() 
     running_time_in_minutes = (task.time_finished - task.time_started).seconds/60 
     task_view_data.running_time = str(running_time_in_minutes)+' minutes'  
     task_view_data.details = _get_task_details(task)   

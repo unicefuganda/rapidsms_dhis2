@@ -12,15 +12,9 @@ from settings import *
 
 DHIS2_CONNECTION_CONFIG = {
     'urls': {
-        'diseases': DHIS2_BASE_URL+'/api/dataSets/V1kJRs8CtW4',
+        'diseases': DHIS2_HMIS033b_INDICATOR_URL,
         'categoryComboUrlBase' : DHIS2_BASE_URL+'/api/categoryCombos/'
     },
-    "combo_ids" : {
-        'diseases': '92DkrSOchnL',
-        'act':  '6WfcY8YJ73L',
-        'treat':'uh4pYNd1CSv',
-        'test': 'IohHeDqzJk1'
-        },
     'user': DHIS2_REPORTER_USERNAME,
     'password': DHIS2_REPORTER_PASSWORD,
     'content-type': 'json'
