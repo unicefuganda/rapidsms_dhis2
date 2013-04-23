@@ -296,16 +296,8 @@ class H033B_Reporter(object):
   
     return result, reported_xml, description
   
-  def write_to_csv(self, start_time, exception):
-    end_time = datetime.now()
-    f=open("/tmp/DHIS2_submission_URLError.csv", "ab")
-    csv_file = csv.writer(f)  
-    csv_file.writerow([start_time, end_time, exception])
-    f.close()  
-  
   @task
   def send_parallel_submissions_task(self, submission):
-    start_time = datetime.now()
     reported_xml = ''
     try :
       result, reported_xml, description= self.submit_report_and_log_result(submission) 
@@ -313,12 +305,10 @@ class H033B_Reporter(object):
       exception = type(e).__name__ +":"+ str(e)
       result = Dhis2_Reports_Submissions_Log.FAILED
       description = ERROR_MESSAGE_CONNECTION_FAILED + ' Exception : '+exception
-      self.write_to_csv(start_time, exception)
     except socket.timeout as e:
       exception = type(e).__name__ +":"+ str(e)
       result = Dhis2_Reports_Submissions_Log.FAILED
       description = ERROR_CONNECTION_TIMED_OUT + ' Exception : '+exception
-      self.write_to_csv(start_time, exception)
     except Exception ,e :
       exception = type(e).__name__ +":"+ str(e)
       result = Dhis2_Reports_Submissions_Log.FAILED
