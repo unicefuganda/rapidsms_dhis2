@@ -5,6 +5,7 @@ from dhis2.h033b_reporter import H033B_Reporter
 from pgq import producer
 import datetime
 import psycopg2
+import psycopg2.extras
 
 
 class Command(BaseCommand):
@@ -51,6 +52,11 @@ class Command(BaseCommand):
         last_monday = self.h033b_reporter.get_last_sunday(date) + datetime.timedelta(days=1)
         last_monday_at_midnight = datetime.datetime(last_monday.year, last_monday.month, last_monday.day, 0, 0, 0)
         submissions_for_last_week = self.h033b_reporter.get_submissions_in_date_range(last_monday_at_midnight, date)
+        #exclude those successfully sent
+        [
+            submissions_for_last_week.remove(x) for x in submissions_for_last_week
+            if x.id in self.get_already_sent_submissions(last_monday_at_midnight, date)
+        ]
         return submissions_for_last_week
 
     def log_submission_status(self, subid, status="", status_code="", errmsg=""):
@@ -60,6 +66,12 @@ class Command(BaseCommand):
             " VALUES (%s, %s, %s, %s)")
         cur.execute(q, [subid, status, status_code, errmsg])
         self.conn.commit()
+
+    def get_already_sent_submissions(self, start_date, end_date):
+        cur = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        q = ("SELECT distinct submission_id FROM submissions_log WHERE status = %s AND cdate BETWEEN %s AND %s")
+        cur.execute(q, ['SUCCESS', start_date, end_date])
+        return [r['submission_id'] for r in cur.fetchall()]
 
     def queue_submissions(self, submissions):
         curs = self.conn.cursor()
