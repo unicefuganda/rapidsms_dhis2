@@ -1,6 +1,7 @@
-<dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" dataSet="V1kJRs8CtW4" completeDate="{{ completeDate }}" period="{{ period }}"
-  orgUnitIdScheme="{{ orgUnitIdScheme }}" orgUnit="{{ orgUnit }}">
+<dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" dataSet="V1kJRs8CtW4" completeDate="{{ completeDate }}" period="{{ period }}" orgUnitIdScheme="{{ orgUnitIdScheme }}" orgUnit="{{ orgUnit }}">
+  <dataValues>
   {% for dataValue in dataValues %}
     <dataValue dataElement="{{ dataValue.dataElement }}" categoryOptionCombo= "{{dataValue.categoryOptionCombo}}" value="{{ dataValue.value }}" />
   {% endfor %}
+  </dataValues>
 </dataValueSet>
