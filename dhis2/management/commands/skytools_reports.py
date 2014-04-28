@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from optparse import make_option
 from django.conf import settings
 from dhis2.h033b_reporter import H033B_Reporter
-from pgq import producer
 import datetime
 import psycopg2
 import psycopg2.extras
@@ -24,9 +23,15 @@ class Command(BaseCommand):
     EVENT_FIELDS = ['time', 'type', 'data', 'extra1']
     QUEUE_NAME = 'dhis2api'
     h033b_reporter = H033B_Reporter()
-    conn = psycopg2.connect(getattr(settings, "PGQ_DB_CONNECTION_STRING", "dbname=skytools user=postgres"))
+    serverid = 1
+    year = datetime.datetime.now().year
+    week = 0
+    conn = psycopg2.connect(getattr(
+        settings, "PGQ_DB_CONNECTION_STRING", "dbname=skytools user=postgres"))
 
     def handle(self, *args, **opts):
+        self.year = opts['year']
+        self.week = opts['week']  # for tracking in queue
         if opts['date']:
             year = opts['year']
             start_date = datetime.datetime.strptime(opts['date'], '%Y-%m-%d')
@@ -34,7 +39,12 @@ class Command(BaseCommand):
         if opts['week']:
             year = opts['year']
             start_date, end_date = self.get_week_days(int(year), int(opts['week']))
-        print year, start_date, end_date
+        #print year, start_date, end_date
+        cur = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute("SELECT id FROM servers WHERE name = 'dhis2'")
+        res = cur.fetchone()
+        if res:
+            self.serverid = res['id']
         submissions = self.get_submissions_for_week(date=end_date)
         self.queue_submissions(submissions)
         self.conn.close()
@@ -50,13 +60,11 @@ class Command(BaseCommand):
 
     def get_submissions_for_week(self, date=datetime.datetime.now()):
         last_monday = self.h033b_reporter.get_last_sunday(date) + datetime.timedelta(days=1)
-        last_monday_at_midnight = datetime.datetime(last_monday.year, last_monday.month, last_monday.day, 0, 0, 0)
-        submissions_for_last_week = self.h033b_reporter.get_submissions_in_date_range(last_monday_at_midnight, date)
-        #exclude those successfully sent
-        [
-            submissions_for_last_week.remove(x) for x in submissions_for_last_week
-            if x.id in self.get_already_sent_submissions(last_monday_at_midnight, date)
-        ]
+        last_monday_at_midnight = datetime.datetime(
+            last_monday.year, last_monday.month, last_monday.day, 0, 0, 0)
+        submissions_for_last_week = self.h033b_reporter.get_submissions_in_date_range(
+            last_monday_at_midnight, date)
+
         return submissions_for_last_week
 
     def log_submission_status(self, subid, status="", status_code="", errmsg=""):
@@ -74,16 +82,31 @@ class Command(BaseCommand):
         return [r['submission_id'] for r in cur.fetchall()]
 
     def queue_submissions(self, submissions):
-        curs = self.conn.cursor()
-        time = datetime.datetime.now()
-        submission_rows = []
+        cur = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         for sub in submissions:
             try:
+                cur.execute(
+                    "SELECT id, status, xml_is_well_formed(request_body) "
+                    "FROM requests where submissionid = %s FOR UPDATE NOWAIT" % sub.id)
+                res = cur.fetchone()
+                # do not send what already exists
+                if res:
+                    if not res['xml_is_well_formed']:
+                        continue
+                    if res['status'] != 'ready':  # not ready for processing - retry
+                        cur.execute(
+                            "UPDATE requests SET status = 'ready', retries = retries + 1")
+                        self.conn.commit()
+                    continue
                 data = self.h033b_reporter.get_reports_data_for_submission(sub)
                 xml = self.h033b_reporter.generate_xml_report(data)
-                submission_rows.append([time, 'submission', xml, sub.id])
+                cur.execute(
+                    "INSERT INTO requests (serverid, request_body, submissionid, week, year) "
+                    "VALUES(%s, %s, %s, %s, %s)", (self.serverid, xml, sub.id, self.week, self.year))
             except Exception, e:
-                self.log_submission_status(sub.id, status="ERROR", status_code=400, errmsg="%s" % str(e))
-        #now queue stuff in skytools DB
-        producer.bulk_insert_events(curs, submission_rows, self.EVENT_FIELDS, self.QUEUE_NAME)
+                cur.execute(
+                    "INSERT INTO requests(serverid, submissionid, status, statuscode, "
+                    " errmsg, week, year) "
+                    "VALUES(%s, %s, %s, %s, %s, %s, %s)", (
+                        self.serverid, sub.id, 'failed', 'ERROR4', str(e), self.week, self.year))
         self.conn.commit()
