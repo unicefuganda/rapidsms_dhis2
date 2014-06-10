@@ -93,9 +93,10 @@ class Command(BaseCommand):
                 if res:
                     if not res['xml_is_well_formed']:
                         continue
-                    if res['status'] != 'ready':  # not ready for processing - retry
+                    if res['status'] != 'ready' and res['status'] != 'completed':  # not ready for processing - retry
                         cur.execute(
-                            "UPDATE requests SET status = 'ready', retries = retries + 1")
+                            "UPDATE requests SET status = 'ready', retries = retries + 1"
+                            " WHERE submissionid = %s" % sub.id)
                         self.conn.commit()
                     continue
                 data = self.h033b_reporter.get_reports_data_for_submission(sub)
