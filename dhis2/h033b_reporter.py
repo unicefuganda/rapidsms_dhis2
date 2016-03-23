@@ -112,9 +112,19 @@ class H033B_Reporter(object):
     weekday = int(date.strftime("%W")) + 1
     return HMIS_033B_PERIOD_ID%(year,weekday)
     
+  # @classmethod
+  # def get_period_id_for_submission(self,date):
+  #  return self.get_week_period_id_for_sunday(self.get_last_sunday(date))
+
   @classmethod
-  def get_period_id_for_submission(self,date):
-    return self.get_week_period_id_for_sunday(self.get_last_sunday(date))   
+  def get_period_id_for_submission(self, date):
+    """Given date, return the reporting week in the format 2016W01
+    reports coming in this week are for previous one.
+    """
+    offset_from_last_sunday = date.weekday() + 1
+    last_sunday = date - datetime.timedelta(days=offset_from_last_sunday)
+    year, weeknum, _ = last_sunday.isocalendar()
+    return "%sW%d" % (year, weeknum)
     
   @classmethod
   def get_last_sunday(self, date):
