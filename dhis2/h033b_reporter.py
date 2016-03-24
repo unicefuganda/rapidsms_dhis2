@@ -7,7 +7,7 @@ from xml.dom.minidom import parseString
 from django.template.loader import get_template as load_xml_template
 from rapidsms_xforms.models import XFormSubmissionValue ,XFormSubmission
 from mtrack.models import XFormSubmissionExtras
-from datetime import timedelta,datetime
+from datetime import timedelta, datetime
 from dhis2.models import Dhis2_Mtrac_Indicators_Mapping ,Dhis2_Reports_Report_Task_Log ,Dhis2_Reports_Submissions_Log
 from dhis2.custom_exceptions import *
 from healthmodels.models.HealthFacility import FredFacilityDetail
@@ -122,7 +122,7 @@ class H033B_Reporter(object):
     reports coming in this week are for previous one.
     """
     offset_from_last_sunday = date.weekday() + 1
-    last_sunday = date - datetime.timedelta(days=offset_from_last_sunday)
+    last_sunday = date - timedelta(days=offset_from_last_sunday)
     year, weeknum, _ = last_sunday.isocalendar()
     return "%sW%d" % (year, weeknum)
     
