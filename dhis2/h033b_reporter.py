@@ -166,7 +166,7 @@ class H033B_Reporter(object):
         attribute = submission_value.attribute
         dhis2_mapping = Dhis2_Mtrac_Indicators_Mapping.objects.filter(eav_attribute=attribute)
 
-        if dhis2_mapping and submission_value.value:
+        if dhis2_mapping and '%s' % submission_value.value:
             element_id = dhis2_mapping[0].dhis2_uuid
             combo_id = dhis2_mapping[0].dhis2_combo_id
             data_value['dataElement'] = element_id
